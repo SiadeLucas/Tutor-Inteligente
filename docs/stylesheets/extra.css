@@ -1,0 +1,310 @@
+/* ============================================
+   Tutor Inteligente - Global Theme
+   ============================================ */
+
+/* --- CSS Custom Properties --- */
+:root {
+  --ti-deep: #E65100;
+  --ti-primary-dark: #EF6C00;
+  --ti-primary: #F57C00;
+  --ti-primary-light: #FB8C00;
+  --ti-accent: #FFB74D;
+  --ti-tint: #FFF3E0;
+  --ti-gradient: linear-gradient(135deg, #E65100 0%, #EF6C00 30%, #FB8C00 70%, #FFB74D 100%);
+  --ti-gradient-subtle: linear-gradient(135deg, #F57C00 0%, #FB8C00 100%);
+  --ti-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #F57C00;
+  --md-primary-fg-color--light: #FB8C00;
+  --md-primary-fg-color--dark: #EF6C00;
+  --md-accent-fg-color: #FB8C00;
+  --md-accent-fg-color--transparent: rgba(251, 140, 0, 0.12);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #FFB74D;
+  --md-primary-fg-color--light: #FFCC80;
+  --md-primary-fg-color--dark: #FB8C00;
+  --md-accent-fg-color: #FFB74D;
+  --md-accent-fg-color--transparent: rgba(255, 183, 77, 0.12);
+  --md-default-bg-color: #1a1408;
+  --md-default-bg-color--light: #221c0e;
+  --md-default-bg-color--lighter: #2a2214;
+}
+
+/* --- Typography --- */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Header --- */
+.md-header {
+  background: var(--ti-gradient-subtle);
+  box-shadow: 0 2px 16px rgba(230, 81, 0, 0.25);
+  transition: box-shadow var(--ti-transition);
+}
+
+.md-header[data-md-state="shadow"] {
+  box-shadow: 0 4px 24px rgba(230, 81, 0, 0.35);
+}
+
+.md-header__title {
+  font-weight: 600;
+}
+
+/* --- Navigation Tabs --- */
+.md-tabs {
+  background: var(--ti-primary-dark);
+}
+
+.md-tabs__link {
+  opacity: 0.8;
+  transition: opacity var(--ti-transition), border-bottom var(--ti-transition);
+}
+
+.md-tabs__link:hover,
+.md-tabs__link--active {
+  opacity: 1;
+}
+
+.md-tabs__link--active {
+  border-bottom: 3px solid var(--ti-accent);
+  font-weight: 600;
+}
+
+/* --- Sidebar --- */
+.md-sidebar__scrollwrap {
+  scrollbar-color: var(--ti-accent) transparent;
+}
+
+.md-nav__link {
+  transition: color var(--ti-transition), padding-left var(--ti-transition);
+  border-radius: 4px;
+}
+
+.md-nav__link:hover {
+  color: var(--ti-primary-light) !important;
+  background: var(--md-accent-fg-color--transparent);
+}
+
+.md-nav__item--active>.md-nav__link {
+  color: var(--ti-primary) !important;
+  font-weight: 600;
+  border-left: 3px solid var(--ti-primary);
+  padding-left: 0.6rem;
+}
+
+[data-md-color-scheme="slate"] .md-nav__item--active>.md-nav__link {
+  color: var(--ti-accent) !important;
+  border-left-color: var(--ti-accent);
+}
+
+/* --- Content Links --- */
+.md-typeset a:not(.md-button):not(.headerlink) {
+  color: var(--ti-primary-light);
+  text-decoration: none;
+  background-image: linear-gradient(var(--ti-accent), var(--ti-accent));
+  background-size: 0% 2px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size var(--ti-transition), color var(--ti-transition);
+}
+
+.md-typeset a:not(.md-button):not(.headerlink):hover {
+  color: var(--ti-primary-dark);
+  background-size: 100% 2px;
+}
+
+[data-md-color-scheme="slate"] .md-typeset a:not(.md-button):not(.headerlink) {
+  color: var(--ti-accent);
+}
+
+[data-md-color-scheme="slate"] .md-typeset a:not(.md-button):not(.headerlink):hover {
+  color: #FFCC80;
+}
+
+/* --- Buttons --- */
+.md-typeset .md-button--primary {
+  background: var(--ti-gradient-subtle);
+  border: none;
+  color: white;
+  transition: transform var(--ti-transition), box-shadow var(--ti-transition);
+}
+
+.md-typeset .md-button--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(230, 81, 0, 0.4);
+}
+
+/* --- Admonitions --- */
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-color: var(--ti-primary);
+}
+
+.md-typeset .note>.admonition-title,
+.md-typeset .note>summary {
+  background-color: rgba(245, 124, 0, 0.1);
+}
+
+.md-typeset .note>.admonition-title::before,
+.md-typeset .note>summary::before {
+  background-color: var(--ti-primary);
+}
+
+.md-typeset .admonition.info,
+.md-typeset details.info {
+  border-color: var(--ti-primary-light);
+}
+
+.md-typeset .info>.admonition-title,
+.md-typeset .info>summary {
+  background-color: rgba(251, 140, 0, 0.1);
+}
+
+.md-typeset .info>.admonition-title::before,
+.md-typeset .info>summary::before {
+  background-color: var(--ti-primary-light);
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: var(--ti-accent);
+}
+
+.md-typeset .tip>.admonition-title,
+.md-typeset .tip>summary {
+  background-color: rgba(255, 183, 77, 0.1);
+}
+
+.md-typeset .tip>.admonition-title::before,
+.md-typeset .tip>summary::before {
+  background-color: var(--ti-accent);
+}
+
+/* --- Code Blocks --- */
+.md-typeset code {
+  background: var(--ti-tint);
+  border: 1px solid #FFCC80;
+  color: var(--ti-deep);
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+  font-size: 0.85em;
+}
+
+[data-md-color-scheme="slate"] .md-typeset code {
+  background: rgba(255, 183, 77, 0.1);
+  border-color: rgba(255, 183, 77, 0.2);
+  color: #FFCC80;
+}
+
+.md-typeset pre>code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+.md-typeset .highlight {
+  border-left: 3px solid var(--ti-primary-light);
+  border-radius: 0 6px 6px 0;
+}
+
+.md-typeset .md-clipboard:hover {
+  color: var(--ti-primary-light);
+}
+
+/* --- Tables --- */
+.md-typeset table:not(.highlighttable):not(.rouge-table) th {
+  background: var(--ti-tint);
+  color: var(--ti-deep);
+  font-weight: 600;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not(.highlighttable):not(.rouge-table) th {
+  background: rgba(255, 183, 77, 0.12);
+  color: #FFCC80;
+}
+
+.md-typeset table:not(.highlighttable):not(.rouge-table) tr:hover td {
+  background: rgba(255, 243, 224, 0.5);
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not(.highlighttable):not(.rouge-table) tr:hover td {
+  background: rgba(255, 183, 77, 0.06);
+}
+
+/* --- Search --- */
+.md-search__input:focus {
+  border-bottom: 2px solid var(--ti-primary-light);
+}
+
+.md-search-result__link:hover {
+  background: var(--ti-tint);
+}
+
+[data-md-color-scheme="slate"] .md-search-result__link:hover {
+  background: rgba(255, 183, 77, 0.1);
+}
+
+/* --- Task lists --- */
+.md-typeset .task-list-indicator:checked {
+  background-color: var(--ti-primary-light);
+}
+
+/* --- Scrollbar (webkit) --- */
+::-webkit-scrollbar-thumb {
+  background: var(--ti-accent);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ti-primary-light);
+}
+
+/* --- Back to top button --- */
+.md-top {
+  background: var(--ti-primary) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(230, 81, 0, 0.3);
+  transition: transform var(--ti-transition), box-shadow var(--ti-transition);
+}
+
+.md-top:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(230, 81, 0, 0.45);
+}
+
+/* --- Footer --- */
+.md-footer {
+  background: var(--ti-primary-dark);
+}
+
+[data-md-color-scheme="slate"] .md-footer {
+  background: #1a1408;
+}
+
+/* --- TOC active --- */
+.md-nav__link--passed,
+.md-nav__link:focus {
+  color: var(--ti-primary-light);
+}
+
+/* --- Selection --- */
+::selection {
+  background: rgba(255, 183, 77, 0.35);
+}
+
+/* --- Smooth transitions for theme toggle --- */
+body,
+.md-header,
+.md-tabs,
+.md-sidebar,
+.md-footer,
+.md-typeset {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}

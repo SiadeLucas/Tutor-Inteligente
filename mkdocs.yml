@@ -1,0 +1,115 @@
+site_name: Tutor Inteligente
+site_description: Plataforma EAD de Matemática do 2º Grau - Documentação do Projeto
+
+nav:
+  - Início: index.md
+  - Conhecimento:
+    - knowledge/index.md
+    - knowledge/project-context.md
+    - knowledge/data-architecture.md
+  - Módulos:
+    - modules/index.md
+    - Onboarding:
+      - "Visão Geral": modules/onboarding/index.md
+      - "Fluxo": modules/onboarding/flow.md
+      - "Regras de Negócio": modules/onboarding/business-rules.md
+    - Interface:
+      - "Visão Geral": modules/interface/index.md
+      - "Fluxo": modules/interface/flow.md
+      - "Regras de Negócio": modules/interface/business-rules.md
+    - Pagamento:
+      - "Visão Geral": modules/pagamento/index.md
+      - "Fluxo": modules/pagamento/flow.md
+      - "Regras de Negócio": modules/pagamento/business-rules.md
+    - Conteúdo:
+      - "Visão Geral": modules/conteudo/index.md
+      - "Fluxo": modules/conteudo/flow.md
+      - "Regras de Negócio": modules/conteudo/business-rules.md
+    - Autenticação:
+      - "Visão Geral": modules/autenticacao/index.md
+      - "Fluxo": modules/autenticacao/flow.md
+      - "Regras de Negócio": modules/autenticacao/business-rules.md
+    - Progresso / Desempenho:
+      - "Visão Geral": modules/progresso/index.md
+      - "Fluxo": modules/progresso/flow.md
+      - "Regras de Negócio": modules/progresso/business-rules.md
+    - Exercícios / Avaliações:
+      - "Visão Geral": modules/exercicios/index.md
+      - "Fluxo": modules/exercicios/flow.md
+      - "Regras de Negócio": modules/exercicios/business-rules.md
+    - Painel do Professor:
+      - "Visão Geral": modules/painel-professor/index.md
+      - "Fluxo": modules/painel-professor/flow.md
+      - "Regras de Negócio": modules/painel-professor/business-rules.md
+  - Sistemas:
+    - systems/index.md
+  - Roadmap:
+    - roadmap/index.md
+    - roadmap/gamificacao.md
+    - roadmap/notificacoes.md
+    - roadmap/suporte.md
+
+theme:
+  name: material
+  custom_dir: overrides
+  language: pt-BR
+  palette:
+    - scheme: default
+      primary: orange
+      accent: deep orange
+      toggle:
+        icon: material/brightness-7
+        name: Modo escuro
+    - scheme: slate
+      primary: orange
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Modo claro
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.path
+    - navigation.indexes
+    - navigation.prune
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/glassmorphism.css
+  - stylesheets/home.css
+
+plugins:
+  - search
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true

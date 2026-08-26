@@ -1,0 +1,91 @@
+/* ============================================
+   Tutor Inteligente - Glassmorphism Utilities
+   ============================================ */
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 183, 77, 0.2);
+  border-radius: 16px;
+  box-shadow:
+    0 4px 24px rgba(230, 81, 0, 0.08),
+    0 1px 4px rgba(230, 81, 0, 0.04);
+  transition:
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.35s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(251, 140, 0, 0.35);
+  box-shadow:
+    0 16px 48px rgba(230, 81, 0, 0.15),
+    0 8px 24px rgba(245, 124, 0, 0.1),
+    0 0 0 1px rgba(255, 183, 77, 0.15);
+}
+
+/* Glow variant */
+.glass-card--glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card--glow::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 18px;
+  background: linear-gradient(
+    135deg,
+    rgba(245, 124, 0, 0.4),
+    rgba(255, 183, 77, 0.2),
+    rgba(251, 140, 0, 0.4)
+  );
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.glass-card--glow:hover::before {
+  opacity: 1;
+}
+
+/* Dark mode variant */
+[data-md-color-scheme="slate"] .glass-card {
+  background: rgba(34, 28, 14, 0.75);
+  border-color: rgba(255, 183, 77, 0.15);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.2),
+    0 1px 4px rgba(230, 81, 0, 0.15);
+}
+
+[data-md-color-scheme="slate"] .glass-card:hover {
+  border-color: rgba(255, 183, 77, 0.4);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.3),
+    0 8px 24px rgba(245, 124, 0, 0.2),
+    0 0 24px rgba(255, 183, 77, 0.08);
+}
+
+/* Subtle shimmer on hover */
+@keyframes glass-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.glass-card--shimmer:hover {
+  background-image: linear-gradient(
+    110deg,
+    transparent 25%,
+    rgba(255, 183, 77, 0.06) 37%,
+    transparent 63%
+  );
+  background-size: 200% 100%;
+  animation: glass-shimmer 1.8s ease-in-out;
+}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <style>
+    :root {
+      --md-text-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+  </style>
+  <script src="{{ 'javascripts/extra.js' | url }}" defer></script>
+{% endblock %}
+
+{% block content %}
+  {% if page and page.is_homepage %}
+
+  {# ─── Hero Section ─── #}
+  <section class="ti-hero">
+    <div class="ti-hero__overlay"></div>
+    <div class="ti-hero__content">
+      <span class="ti-hero__icon material-icons-outlined">school</span>
+      <h1 class="ti-hero__title">Tutor Inteligente</h1>
+      <p class="ti-hero__subtitle">
+        Plataforma EAD de Matemática do 2º Grau — Documentação técnica
+        centralizada para módulos, sistemas e decisões do projeto
+      </p>
+      <span class="ti-hero__badge">
+        <span class="material-icons-outlined" style="font-size: 14px;">auto_awesome</span>
+        Documentação Técnica
+      </span>
+    </div>
+  </section>
+
+  {# ─── Section Cards Grid ─── #}
+  <div class="ti-section-grid">
+
+    <a href="{{ 'modules/' | url }}" class="ti-section-card glass-card glass-card--shimmer fade-in-up">
+      <div class="ti-section-card__icon">
+        <span class="material-icons-outlined">view_module</span>
+      </div>
+      <h3 class="ti-section-card__title">Módulos</h3>
+      <p class="ti-section-card__desc">8 módulos funcionais da plataforma: onboarding, pagamento, conteúdo e mais</p>
+      <span class="ti-section-card__arrow">
+        Explorar <span class="material-icons-outlined" style="font-size: 16px;">arrow_forward</span>
+      </span>
+    </a>
+
+    <a href="{{ 'knowledge/' | url }}" class="ti-section-card glass-card glass-card--shimmer fade-in-up">
+      <div class="ti-section-card__icon">
+        <span class="material-icons-outlined">menu_book</span>
+      </div>
+      <h3 class="ti-section-card__title">Conhecimento</h3>
+      <p class="ti-section-card__desc">Contexto do projeto, arquitetura de dados e decisões técnicas</p>
+      <span class="ti-section-card__arrow">
+        Explorar <span class="material-icons-outlined" style="font-size: 16px;">arrow_forward</span>
+      </span>
+    </a>
+
+    <a href="{{ 'systems/' | url }}" class="ti-section-card glass-card glass-card--shimmer fade-in-up">
+      <div class="ti-section-card__icon">
+        <span class="material-icons-outlined">dns</span>
+      </div>
+      <h3 class="ti-section-card__title">Sistemas</h3>
+      <p class="ti-section-card__desc">Stack tecnológica, ferramentas e integrações do ecossistema</p>
+      <span class="ti-section-card__arrow">
+        Explorar <span class="material-icons-outlined" style="font-size: 16px;">arrow_forward</span>
+      </span>
+    </a>
+
+    <a href="{{ 'roadmap/' | url }}" class="ti-section-card glass-card glass-card--shimmer fade-in-up">
+      <div class="ti-section-card__icon">
+        <span class="material-icons-outlined">rocket_launch</span>
+      </div>
+      <h3 class="ti-section-card__title">Roadmap</h3>
+      <p class="ti-section-card__desc">Próximas frentes do projeto: gamificação, notificações e suporte</p>
+      <span class="ti-section-card__arrow">
+        Explorar <span class="material-icons-outlined" style="font-size: 16px;">arrow_forward</span>
+      </span>
+    </a>
+
+  </div>
+
+  {# ─── Divider before markdown content ─── #}
+  <div class="ti-divider fade-in-up">
+    <span class="ti-divider__line"></span>
+    <span class="ti-divider__text">Detalhes</span>
+    <span class="ti-divider__line"></span>
+  </div>
+
+  {% endif %}
+
+  {# ─── Original markdown content ─── #}
+  {{ super() }}
+{% endblock %}

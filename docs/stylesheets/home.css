@@ -1,0 +1,346 @@
+/* ============================================
+   Tutor Inteligente - Homepage Styles
+   ============================================ */
+
+/* --- Hero Section --- */
+.ti-hero {
+  background: linear-gradient(135deg, #E65100 0%, #EF6C00 25%, #F57C00 50%, #FB8C00 75%, #FFB74D 100%);
+  background-size: 250% 250%;
+  animation: ti-gradient-shift 12s ease infinite;
+  padding: 2.5rem 2rem 3rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  margin: 0.5rem 1rem 4rem;
+  border-radius: 24px;
+  box-shadow: 0 12px 40px -8px rgba(230, 81, 0, 0.35);
+}
+
+@keyframes ti-gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 50% 0%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  75% {
+    background-position: 50% 100%;
+  }
+}
+
+/* Decorative circles */
+.ti-hero::before,
+.ti-hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+}
+
+.ti-hero::before {
+  width: 400px;
+  height: 400px;
+  top: -120px;
+  right: -80px;
+  animation: ti-float 8s ease-in-out infinite;
+}
+
+.ti-hero::after {
+  width: 280px;
+  height: 280px;
+  bottom: -60px;
+  left: -40px;
+  animation: ti-float 10s ease-in-out infinite reverse;
+}
+
+@keyframes ti-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+/* Dot pattern overlay */
+.ti-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+.ti-hero__content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.ti-hero__icon {
+  font-size: 2.8rem !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin-bottom: 0.75rem;
+  display: block;
+  animation: ti-pulse 3s ease-in-out infinite;
+}
+
+@keyframes ti-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+.ti-hero__title {
+  font-size: 2.2rem !important;
+  font-weight: 700 !important;
+  color: white !important;
+  margin: 0 0 0.5rem !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.ti-hero__subtitle {
+  font-size: 1.15rem !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+  font-weight: 300 !important;
+  max-width: 600px;
+  margin: 0 auto 1.5rem !important;
+  line-height: 1.6;
+}
+
+.ti-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 0.8rem !important;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+/* Force all text inside hero to be white */
+.ti-hero,
+.ti-hero * {
+  color: white;
+}
+
+.ti-hero .ti-hero__subtitle {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+/* --- Section Grid --- */
+.ti-section-grid {
+  max-width: 1200px;
+  margin: 0 auto 3rem;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* --- Section Card --- */
+.ti-section-card {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.5rem;
+  text-decoration: none !important;
+  color: inherit !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.ti-section-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--ti-gradient);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ti-section-card:hover::after {
+  transform: scaleX(1);
+}
+
+.ti-section-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(245, 124, 0, 0.1), rgba(255, 183, 77, 0.12));
+  margin-bottom: 1.25rem;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.ti-section-card__icon .material-icons-outlined {
+  font-size: 28px;
+  color: var(--ti-primary);
+  transition: color 0.3s ease;
+}
+
+.ti-section-card:hover .ti-section-card__icon {
+  transform: scale(1.1) rotate(-3deg);
+  background: linear-gradient(135deg, rgba(245, 124, 0, 0.18), rgba(255, 183, 77, 0.2));
+}
+
+.ti-section-card:hover .ti-section-card__icon .material-icons-outlined {
+  color: var(--ti-primary-dark);
+}
+
+[data-md-color-scheme="slate"] .ti-section-card__icon .material-icons-outlined {
+  color: var(--ti-accent);
+}
+
+[data-md-color-scheme="slate"] .ti-section-card:hover .ti-section-card__icon .material-icons-outlined {
+  color: #FFCC80;
+}
+
+.ti-section-card__title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ti-deep);
+  margin: 0 0 0.5rem;
+}
+
+[data-md-color-scheme="slate"] .ti-section-card__title {
+  color: #FFCC80;
+}
+
+.ti-section-card__desc {
+  font-size: 0.875rem;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
+  flex-grow: 1;
+}
+
+[data-md-color-scheme="slate"] .ti-section-card__desc {
+  color: rgba(255, 204, 128, 0.6);
+}
+
+.ti-section-card__arrow {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ti-primary-light);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.ti-section-card:hover .ti-section-card__arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+[data-md-color-scheme="slate"] .ti-section-card__arrow {
+  color: var(--ti-accent);
+}
+
+/* --- Divider --- */
+.ti-divider {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ti-divider__line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ti-accent), transparent);
+}
+
+.ti-divider__text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ti-primary-light);
+}
+
+[data-md-color-scheme="slate"] .ti-divider__text {
+  color: var(--ti-accent);
+}
+
+/* --- Scroll Animations --- */
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-in-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .ti-hero {
+    padding: 2.5rem 1.5rem 3rem;
+    margin: 0.25rem 0.5rem 2.5rem;
+    border-radius: 18px;
+  }
+
+  .ti-hero__title {
+    font-size: 2rem;
+  }
+
+  .ti-hero__subtitle {
+    font-size: 1rem;
+  }
+
+  .ti-section-grid {
+    grid-template-columns: 1fr;
+    padding: 0 1rem;
+    gap: 1rem;
+  }
+
+  .ti-hero::before,
+  .ti-hero::after {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .ti-section-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* --- Hide default markdown h1 on homepage --- */
+.ti-homepage .md-content .md-content__inner > h1:first-of-type {
+  display: none;
+}
