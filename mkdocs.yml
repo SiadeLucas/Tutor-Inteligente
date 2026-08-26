@@ -11,8 +11,17 @@ nav:
     - modules/index.md
     - Onboarding:
       - "Visão Geral": modules/onboarding/index.md
-      - "Fluxo": modules/onboarding/flow.md
-      - "Regras de Negócio": modules/onboarding/business-rules.md
+      - "Fluxo":
+        - "Visão Geral": modules/onboarding/flow/index.md
+        - "1. Fluxo Geral": modules/onboarding/flow/fluxo-geral.md
+        - "2. Wizard de Cadastro": modules/onboarding/flow/wizard.md
+        - "3. Prova de Proficiência": modules/onboarding/flow/proficiencia.md
+        - "4. Fluxos Futuros": modules/onboarding/flow/futuros.md
+      - "Regras de Negócio":
+        - "Visão Geral": modules/onboarding/business-rules/index.md
+        - "1. Cadastro e Validação": modules/onboarding/business-rules/cadastro.md
+        - "2. Prova de Proficiência": modules/onboarding/business-rules/proficiencia.md
+        - "3. Escalabilidade": modules/onboarding/business-rules/escalabilidade.md
     - Interface:
       - "Visão Geral": modules/interface/index.md
       - "Fluxo": modules/interface/flow.md

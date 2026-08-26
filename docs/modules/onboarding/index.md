@@ -3,8 +3,8 @@ title: Onboarding
 type: module
 status: draft
 related:
-  - modules/onboarding/flow.md
-  - modules/onboarding/business-rules.md
+  - modules/onboarding/flow/index.md
+  - modules/onboarding/business-rules/index.md
   - modules/autenticacao/index.md
   - modules/progresso/index.md
   - modules/exercicios/index.md
@@ -34,7 +34,7 @@ Primeiro contato do aluno com a plataforma — cadastro em etapas (wizard), prov
 O onboarding é um **wizard de 4 etapas** que guia o aluno desde o cadastro até o início dos estudos:
 
 | Etapa | Nome | Descrição |
-|-------|------|-----------|
+|---|---|---|
 | 1 | Dados Pessoais | Nome, CPF, nascimento, gênero, foto |
 | 2 | Contato | E-mail, telefone, endereço completo |
 | 3 | Acadêmico | Instituição de ensino, série/ano, dados do responsável (se menor) |
@@ -45,7 +45,7 @@ O onboarding é um **wizard de 4 etapas** que guia o aluno desde o cadastro até
 ### Dados Pessoais (Etapa 1)
 
 | Campo | Tipo | Obrigatório | Observação |
-|-------|------|-------------|------------|
+|---|---|---|---|
 | Nome completo | texto | ✅ | |
 | Data de nascimento | data | ✅ | Usado para calcular idade e exigir responsável |
 | CPF | texto (validado) | ✅ | Identificação única, certificados, pagamento |
@@ -55,7 +55,7 @@ O onboarding é um **wizard de 4 etapas** que guia o aluno desde o cadastro até
 ### Contato (Etapa 2)
 
 | Campo | Tipo | Obrigatório | Observação |
-|-------|------|-------------|------------|
+|---|---|---|---|
 | E-mail | e-mail | ✅ | Login e comunicação |
 | Telefone/WhatsApp | telefone | ✅ | Comunicação e recuperação de conta |
 | CEP | texto | ✅ | Auto-preenche estado, cidade, bairro |
@@ -66,7 +66,7 @@ O onboarding é um **wizard de 4 etapas** que guia o aluno desde o cadastro até
 ### Acadêmico (Etapa 3)
 
 | Campo | Tipo | Obrigatório | Observação |
-|-------|------|-------------|------------|
+|---|---|---|---|
 | Instituição de ensino | texto/autocomplete | ✅ | Métrica por instituição |
 | Série/ano atual | select | ✅ | Adaptável para outros níveis de ensino |
 | Rede de ensino | select (pública/privada) | ✅ | Métrica adicional |
@@ -76,7 +76,7 @@ O onboarding é um **wizard de 4 etapas** que guia o aluno desde o cadastro até
 > Exibido **somente se o aluno tiver menos de 18 anos** (calculado pela data de nascimento).
 
 | Campo | Tipo | Obrigatório | Observação |
-|-------|------|-------------|------------|
+|---|---|---|---|
 | Nome do responsável | texto | ✅ (se menor) | |
 | CPF do responsável | texto (validado) | ✅ (se menor) | |
 | Telefone do responsável | telefone | ✅ (se menor) | |
@@ -104,7 +104,7 @@ A prova é acionada **ao entrar numa matéria pela primeira vez**:
 ### Níveis de Proficiência
 
 | Nível | Código | Descrição |
-|-------|--------|-----------|
+|---|---|---|
 | Básico | `basic` | Pouco ou nenhum domínio da área |
 | Intermediário | `intermediate` | Domínio parcial, precisa reforçar |
 | Avançado | `advanced` | Bom domínio da área |
@@ -122,7 +122,7 @@ Matemática (Ensino Médio):
 ### Tipos de Questão
 
 | Tipo | Código | Uso | Matérias |
-|------|--------|-----|----------|
+|---|---|---|---|
 | Múltipla escolha | `multiple_choice` | 4-5 alternativas | Todas |
 | Resposta numérica | `numeric_input` | Aluno digita o resultado | Exatas (Matemática, Física...) |
 | Resposta textual | `text_input` | Futuro — resposta aberta | Humanas (Português, História...) |
@@ -174,20 +174,12 @@ graph TD
     B2 --> C6["Interpretação"]
 ```
 
-### Como Expandir
-
-| Ação | O que fazer |
-|------|-------------|
-| Adicionar matéria | Criar `Matéria` + `Áreas` + questões de proficiência |
-| Adicionar nível de ensino | Criar `Nível` + `Matérias` + `Áreas` + questões |
-| Adicionar área a matéria existente | Criar `Área` + questões de proficiência |
-
 ## Métricas para o Painel do Professor
 
 Os dados coletados no onboarding alimentam as seguintes métricas:
 
 | Métrica | Campos utilizados |
-|---------|-------------------|
+|---|---|
 | Desempenho por região | Estado, cidade, bairro |
 | Desempenho por faixa etária | Data de nascimento |
 | Desempenho por instituição | Instituição de ensino |
@@ -196,9 +188,9 @@ Os dados coletados no onboarding alimentam as seguintes métricas:
 | Distribuição demográfica | Gênero, idade, região |
 | Nível de entrada por área | Resultados da prova de proficiência |
 
-## Sub-páginas
+## Seções Detalhadas no Menu
 
-| Página | Descrição |
-|--------|-----------|
-| [Fluxo](flow.md) | Diagrama do fluxo completo de onboarding |
-| [Regras de Negócio](business-rules.md) | Validações, condições e regras |
+| Seção | Descrição |
+|---|---|
+| [Fluxo](flow/index.md) | Sub-páginas dedicadas para fluxo geral, wizard, proficiência e fluxos contínuos |
+| [Regras de Negócio](business-rules/index.md) | Sub-páginas dedicadas para cadastro/validação, CAT e escalabilidade |
