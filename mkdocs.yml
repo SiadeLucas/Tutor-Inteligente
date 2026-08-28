@@ -24,8 +24,16 @@ nav:
         - "3. Escalabilidade": modules/onboarding/business-rules/escalabilidade.md
     - Interface:
       - "Visão Geral": modules/interface/index.md
-      - "Fluxo": modules/interface/flow.md
-      - "Regras de Negócio": modules/interface/business-rules.md
+      - "Fluxo":
+        - "Visão Geral": modules/interface/flow/index.md
+        - "1. Navegação e Layout": modules/interface/flow/navegacao.md
+        - "2. Telas do Aluno": modules/interface/flow/telas-aluno.md
+        - "3. Telas do Professor": modules/interface/flow/telas-professor.md
+      - "Regras de Negócio":
+        - "Visão Geral": modules/interface/business-rules/index.md
+        - "1. Design System": modules/interface/business-rules/design-system.md
+        - "2. Responsividade": modules/interface/business-rules/responsividade.md
+        - "3. Componentes e Telas": modules/interface/business-rules/componentes.md
     - Pagamento:
       - "Visão Geral": modules/pagamento/index.md
       - "Fluxo": modules/pagamento/flow.md
@@ -57,6 +65,8 @@ nav:
     - roadmap/gamificacao.md
     - roadmap/notificacoes.md
     - roadmap/suporte.md
+    - roadmap/calendario.md
+    - roadmap/comunidade.md
 
 theme:
   name: material
