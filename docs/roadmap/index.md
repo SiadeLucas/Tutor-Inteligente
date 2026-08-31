@@ -10,12 +10,15 @@ related:
   - roadmap/comunidade.md
   - roadmap/simulados-vestibulares.md
   - roadmap/desafio-diario.md
-last_updated: "2026-08-28"
+  - roadmap/benchmark-comunidade.md
+  - roadmap/diagnostico-pre-requisitos.md
+  - roadmap/relatorios-responsaveis.md
+last_updated: "2026-08-31"
 updated_by: claude
 ---
 
 <!-- ai-summary
-Roadmap do Tutor Inteligente. Frentes futuras: gamificação, notificações, suporte/atendimento, calendário/agenda, comunidade/fórum, simulados de grandes vestibulares e desafio diário.
+Roadmap do Tutor Inteligente. Frentes futuras: gamificação, notificações, suporte/atendimento, calendário/agenda, comunidade/fórum, simulados de grandes vestibulares, desafio diário, benchmark comunitário, diagnóstico de pré-requisitos por IA e envio de relatórios a responsáveis.
 -->
 
 # Roadmap
@@ -31,3 +34,6 @@ Próximas frentes e funcionalidades planejadas para a plataforma.
 | [Comunidade / Fórum](comunidade.md) | Espaço colaborativo de discussão entre alunos e professores | A definir |
 | [Simulados de Vestibulares](simulados-vestibulares.md) | Provas cronometradas no formato oficial de bancas (ENEM, FUVEST, ITA) | A definir |
 | [Desafio Diário](desafio-diario.md) | 1 questão diária instigante para construção de hábito de estudo | A definir |
+| [Benchmark Comunitário](benchmark-comunidade.md) | Comparativo de percentil anônimo em relação à comunidade de estudantes | A definir |
+| [Diagnóstico de Pré-Requisitos (IA)](diagnostico-pre-requisitos.md) | Mapeamento causal de lacunas entre volumes da coleção Iezzi | A definir |
+| [Relatórios para Responsáveis](relatorios-responsaveis.md) | Disparo automático de boletim mensal para pais de menores de 18 anos | A definir |

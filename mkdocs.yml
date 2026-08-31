@@ -58,8 +58,18 @@ nav:
       - "Regras de Negócio": modules/autenticacao/business-rules.md
     - Progresso / Desempenho:
       - "Visão Geral": modules/progresso/index.md
-      - "Fluxo": modules/progresso/flow.md
-      - "Regras de Negócio": modules/progresso/business-rules.md
+      - "Fluxo":
+        - "Visão Geral": modules/progresso/flow/index.md
+        - "1. Métricas Tridimensionais": modules/progresso/flow/metricas-tridimensionais.md
+        - "2. Calibragem de Proficiência": modules/progresso/flow/atualizacao-theta.md
+        - "3. Visualizações Gráficas": modules/progresso/flow/visualizacoes-graficas.md
+        - "4. Recomendações e Relatórios": modules/progresso/flow/recomendacoes-relatorios.md
+      - "Regras de Negócio":
+        - "Visão Geral": modules/progresso/business-rules/index.md
+        - "1. Fórmulas de Desempenho": modules/progresso/business-rules/regras-metricas.md
+        - "2. Calibragem Contínua": modules/progresso/business-rules/regras-calibragem.md
+        - "3. Heatmap e Radar": modules/progresso/business-rules/regras-heatmap.md
+        - "4. Recomendações e PDF": modules/progresso/business-rules/regras-recomendacoes.md
     - Exercícios / Avaliações:
       - "Visão Geral": modules/exercicios/index.md
       - "Fluxo":
@@ -89,6 +99,9 @@ nav:
     - roadmap/comunidade.md
     - roadmap/simulados-vestibulares.md
     - roadmap/desafio-diario.md
+    - roadmap/benchmark-comunidade.md
+    - roadmap/diagnostico-pre-requisitos.md
+    - roadmap/relatorios-responsaveis.md
 
 theme:
   name: material
