@@ -14,4 +14,4 @@ Contexto do projeto Tutor Inteligente. Plataforma EAD de Matemática do 2º Grau
 
 # Contexto do Projeto
 
-Visão geral do projeto Tutor Inteligente — plataforma EAD de Matemática do 2º Grau.
+Visão geral do projeto Tutor Inteligente - plataforma EAD de Matemática do 2º Grau.

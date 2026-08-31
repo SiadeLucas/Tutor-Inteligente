@@ -12,6 +12,6 @@ updated_by: claude
 Regras de negócio do módulo Pagamento. Políticas de cobrança, reembolso e planos.
 -->
 
-# Pagamento — Regras de Negócio
+# Pagamento - Regras de Negócio
 
 Políticas de cobrança, reembolso, planos e regras financeiras.

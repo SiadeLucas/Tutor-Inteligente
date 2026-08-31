@@ -17,9 +17,9 @@ O Heatmap exibe todos os capítulos dos 11 volumes categorizados em cores:
 
 | Faixa de Taxa de Acertos | Nível de Maestria | Cor no Heatmap |
 |:---|:---|:---|
-| $0\%$ a $49\%$ | Crítico / Não Iniciado | 🔴 Vermelho |
-| $50\%$ a $74\%$ | Em Desenvolvimento | 🟡 Amarelo |
-| $75\%$ a $100\%$ | Consolidado / Avançado | 🟢 Verde |
+| 0% a 49% | Crítico / Não Iniciado | 🔴 Vermelho |
+| 50% a 74% | Em Desenvolvimento | 🟡 Amarelo |
+| 75% a 100% | Consolidado / Avançado | 🟢 Verde |
 
 #### RN-PRG-012: Critério de Desbloqueio de Cor do Capítulo
 - Um capítulo só é colorido em Amarelo ou Verde após a submissão de no mínimo 3 exercícios correspondentes àquele capítulo. Antes disso, permanece em estado neutro/cinza.

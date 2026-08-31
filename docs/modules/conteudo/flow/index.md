@@ -11,7 +11,7 @@ last_updated: "2026-08-28"
 updated_by: claude
 ---
 
-# Fluxos de Conteúdo — Visão Geral
+# Fluxos de Conteúdo - Visão Geral
 
 Navegue pelos sub-domínios de fluxo do módulo Conteúdo:
 

@@ -10,7 +10,7 @@ updated_by: claude
 
 # 3. Telas do Professor
 
-### 3.1 Painel do Professor — Dashboard de Métricas
+### 3.1 Painel do Professor - Dashboard de Métricas
 
 O professor acessa um dashboard dedicado com cards de métricas, gráficos e filtros avançados.
 

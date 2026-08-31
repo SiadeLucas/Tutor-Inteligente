@@ -10,7 +10,7 @@ last_updated: "2026-08-28"
 updated_by: claude
 ---
 
-# Fluxos de Interface — Visão Geral
+# Fluxos de Interface - Visão Geral
 
 Navegue pelos sub-domínios de fluxo da Interface:
 

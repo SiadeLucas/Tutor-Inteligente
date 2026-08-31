@@ -19,7 +19,7 @@ updated_by: claude
 - O fator de amortecimento $\alpha = 0.15$ evita oscilações bruscas no nível por variações diárias pontuais.
 
 #### RN-PRG-007: Prova Adaptativa CAT de Marco Oficial
-- A Prova CAT formal (disponível com cooldown de 7 dias) recalibra o $\theta$ com peso integral ($100\%$), estabelecendo um novo marco oficial de proficiência.
+- A Prova CAT formal (disponível com cooldown de 7 dias) recalibra o $\theta$ com peso integral (100%), estabelecendo um novo marco oficial de proficiência.
 
 #### RN-PRG-008: Preservação de Histórico de Evolução
 - Todos os valores de $\theta$ são versionados com timestamp, permitindo traçar a série histórica de evolução temporal do aluno.

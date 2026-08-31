@@ -50,7 +50,7 @@ graph TD
 
 | Dimensão | O que mede | Fonte dos dados | Unidade |
 |:---|:---|:---|:---|
-| **Completude Curricular** | Cobertura dos tópicos dos 11 volumes | Aulas concluídas e listas de fixação | Percentual ($0\%$ a $100\%$) |
+| **Completude Curricular** | Cobertura dos tópicos dos 11 volumes | Aulas concluídas e listas de fixação | Percentual (0% a 100%) |
 | **Proficiência Ativa ($\theta$)** | Grau de habilidade matemática | Testes adaptativos (CAT) e exercícios | Escala TRI ($-3.0$ a $+3.0$) e Níveis |
 | **Consistência & Fluência** | Ritmo de aprendizagem e retenção | Cronômetro de estudo e histórico de tentativas | Horas líquidas e segundos/questão |
 

@@ -138,6 +138,13 @@ extra_css:
   - stylesheets/extra.css
   - stylesheets/glassmorphism.css
   - stylesheets/home.css
+  - https://unpkg.com/katex@0/dist/katex.min.css
+
+extra_javascript:
+  - https://unpkg.com/katex@0/dist/katex.min.js
+  - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
+  - javascripts/katex.js
+  - javascripts/extra.js
 
 plugins:
   - search
@@ -151,6 +158,8 @@ markdown_extensions:
   - md_in_html
   - toc:
       permalink: true
+  - pymdownx.arithmatex:
+      generic: true
   - pymdownx.details
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji

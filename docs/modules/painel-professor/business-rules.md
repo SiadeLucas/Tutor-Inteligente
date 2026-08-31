@@ -12,6 +12,6 @@ updated_by: claude
 Regras de negócio do módulo Painel do Professor. Permissões, níveis de acesso e gestão.
 -->
 
-# Painel do Professor — Regras de Negócio
+# Painel do Professor - Regras de Negócio
 
 Permissões, níveis de acesso e regras de gestão do painel administrativo.

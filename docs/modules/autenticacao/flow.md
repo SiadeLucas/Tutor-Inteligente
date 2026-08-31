@@ -12,6 +12,6 @@ updated_by: claude
 Fluxo do módulo Autenticação. Etapas de cadastro, login e recuperação de senha.
 -->
 
-# Autenticação — Fluxo
+# Autenticação - Fluxo
 
 Fluxo de cadastro, login, recuperação de senha e gestão de sessões.

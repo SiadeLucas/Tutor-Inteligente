@@ -12,6 +12,6 @@ updated_by: claude
 Fluxo do módulo Painel do Professor. Operações administrativas e gestão de conteúdo.
 -->
 
-# Painel do Professor — Fluxo
+# Painel do Professor - Fluxo
 
 Fluxo de operações administrativas, gestão de conteúdo e acompanhamento de alunos.

@@ -11,7 +11,7 @@ last_updated: "2026-08-31"
 updated_by: claude
 ---
 
-# Regras de Negócio de Progresso e Desempenho — Visão Geral
+# Regras de Negócio de Progresso e Desempenho - Visão Geral
 
 | Sub-domínio | Descrição | Regras Principais |
 |:---|:---|:---|

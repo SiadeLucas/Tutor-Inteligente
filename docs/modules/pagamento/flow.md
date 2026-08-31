@@ -12,6 +12,6 @@ updated_by: claude
 Fluxo do módulo Pagamento. Etapas da compra, checkout e confirmação.
 -->
 
-# Pagamento — Fluxo
+# Pagamento - Fluxo
 
 Diagramas e descrição do fluxo de compra, checkout e confirmação.

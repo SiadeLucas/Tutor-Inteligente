@@ -19,7 +19,7 @@ Visão geral dos fluxos do módulo Onboarding divididos em sub-domínios:
 4. Fluxos Contínuos e Futuros (Novas Matérias e Cooldown)
 -->
 
-# Fluxos de Onboarding — Visão Geral
+# Fluxos de Onboarding - Visão Geral
 
 Navegue pelos sub-domínios de fluxo do Onboarding:
 

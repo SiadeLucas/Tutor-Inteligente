@@ -17,7 +17,7 @@ updated_by: claude
 Módulo Onboarding. Cadastro do aluno em wizard de 4 etapas: (1) Dados pessoais, (2) Contato, (3) Acadêmico, (4) Prova de proficiência.
 Campos: nome completo, data de nascimento, CPF, e-mail, telefone/WhatsApp, gênero, endereço completo (CEP, estado, cidade, bairro), instituição de ensino, série/ano, foto de perfil, dados do responsável (obrigatório se menor de 18).
 Prova de proficiência adaptativa (CAT) ao entrar numa matéria pela primeira vez. Pode pular (classificado como Básico). Pode refazer com cooldown de 7 dias.
-3 níveis: Básico, Intermediário, Avançado — calculados por área/tópico dentro de cada matéria.
+3 níveis: Básico, Intermediário, Avançado - calculados por área/tópico dentro de cada matéria.
 Modelo hierárquico escalável: Nível de Ensino → Matéria → Área/Tópico.
 Tipos de questão: multiple_choice, numeric_input, text_input (futuro).
 Resultado visual: gráfico radar + resumo textual + botão para trilha personalizada.
@@ -27,7 +27,7 @@ Sem inserção de boletins/notas.
 
 # Onboarding
 
-Primeiro contato do aluno com a plataforma — cadastro em etapas (wizard), prova de proficiência adaptativa e direcionamento para trilha personalizada.
+Primeiro contato do aluno com a plataforma - cadastro em etapas (wizard), prova de proficiência adaptativa e direcionamento para trilha personalizada.
 
 ## Visão Geral
 
@@ -71,7 +71,7 @@ O onboarding é um **wizard de 4 etapas** que guia o aluno desde o cadastro até
 | Série/ano atual | select | ✅ | Adaptável para outros níveis de ensino |
 | Rede de ensino | select (pública/privada) | ✅ | Métrica adicional |
 
-### Responsável (Etapa 3 — condicional)
+### Responsável (Etapa 3 - condicional)
 
 > Exibido **somente se o aluno tiver menos de 18 anos** (calculado pela data de nascimento).
 
@@ -125,7 +125,7 @@ Matemática (Ensino Médio):
 |---|---|---|---|
 | Múltipla escolha | `multiple_choice` | 4-5 alternativas | Todas |
 | Resposta numérica | `numeric_input` | Aluno digita o resultado | Exatas (Matemática, Física...) |
-| Resposta textual | `text_input` | Futuro — resposta aberta | Humanas (Português, História...) |
+| Resposta textual | `text_input` | Futuro - resposta aberta | Humanas (Português, História...) |
 
 ### Política de Refazer
 

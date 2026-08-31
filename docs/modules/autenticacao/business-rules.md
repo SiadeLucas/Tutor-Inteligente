@@ -12,6 +12,6 @@ updated_by: claude
 Regras de negócio do módulo Autenticação. Segurança, validação de credenciais e perfis.
 -->
 
-# Autenticação — Regras de Negócio
+# Autenticação - Regras de Negócio
 
 Regras de segurança, validação de credenciais e gestão de perfis.

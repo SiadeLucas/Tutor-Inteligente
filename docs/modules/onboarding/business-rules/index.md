@@ -17,7 +17,7 @@ Visão geral das regras de negócio do Onboarding divididas por sub-domínios:
 3. Escalabilidade e Domínio (Hierarquia de Ensino, Acesso Livre, Extensibilidade)
 -->
 
-# Regras de Negócio de Onboarding — Visão Geral
+# Regras de Negócio de Onboarding - Visão Geral
 
 Consulte as especificações detalhadas das regras de negócio divididas por sub-domínio:
 

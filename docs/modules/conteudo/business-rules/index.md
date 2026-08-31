@@ -11,7 +11,7 @@ last_updated: "2026-08-28"
 updated_by: claude
 ---
 
-# Regras de Negócio de Conteúdo — Visão Geral
+# Regras de Negócio de Conteúdo - Visão Geral
 
 | Sub-domínio | Descrição | Regras Principais |
 |:---|:---|:---|

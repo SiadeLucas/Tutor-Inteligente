@@ -11,7 +11,7 @@ last_updated: "2026-08-31"
 updated_by: claude
 ---
 
-# Fluxos de Progresso e Desempenho — Visão Geral
+# Fluxos de Progresso e Desempenho - Visão Geral
 
 Navegue pelos sub-domínios de fluxo do módulo Progresso / Desempenho:
 

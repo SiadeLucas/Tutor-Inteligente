@@ -10,7 +10,7 @@ last_updated: "2026-08-28"
 updated_by: claude
 ---
 
-# Regras de Negócio de Interface — Visão Geral
+# Regras de Negócio de Interface - Visão Geral
 
 | Sub-domínio | Descrição | Regras Principais |
 |:---|:---|:---|

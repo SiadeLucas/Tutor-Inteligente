@@ -20,7 +20,7 @@ Roadmap: gamificação, notificações, suporte.
 
 # Tutor Inteligente
 
-> Documentação centralizada da plataforma EAD de Matemática do 2º Grau — módulos, sistemas e decisões do projeto.
+> Documentação centralizada da plataforma EAD de Matemática do 2º Grau - módulos, sistemas e decisões do projeto.
 
 ## Seções
 

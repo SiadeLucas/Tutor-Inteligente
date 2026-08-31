@@ -15,7 +15,7 @@ updated_by: claude
 
 <!-- ai-summary
 Módulo Interface. Design system e UX da plataforma Tutor Inteligente.
-Paradigma visual: estilo Khan Academy — limpo, minimalista, foco no conteúdo.
+Paradigma visual: estilo Khan Academy - limpo, minimalista, foco no conteúdo.
 Navegação: sidebar fixa esquerda (colapsável no mobile → hamburger menu).
 Seções da sidebar: Dashboard, Matérias, Progresso, Exercícios, Perfil.
 Paleta: laranja (#F57C00) + neutros + dark mode.
@@ -36,7 +36,7 @@ Design system, UI/UX e diretrizes visuais da plataforma Tutor Inteligente.
 
 ## Paradigma Visual
 
-**Estilo Khan Academy** — interface limpa, minimalista e focada no conteúdo. Redução de carga cognitiva para que o aluno foque no aprendizado de Matemática.
+**Estilo Khan Academy** - interface limpa, minimalista e focada no conteúdo. Redução de carga cognitiva para que o aluno foque no aprendizado de Matemática.
 
 ## Referências de Design
 
