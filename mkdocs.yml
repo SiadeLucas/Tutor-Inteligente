@@ -40,8 +40,18 @@ nav:
       - "Regras de Negócio": modules/pagamento/business-rules.md
     - Conteúdo:
       - "Visão Geral": modules/conteudo/index.md
-      - "Fluxo": modules/conteudo/flow.md
-      - "Regras de Negócio": modules/conteudo/business-rules.md
+      - "Fluxo":
+        - "Visão Geral": modules/conteudo/flow/index.md
+        - "1. Estrutura Iezzi": modules/conteudo/flow/estrutura-iezzi.md
+        - "2. Multi-Agentes e RAG": modules/conteudo/flow/multi-agentes.md
+        - "3. Tutor Socrático": modules/conteudo/flow/tutor-socratico.md
+        - "4. Curadoria Docente": modules/conteudo/flow/curadoria-professor.md
+      - "Regras de Negócio":
+        - "Visão Geral": modules/conteudo/business-rules/index.md
+        - "1. Mapeamento Iezzi": modules/conteudo/business-rules/mapeamento-volumes.md
+        - "2. Agentes de IA e RAG": modules/conteudo/business-rules/agentes-ia.md
+        - "3. Pedagogia e Aulas": modules/conteudo/business-rules/pedagogia-aulas.md
+        - "4. Questões e Curadoria": modules/conteudo/business-rules/questoes-curadoria.md
     - Autenticação:
       - "Visão Geral": modules/autenticacao/index.md
       - "Fluxo": modules/autenticacao/flow.md
@@ -52,8 +62,18 @@ nav:
       - "Regras de Negócio": modules/progresso/business-rules.md
     - Exercícios / Avaliações:
       - "Visão Geral": modules/exercicios/index.md
-      - "Fluxo": modules/exercicios/flow.md
-      - "Regras de Negócio": modules/exercicios/business-rules.md
+      - "Fluxo":
+        - "Visão Geral": modules/exercicios/flow/index.md
+        - "1. Motor Adaptativo (CAT)": modules/exercicios/flow/motor-cat.md
+        - "2. Modos de Prática": modules/exercicios/flow/modos-pratica.md
+        - "3. Questões Gêmeas": modules/exercicios/flow/questoes-gemeas.md
+        - "4. Relatórios e Métricas": modules/exercicios/flow/resultados-metricas.md
+      - "Regras de Negócio":
+        - "Visão Geral": modules/exercicios/business-rules/index.md
+        - "1. Motor CAT e TRI": modules/exercicios/business-rules/regras-cat.md
+        - "2. Modos de Prática": modules/exercicios/business-rules/regras-pratica.md
+        - "3. Questões Gêmeas": modules/exercicios/business-rules/regras-validacao.md
+        - "4. Correção e KaTeX": modules/exercicios/business-rules/regras-correcao.md
     - Painel do Professor:
       - "Visão Geral": modules/painel-professor/index.md
       - "Fluxo": modules/painel-professor/flow.md
@@ -67,6 +87,8 @@ nav:
     - roadmap/suporte.md
     - roadmap/calendario.md
     - roadmap/comunidade.md
+    - roadmap/simulados-vestibulares.md
+    - roadmap/desafio-diario.md
 
 theme:
   name: material

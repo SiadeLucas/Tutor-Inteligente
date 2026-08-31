@@ -3,15 +3,18 @@ title: Exercícios - Fluxo
 type: module
 status: draft
 related:
-  - modules/exercicios/index.md
-last_updated: "2026-08-26"
+  - modules/exercicios/flow/index.md
+last_updated: "2026-08-28"
 updated_by: claude
 ---
 
-<!-- ai-summary
-Fluxo do módulo Exercícios. Criação de questões, resolução pelo aluno e correção.
--->
-
 # Exercícios — Fluxo
 
-Fluxo de criação de questões, resolução pelo aluno e correção automática.
+Esta seção foi modularizada em sub-domínios para melhor navegação:
+
+👉 **[Acessar Visão Geral dos Fluxos de Exercícios](flow/index.md)**
+
+- [1. Motor Adaptativo (CAT)](flow/motor-cat.md)
+- [2. Modos de Prática](flow/modos-pratica.md)
+- [3. Geração de Questões Gêmeas](flow/questoes-gemeas.md)
+- [4. Relatórios e Métricas](flow/resultados-metricas.md)

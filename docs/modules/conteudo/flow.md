@@ -3,15 +3,18 @@ title: Conteúdo - Fluxo
 type: module
 status: draft
 related:
-  - modules/conteudo/index.md
-last_updated: "2026-08-26"
+  - modules/conteudo/flow/index.md
+last_updated: "2026-08-28"
 updated_by: claude
 ---
 
-<!-- ai-summary
-Fluxo do módulo Conteúdo. Criação, publicação e consumo de aulas e materiais.
--->
-
 # Conteúdo — Fluxo
 
-Fluxo de criação, publicação e consumo de aulas e materiais didáticos.
+Esta seção foi modularizada em sub-domínios para melhor navegação:
+
+👉 **[Acessar Visão Geral dos Fluxos de Conteúdo](flow/index.md)**
+
+- [1. Estrutura e Mapeamento Iezzi](flow/estrutura-iezzi.md)
+- [2. Arquitetura Multi-Agente e RAG](flow/multi-agentes.md)
+- [3. Tutor Socrático e Aprendizagem](flow/tutor-socratico.md)
+- [4. Curadoria e Publicação](flow/curadoria-professor.md)

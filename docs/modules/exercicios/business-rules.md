@@ -3,15 +3,18 @@ title: Exercícios - Regras de Negócio
 type: module
 status: draft
 related:
-  - modules/exercicios/index.md
-last_updated: "2026-08-26"
+  - modules/exercicios/business-rules/index.md
+last_updated: "2026-08-28"
 updated_by: claude
 ---
 
-<!-- ai-summary
-Regras de negócio do módulo Exercícios. Critérios de avaliação, pontuação e correção automática.
--->
-
 # Exercícios — Regras de Negócio
 
-Critérios de avaliação, pontuação, tipos de questão e regras de correção.
+Esta seção foi modularizada em sub-domínios para melhor navegação:
+
+👉 **[Acessar Visão Geral das Regras de Negócio de Exercícios](business-rules/index.md)**
+
+- [1. Motor Adaptativo (CAT)](business-rules/regras-cat.md)
+- [2. Modos de Prática](business-rules/regras-pratica.md)
+- [3. Questões Gêmeas](business-rules/regras-validacao.md)
+- [4. Correção e KaTeX](business-rules/regras-correcao.md)

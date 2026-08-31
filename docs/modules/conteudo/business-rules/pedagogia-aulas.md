@@ -1,0 +1,38 @@
+---
+title: Conteúdo - 3. Pedagogia e Tutoria
+type: module
+status: draft
+related:
+  - modules/conteudo/business-rules/index.md
+last_updated: "2026-08-28"
+updated_by: claude
+---
+
+# 3. Estrutura Pedagógica e Método Socrático
+
+### 3.1 Padrão das Aulas
+
+#### RN-CNT-010: Estrutura Mandatória em 4 Blocos
+Toda aula gerada deve conter sem exceção os 4 blocos sequenciais:
+1. **Bloco 1 - Conceito & Teoremas**: Apresentação formal da definição com equações em KaTeX, acompanhada de contextualização geométrica/intuitiva.
+2. **Bloco 2 - Exemplos Resolvidos Passo a Passo**: No mínimo 2 exemplos dissecados detalhadamente (Passo 1: Identificação de dados $\rightarrow$ Passo 2: Aplicação de fórmula/teorema $\rightarrow$ Passo 3: Conclusão).
+3. **Bloco 3 - Dicas do Tutor IA**: Seção de "Onde os alunos costumam errar", pegadinhas clássicas e aplicabilidade em vestibulares/ENEM.
+4. **Bloco 4 - Bateria de Exercícios de Fixação**: Conjunto de 3 a 5 exercícios do Iezzi com resolução comentada disponível após a submissão do aluno.
+
+#### RN-CNT-011: Renderização de Fórmulas com KaTeX
+- 100% dos símbolos matemáticos, frações, matrizes, integrais, somatórios e expoentes devem utilizar sintaxe LaTeX padronizada e renderizar client-side via KaTeX.
+
+### 3.2 Tutor Socrático
+
+#### RN-CNT-012: Princípio da Ajuda Gradual (Método Socrático)
+- O Tutor de IA **nunca deve fornecer imediatamente o resultado numérico final** ou o gabarito de uma questão em andamento.
+- O fluxo de ajuda deve seguir 3 estágios:
+  1. *Estágio 1*: Pista lógica ou pergunta orientadora (ex: *"Qual é a condição de existência para um logaritmo ter base válida?"*).
+  2. *Estágio 2*: Identificação do teorema ou propriedade do Iezzi aplicável ao caso.
+  3. *Estágio 3*: Demonstração passo a passo completa (liberada apenas se o aluno expressamente solicitar após as pistas).
+
+#### RN-CNT-013: Contexto Ativo de Aula
+- O chat do tutor recebe automaticamente os metadados da aula/exercício atual do aluno (ID do volume, ID do capítulo, enunciado da questão atual e alternativas).
+
+#### RN-CNT-014: Suporte à Seleção de Trechos Matemáticos
+- O aluno pode selecionar qualquer fórmula na tela e acionar a ação *"Explicar este passo"*, enviando o trecho exato como contexto prioritário para a IA.
