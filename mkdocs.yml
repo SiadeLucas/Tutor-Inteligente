@@ -86,8 +86,18 @@ nav:
         - "4. Correção e KaTeX": modules/exercicios/business-rules/regras-correcao.md
     - Painel do Professor:
       - "Visão Geral": modules/painel-professor/index.md
-      - "Fluxo": modules/painel-professor/flow.md
-      - "Regras de Negócio": modules/painel-professor/business-rules.md
+      - "Fluxo":
+        - "Visão Geral": modules/painel-professor/flow/index.md
+        - "1. Dashboard de Analytics": modules/painel-professor/flow/dashboard-analytics.md
+        - "2. Gestão de Alunos": modules/painel-professor/flow/gestao-alunos.md
+        - "3. Curadoria de Conteúdo": modules/painel-professor/flow/curadoria-conteudo.md
+        - "4. Gestão Financeira": modules/painel-professor/flow/gestao-financeira.md
+      - "Regras de Negócio":
+        - "Visão Geral": modules/painel-professor/business-rules/index.md
+        - "1. Analytics e Demografia": modules/painel-professor/business-rules/regras-analytics.md
+        - "2. Gestão de Alunos": modules/painel-professor/business-rules/regras-alunos.md
+        - "3. Central de Curadoria": modules/painel-professor/business-rules/regras-curadoria.md
+        - "4. Gestão Financeira": modules/painel-professor/business-rules/regras-financeiro.md
   - Sistemas:
     - systems/index.md
   - Roadmap:
@@ -102,6 +112,8 @@ nav:
     - roadmap/benchmark-comunidade.md
     - roadmap/diagnostico-pre-requisitos.md
     - roadmap/relatorios-responsaveis.md
+    - roadmap/monitor-duvidas.md
+    - roadmap/aulas-ao-vivo.md
 
 theme:
   name: material

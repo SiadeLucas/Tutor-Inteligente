@@ -13,12 +13,14 @@ related:
   - roadmap/benchmark-comunidade.md
   - roadmap/diagnostico-pre-requisitos.md
   - roadmap/relatorios-responsaveis.md
-last_updated: "2026-08-31"
+  - roadmap/monitor-duvidas.md
+  - roadmap/aulas-ao-vivo.md
+last_updated: "2026-09-01"
 updated_by: claude
 ---
 
 <!-- ai-summary
-Roadmap do Tutor Inteligente. Frentes futuras: gamificação, notificações, suporte/atendimento, calendário/agenda, comunidade/fórum, simulados de grandes vestibulares, desafio diário, benchmark comunitário, diagnóstico de pré-requisitos por IA e envio de relatórios a responsáveis.
+Roadmap do Tutor Inteligente. Frentes futuras: gamificação, notificações, suporte/atendimento, calendário/agenda, comunidade/fórum, simulados de grandes vestibulares, desafio diário, benchmark comunitário, diagnóstico de pré-requisitos por IA, envio de relatórios a responsáveis, monitor de dúvidas e central de aulas ao vivo.
 -->
 
 # Roadmap
@@ -37,3 +39,5 @@ Próximas frentes e funcionalidades planejadas para a plataforma.
 | [Benchmark Comunitário](benchmark-comunidade.md) | Comparativo de percentil anônimo em relação à comunidade de estudantes | A definir |
 | [Diagnóstico de Pré-Requisitos (IA)](diagnostico-pre-requisitos.md) | Mapeamento causal de lacunas entre volumes da coleção Iezzi | A definir |
 | [Relatórios para Responsáveis](relatorios-responsaveis.md) | Disparo automático de boletim mensal para pais de menores de 18 anos | A definir |
+| [Monitor de Dúvidas (IA)](monitor-duvidas.md) | Clusterização e inteligência de tópicos críticos da turma | A definir |
+| [Aulas ao Vivo e Lives](aulas-ao-vivo.md) | Transmissões síncronas integradas com gravação automática | A definir |
