@@ -36,8 +36,18 @@ nav:
         - "3. Componentes e Telas": modules/interface/business-rules/componentes.md
     - Pagamento:
       - "Visão Geral": modules/pagamento/index.md
-      - "Fluxo": modules/pagamento/flow.md
-      - "Regras de Negócio": modules/pagamento/business-rules.md
+      - "Fluxo":
+        - "Visão Geral": modules/pagamento/flow/index.md
+        - "1. Compra de Produtos": modules/pagamento/flow/checkout-produtos.md
+        - "2. Processamento PIX e Cartão": modules/pagamento/flow/pix-cartao.md
+        - "3. Liberação e Vigência": modules/pagamento/flow/liberacao-acesso.md
+        - "4. Painel Comercial": modules/pagamento/flow/painel-comercial.md
+      - "Regras de Negócio":
+        - "Visão Geral": modules/pagamento/business-rules/index.md
+        - "1. Produtos e Preços": modules/pagamento/business-rules/regras-produtos.md
+        - "2. Vigência de Acesso": modules/pagamento/business-rules/regras-vigencia.md
+        - "3. Gateway e Checkout": modules/pagamento/business-rules/regras-gateway.md
+        - "4. Gestão Comercial": modules/pagamento/business-rules/regras-gestao-docente.md
     - Conteúdo:
       - "Visão Geral": modules/conteudo/index.md
       - "Fluxo":
@@ -114,6 +124,8 @@ nav:
     - roadmap/relatorios-responsaveis.md
     - roadmap/monitor-duvidas.md
     - roadmap/aulas-ao-vivo.md
+    - roadmap/pagamento-boleto.md
+    - roadmap/carteira-creditos.md
 
 theme:
   name: material
