@@ -64,8 +64,18 @@ nav:
         - "4. Questões e Curadoria": modules/conteudo/business-rules/questoes-curadoria.md
     - Autenticação:
       - "Visão Geral": modules/autenticacao/index.md
-      - "Fluxo": modules/autenticacao/flow.md
-      - "Regras de Negócio": modules/autenticacao/business-rules.md
+      - "Fluxo":
+        - "Visão Geral": modules/autenticacao/flow/index.md
+        - "1. Login por E-mail ou CPF": modules/autenticacao/flow/login-cpf-email.md
+        - "2. Perfis e Roteamento": modules/autenticacao/flow/perfis-permissoes.md
+        - "3. Sessão Única": modules/autenticacao/flow/sessao-unica.md
+        - "4. Link Mágico": modules/autenticacao/flow/recuperacao-link-magico.md
+      - "Regras de Negócio":
+        - "Visão Geral": modules/autenticacao/business-rules/index.md
+        - "1. Credenciais e Cadastro": modules/autenticacao/business-rules/regras-credenciais.md
+        - "2. Perfis e Permissões": modules/autenticacao/business-rules/regras-perfis.md
+        - "3. Sessão e Dispositivos": modules/autenticacao/business-rules/regras-sessao.md
+        - "4. Recuperação e Antifraude": modules/autenticacao/business-rules/regras-recuperacao.md
     - Progresso / Desempenho:
       - "Visão Geral": modules/progresso/index.md
       - "Fluxo":
@@ -126,6 +136,9 @@ nav:
     - roadmap/aulas-ao-vivo.md
     - roadmap/pagamento-boleto.md
     - roadmap/carteira-creditos.md
+    - roadmap/social-login.md
+    - roadmap/perfil-responsaveis.md
+    - roadmap/mfa-2fa.md
 
 theme:
   name: material

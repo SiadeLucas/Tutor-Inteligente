@@ -17,12 +17,15 @@ related:
   - roadmap/aulas-ao-vivo.md
   - roadmap/pagamento-boleto.md
   - roadmap/carteira-creditos.md
+  - roadmap/social-login.md
+  - roadmap/perfil-responsaveis.md
+  - roadmap/mfa-2fa.md
 last_updated: "2026-09-01"
 updated_by: claude
 ---
 
 <!-- ai-summary
-Roadmap do Tutor Inteligente. Frentes futuras: gamificação, notificações, suporte/atendimento, calendário/agenda, comunidade/fórum, simulados de grandes vestibulares, desafio diário, benchmark comunitário, diagnóstico de pré-requisitos por IA, envio de relatórios a responsáveis, monitor de dúvidas, central de aulas ao vivo, pagamento por boleto bancário e carteira digital de créditos.
+Roadmap do Tutor Inteligente. 17 frentes futuras catalogadas: gamificação, notificações, suporte/atendimento, calendário/agenda, comunidade/fórum, simulados de vestibulares, desafio diário, benchmark comunitário, diagnóstico de pré-requisitos por IA, envio de relatórios a responsáveis, monitor de dúvidas, central de aulas ao vivo, boleto bancário, carteira de créditos, login social, perfil para responsáveis e 2FA/MFA.
 -->
 
 # Roadmap
@@ -45,3 +48,6 @@ Próximas frentes e funcionalidades planejadas para a plataforma.
 | [Aulas ao Vivo e Lives](aulas-ao-vivo.md) | Transmissões síncronas integradas com gravação automática | A definir |
 | [Boleto Bancário (D+1)](pagamento-boleto.md) | Emissão de boleto registrado com compensação automática | A definir |
 | [Carteira de Créditos](carteira-creditos.md) | Saldo pré-pago para liberação de aulas de 50 min em 1 toque | A definir |
+| [Login Social (Google / Apple)](social-login.md) | Autenticação em 1 clique com contas Google e Apple | A definir |
+| [Perfil para Responsáveis (Pais)](perfil-responsaveis.md) | Portal exclusivo para acompanhamento do desempenho dos filhos | A definir |
+| [Autenticação em Dois Fatores (2FA)](mfa-2fa.md) | Camada extra de segurança cibernética via app autenticador TOTP | A definir |
