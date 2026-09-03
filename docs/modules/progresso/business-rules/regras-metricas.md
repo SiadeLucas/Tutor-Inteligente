@@ -4,7 +4,7 @@ type: module
 status: draft
 related:
   - modules/progresso/business-rules/index.md
-last_updated: "2026-08-31"
+last_updated: "2026-09-02"
 updated_by: claude
 ---
 
@@ -15,12 +15,17 @@ updated_by: claude
 #### RN-PRG-001: Taxa de Completude Curricular
 A completude curricular de um volume ou grande área é calculada por:
 
-$$\text{Completude} (\%) = \left( \frac{\text{Aulas Concluídas} + \text{Listas de Fixação Entregues}}{\text{Total de Aulas} + \text{Total de Listas}} \right) \times 100$$
+$$\text{Completude} (\%) = \left( \frac{\text{Aulas Concluídas com Listas de Fixação Entregues}}{\text{Total de Capítulos do Volume}} \right) \times 100$$
 
-Uma aula é considerada concluída quando o aluno assiste a no mínimo 85% do vídeo ou confirma a leitura completa da teoria.
+> [!IMPORTANT]
+> Um capítulo/aula só é contabilizado como concluído quando o aluno confirma a leitura da teoria E submete com sucesso a Bateria de Fixação (3 a 5 exercícios do Iezzi).
 
-#### RN-PRG-002: Taxa de Acerto na 1ª Tentativa (Precisão Bruta)
-- Mede o domínio conceitual imediato sem auxílio da 2ª chance com dica:
+#### RN-PRG-002: Taxa de Acerto Ponderada e Precisão na 1ª Tentativa
+- **Taxa de Acertos do Capítulo (Heatmap)**: Utiliza pontuação ponderada:
+  - Questões acertadas na 1ª tentativa contam peso $1.0$.
+  - Questões acertadas na 2ª tentativa (com auxílio da dica socrática) contam peso $0.5$.
+  - Erros contam $0.0$.
+- **Precisão Bruta (1ª Tentativa)**: Mede o domínio autônomo sem qualquer assistência:
 
 $$\text{Precisão 1ª Tentativa} (\%) = \left( \frac{\text{Questões acertadas na 1ª tentativa}}{\text{Total de Questões Submetidas}} \right) \times 100$$
 

@@ -4,7 +4,7 @@ type: module
 status: draft
 related:
   - modules/pagamento/business-rules/index.md
-last_updated: "2026-09-01"
+last_updated: "2026-09-02"
 updated_by: claude
 ---
 
@@ -24,8 +24,9 @@ updated_by: claude
 #### RN-PAG-018: Controle Granular de Acessos na Ficha do Aluno
 - A ficha individual de cada estudante lista todos os capítulos e volumes desbloqueados, com data de início e término da vigência de 12 meses.
 
-#### RN-PAG-019: Concessão Manual de Cortesias Docentes
-- O professor tem autorização para liberar capítulos avulsos de 50 min ou volumes completos gratuitamente para qualquer aluno com status `scholarship` ou cortesia.
+#### RN-PAG-019: Proibição de Liberação Manual (Acesso 100% Pago e Automatizado)
+- O sistema veda expressamente qualquer concessão manual de acessos, cortesias ou bolsas gratuitas por parte do professor.
+- Todo e qualquer desbloqueio de capítulo (50 min), volume ou assinatura ocorre exclusivamente de forma automática mediante compensação financeira aprovada pelo gateway de pagamento (webhook de PIX ou aprovação do cartão).
 
 #### RN-PAG-020: Extrato de Transações e Métricas de Conversão
 - Exibição de extrato auditável com identificação do aluno, valor líquido, taxas do gateway e meio utilizado (PIX vs Cartão).
