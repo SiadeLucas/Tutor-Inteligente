@@ -48,3 +48,9 @@ Ao finalizar o CAT, o $\theta$ consolidado é convertido para a escala qualitati
 
 #### RN-EXE-006: Granularidade por Área/Volume
 - A pontuação de proficiência do CAT é calculada e persistida **de forma independente para cada uma das 4 Grandes Áreas** e seus respectivos volumes da coleção Iezzi.
+
+#### RN-EXE-006.1: Prova Oculta com Feedback Apenas no Encerramento (Blind Adaptive Testing)
+- **Zero Feedback Durante o Teste**: O estudante não visualiza se acertou ou errou cada item e não tem acesso às oscilações intermediárias do $\theta$ durante a realização da prova CAT.
+- **Indicador Neutro de Progresso**: A interface exibe apenas o indicador ordinal `Questão X (Faixa da Avaliação: 12 a 20 questões)`.
+- **Revelação Diagnóstica Final**: Somente após o encerramento do teste (por convergência psicométrica $SE \le 0.30$ ou atingimento de 20 itens), o sistema desbloqueia o Dossiê Diagnóstico com o Gráfico Radar, nota $\theta$ consolidada e direcionamento para a Skill Tree.
+

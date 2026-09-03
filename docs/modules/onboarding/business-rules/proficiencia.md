@@ -26,7 +26,12 @@ updated_by: claude
 - A prova se inicia com uma questão calibrada em dificuldade média ($\theta = 0$).
 - A cada acerto, o motor seleciona uma questão com parâmetro de discriminação e dificuldade superior.
 - A cada erro, o motor busca uma questão de menor dificuldade para identificar a fronteira exata de domínio do aluno.
-- Critério de parada: finalização após **15 a 20 questões** respondidas ou quando o erro padrão da estimativa de proficiência for menor que o limiar pré-definido ($\text{SE}(\theta) < \epsilon$).
+- Critério de parada: finalização após **12 a 20 questões** respondidas ou quando o erro padrão da estimativa de proficiência for menor que o limiar pré-definido ($\text{SE}(\theta) \le 0.30$).
+
+#### RN-PRF-003.1: Prova Oculta com Feedback Apenas no Final (Blind Adaptive Testing)
+- **Zero Feedback Imediato**: Durante a execução da prova diagnóstica, o estudante não recebe confirmação de acerto ou erro em cada questão e não visualiza o cálculo provisório de seu $\theta$.
+- **Redução de Ansiedade**: A interface apresenta apenas o contador ordinal neutro `Questão X (Progresso: 12 a 20 questões)`.
+- **Revelação Diagnóstica**: Os resultados detalhados, o escore $\theta$ oficial de entrada e a plotagem do Gráfico Radar são revelados exclusivamente na tela de conclusão do teste.
 
 ---
 

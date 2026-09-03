@@ -110,7 +110,46 @@ async def criar_checkout_pix(
 
 
 # ============================================================================
-# 3. Webhook de Confirmação Instantânea do Gateway
+# 3. Polling de Status do PIX em Tempo Real (A cada 3 segundos no Modal)
+# ============================================================================
+
+@router.get("/status/{cobranca_id}")
+async def consultar_status_pix(
+    cobranca_id: str,
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Rota de alta frequência consultada pelo modal do aluno a cada 3 segundos.
+    Retorna pago=True assim que o webhook do gateway confirmar o recebimento,
+    permitindo o redirecionamento imediato para a aula desbloqueada.
+    """
+    from app.models.payment import TransacaoFinanceira
+    from sqlalchemy import select
+
+    stmt = select(TransacaoFinanceira).where(
+        TransacaoFinanceira.gateway_payload["id"].astext == cobranca_id
+    )
+    result = await db.execute(stmt)
+    tx = result.scalar_one_or_none()
+
+    if tx and tx.status_transacao == "paid":
+        return {
+            "pago": True,
+            "status": "paid",
+            "mensagem": "Pagamento confirmado instantaneamente via PIX!",
+            "liberado_em": tx.pago_em
+        }
+
+    return {
+        "pago": False,
+        "status": "waiting_payment",
+        "mensagem": "Aguardando confirmação bancária..."
+    }
+
+
+# ============================================================================
+# 4. Webhook de Confirmação Instantânea do Gateway
 # ============================================================================
 
 @router.post("/webhook", status_code=status.HTTP_200_OK)

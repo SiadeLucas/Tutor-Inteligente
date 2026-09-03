@@ -12,9 +12,10 @@ updated_by: claude
 
 ### 3.1 Checkout Transparente Instantâneo
 
-#### RN-PAG-011: PIX Dinâmico com Webhook Instantâneo
-- A cobrança por PIX gera um QR Code e código Copia e Cola exclusivos por transação com expiração configurada para 30 minutos.
-- A confirmação de pagamento via webhook bancário deve liberar o acesso do estudante em até 5 segundos.
+#### RN-PAG-011: PIX Dinâmico com Webhook Instantâneo e Polling
+- A cobrança por PIX gera um QR Code e código Copia e Cola exclusivos por transação com expiração estrita configurada para **15 minutos**.
+- O frontend mantém um polling leve no modal do QR Code a cada 3 segundos (`GET /api/v1/pagamento/status/{transacao_id}`).
+- A confirmação de pagamento via webhook bancário atualiza o status para `paid` e o modal libera o acesso do estudante em 3 a 5 segundos com animação comemorativa e redirecionamento para a aula.
 
 #### RN-PAG-012: Cartão de Crédito com Parcelamento
 - Suporte às principais bandeiras (Visa, Mastercard, Elo, Hipercard, Amex).
