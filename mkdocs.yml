@@ -68,6 +68,13 @@ nav:
         - "2. Agentes de IA e RAG": modules/conteudo/business-rules/agentes-ia.md
         - "3. Pedagogia e Aulas": modules/conteudo/business-rules/pedagogia-aulas.md
         - "4. Questões e Curadoria": modules/conteudo/business-rules/questoes-curadoria.md
+      - "Protótipos de Código":
+        - "Visão Geral": modules/conteudo/prototype/index.md
+        - "1. Schemas e DTOs": modules/conteudo/prototype/schemas.md
+        - "2. Fábrica LLM (Gemini Flash)": modules/conteudo/prototype/llm-factory.md
+        - "3. Motor RAG (pgvector 768d)": modules/conteudo/prototype/rag-engine.md
+        - "4. Prompt do Tutor Socrático": modules/conteudo/prototype/socratic-tutor.md
+        - "5. Endpoints FastAPI": modules/conteudo/prototype/endpoints.md
     - Autenticação:
       - "Visão Geral": modules/autenticacao/index.md
       - "Fluxo":
