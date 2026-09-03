@@ -48,7 +48,8 @@ class ThetaUpdaterService:
         capitulo_id: UUID,
         item: ItemExercicio,
         pontuacao_ponderada: float,  # 1.0 (1ª tent) | 0.5 (2ª tent com dica) | 0.0 (erro)
-        total_questoes_respondidas_aluno: int
+        total_questoes_respondidas_aluno: int,
+        grande_area: Optional[str] = None
     ) -> float:
         """
         Aplica a fórmula do micro-ajuste estocástico:
@@ -93,13 +94,19 @@ class ThetaUpdaterService:
         novo_theta = float(np.clip(theta_anterior + delta_theta, -3.000, 3.000))
         novo_theta = round(novo_theta, 3)
 
-        # 6. Registra na série temporal da tabela historico_theta
+        # 6. Determina a grande área dinâmica a partir do volume se omitida
+        if not grande_area:
+            stmt_vol = select(VolumeDidatico.grande_area).where(VolumeDidatico.id == volume_id)
+            res_vol = await db.execute(stmt_vol)
+            grande_area = res_vol.scalar_one_or_none() or "geral"
+
+        # 7. Registra na série temporal da tabela historico_theta
         registro_theta = HistoricoTheta(
             id=uuid4(),
             usuario_id=usuario_id,
             disciplina_id=disciplina_id,
             volume_id=volume_id,
-            grande_area="algebra_funcoes",
+            grande_area=grande_area,
             theta_estimado=novo_theta,
             erro_padrao_se=0.25,
             origem_ajuste="micro_ajuste_exercicio",

@@ -86,11 +86,28 @@ async def criar_checkout_pix(
         )
         valor_a_cobrar = upgrade_info.valor_final_com_abatimento
 
-    # Se o valor for R$ 0,00 (já pagou capítulos suficientes para cobrir o volume)
+    # Se o valor for R$ 0,00 (já pagou capítulos suficientes para cobrir o volume por upgrade integral)
     if valor_a_cobrar <= 0.00:
-        raise HTTPException(
-            status_code=400, 
-            detail="Você já possui créditos suficientes para este volume. O upgrade é imediato!"
+        nova_matricula = MatriculaPagamento(
+            id=uuid4(),
+            usuario_id=current_user.id,
+            tipo_produto="volume_iezzi",
+            referencia_produto_id=payload.referencia_produto_id,
+            data_inicio=datetime.utcnow(),
+            data_expiracao=datetime.utcnow() + timedelta(days=365),
+            status="active",
+            valor_pago=0.00,
+            metodo_pagamento="upgrade_credito"
+        )
+        db.add(nova_matricula)
+        await db.commit()
+        return PixQrCodeResponse(
+            cobranca_id=f"upgrade_concluido_{nova_matricula.id}",
+            qr_code_base64="",
+            copia_cola="UPGRADE_CONCLUIDO_COM_SUCESSO",
+            valor=0.00,
+            expira_em_segundos=0,
+            expira_em_timestamp=datetime.utcnow()
         )
 
     # externalReference: identificador seguro para reconciliação no webhook
@@ -110,7 +127,74 @@ async def criar_checkout_pix(
 
 
 # ============================================================================
-# 3. Polling de Status do PIX em Tempo Real (A cada 3 segundos no Modal)
+# 3. Checkout com Cartão de Crédito (até 12x)
+# ============================================================================
+
+@router.post("/checkout/cartao", response_model=CheckoutCartaoResponse)
+async def criar_checkout_cartao(
+    payload: CheckoutCartaoRequest,
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Processa pagamento transparente via Cartão de Crédito tokenizado pelo SDK frontend.
+    Concede acesso e ativa a matrícula de 365 dias instantaneamente em caso de aprovação.
+    """
+    from uuid import uuid4
+    from app.models.payment import MatriculaPagamento, TransacaoFinanceira
+
+    # Calcula abatimento se for upgrade de volume
+    valor_final = 49.90 if payload.tipo_produto == "volume_iezzi" else 9.90
+    if payload.tipo_produto == "volume_iezzi":
+        upgrade_info = await UpgradeService.calcular_upgrade_volume(
+            db, current_user.id, payload.referencia_produto_id
+        )
+        valor_final = upgrade_info.valor_final_com_abatimento
+
+    # Simula chamada autorizada ao gateway com token PCI-DSS
+    # Em produção: gateway_client.charges.create(...)
+    transacao_id = f"tx_card_{uuid4().hex[:12]}"
+    
+    # Cria a matrícula imediatamente
+    matricula = MatriculaPagamento(
+        id=uuid4(),
+        usuario_id=current_user.id,
+        tipo_produto=payload.tipo_produto,
+        referencia_produto_id=payload.referencia_produto_id,
+        data_inicio=datetime.utcnow(),
+        data_expiracao=datetime.utcnow() + timedelta(days=365),
+        status="active",
+        valor_pago=valor_final,
+        metodo_pagamento="credit_card",
+        transacao_gateway_id=transacao_id
+    )
+    db.add(matricula)
+
+    # Registra a transação contábil
+    transacao = TransacaoFinanceira(
+        id=uuid4(),
+        matricula_id=matricula.id,
+        usuario_id=current_user.id,
+        valor_bruto=valor_final,
+        taxa_gateway=round(valor_final * 0.0399, 2), # Exemplo taxa 3.99%
+        valor_liquido=round(valor_final * 0.9601, 2),
+        status_transacao="paid",
+        pago_em=datetime.utcnow()
+    )
+    db.add(transacao)
+    await db.commit()
+
+    return CheckoutCartaoResponse(
+        sucesso=True,
+        transacao_id=transacao_id,
+        mensagem="Pagamento com cartão aprovado! Acesso liberado por 12 meses.",
+        matricula_id=matricula.id,
+        vigencia_ate=matricula.data_expiracao
+    )
+
+
+# ============================================================================
+# 4. Polling de Status do PIX em Tempo Real (A cada 3 segundos no Modal)
 # ============================================================================
 
 @router.get("/status/{cobranca_id}")

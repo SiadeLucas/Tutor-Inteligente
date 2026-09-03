@@ -70,11 +70,12 @@ async def obter_dashboard_docente(
 @router.get("/alunos", response_model=List[AlunoFichaResponse])
 async def listar_estudantes(
     busca: Optional[str] = Query(None, description="Filtra por Nome, CPF ou E-mail"),
-    limite: int = Query(50, le=100),
+    pagina: int = Query(1, ge=1, description="Número da página (1-indexed)"),
+    tamanho: int = Query(50, ge=1, le=100, description="Quantidade de registros por página"),
     teacher: Usuario = Depends(require_teacher_role),
     db: AsyncSession = Depends(get_db)
 ):
-    """Lista os estudantes matriculados para supervisão passiva."""
+    """Lista os estudantes matriculados com paginação para supervisão passiva."""
     stmt = select(Usuario).where(Usuario.role == "student")
     if busca:
         termo = f"%{busca}%"
@@ -85,7 +86,7 @@ async def listar_estudantes(
                 Usuario.cpf.like(termo)
             )
         )
-    stmt = stmt.order_by(desc(Usuario.criado_em)).limit(limite)
+    stmt = stmt.order_by(desc(Usuario.criado_em)).offset((pagina - 1) * tamanho).limit(tamanho)
     result = await db.execute(stmt)
     alunos = result.scalars().all()
 
@@ -177,4 +178,53 @@ async def obter_extrato_vendas(
         saldo_disponivel_repasse=round(total_liquido * 0.95, 2),
         transacoes=itens
     )
+
+
+# ============================================================================
+# 5. Cancelamento e Estorno Administrativo (RN-PRF-019 / CDC 7 Dias)
+# ============================================================================
+
+@router.post("/matriculas/{matricula_id}/estorno")
+async def estornar_matricula(
+    matricula_id: UUID,
+    motivo: Optional[str] = None,
+    teacher: Usuario = Depends(require_teacher_role),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    RN-PRF-019: Executa estorno e cancelamento de matrícula adquirida
+    dentro da garantia legal de 7 dias (CDC), revogando o acesso do estudante.
+    """
+    from datetime import datetime, timedelta
+
+    stmt = select(MatriculaPagamento).where(MatriculaPagamento.id == matricula_id)
+    res = await db.execute(stmt)
+    matricula = res.scalar_one_or_none()
+
+    if not matricula:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Matrícula não encontrada.")
+
+    # Verifica limite de 7 dias corridos a partir da compra
+    dias_passados = (datetime.utcnow() - matricula.data_inicio).days
+    if dias_passados > 7:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Prazo de garantia legal expirado ({dias_passados} dias decorridos. Limite: 7 dias)."
+        )
+
+    matricula.status = "canceled"
+
+    # Atualiza a transação correspondente para refund
+    stmt_tx = select(TransacaoFinanceira).where(TransacaoFinanceira.matricula_id == matricula.id)
+    res_tx = await db.execute(stmt_tx)
+    tx = res_tx.scalar_one_or_none()
+    if tx:
+        tx.status_transacao = "refunded"
+
+    await db.commit()
+    return {
+        "sucesso": True,
+        "matricula_id": matricula.id,
+        "mensagem": "Matrícula cancelada e estorno administrativo registrado com sucesso."
+    }
 ```

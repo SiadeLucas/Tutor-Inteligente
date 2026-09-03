@@ -52,11 +52,19 @@ async def submeter_exercicio(
     """
     # 1. Busca o item no banco de dados (tabela itens_exercicios)
     # item = await db.get(ItemExercicio, payload.item_id)
+    tipo_item = getattr(payload, "tipo_item", "multiple_choice")  # multiple_choice | numeric_input
     gabarito_esperado = "A"  # Exemplo recuperado do banco
     pista_ia = "Lembre-se de verificar o sinal do discriminante Delta = b^2 - 4ac."
     resolucao_katex = "A resolução detalhada demonstra as raízes reais x_1 e x_2."
 
-    acertou = (payload.resposta_enviada == gabarito_esperado)
+    # RN-EXE-017: Suporte tanto a múltipla escolha quanto a numeric_input com tolerância ±0.01 via SymPy
+    if tipo_item == "numeric_input":
+        acertou = SympyMathValidator.validar_equivalencia(
+            expressao_aluno_str=payload.resposta_enviada,
+            expressao_gabarito_str=gabarito_esperado
+        )
+    else:
+        acertou = (payload.resposta_enviada.strip().upper() == gabarito_esperado.strip().upper())
 
     if acertou:
         # Acerto na 1ª tentativa vale 1.0; na 2ª tentativa com auxílio vale 0.5
@@ -114,8 +122,52 @@ async def gerar_questao_gemea(
 
 
 # ============================================================================
-# 3. Submissão da Prova Adaptativa CAT (Blind Adaptive Testing)
+# 3. Inicialização e Submissão da Prova Adaptativa CAT (Blind Adaptive Testing)
 # ============================================================================
+
+@router.post("/cat/iniciar")
+async def iniciar_sessao_cat(
+    payload: IniciarCatRequest,
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Instancia uma nova sessão de Prova Adaptativa Diagnóstica (CAT)
+    com prior N(0, 1), SE inicial de 1.0 e seleciona o 1º item por máxima Informação de Fisher.
+    """
+    from app.models.exercise import ProvaCat
+    from uuid import uuid4
+    from datetime import datetime
+
+    nova_prova = ProvaCat(
+        id=uuid4(),
+        usuario_id=current_user.id,
+        disciplina_id=payload.disciplina_id,
+        theta_geral=0.0,
+        erro_padrao_se=1.0,
+        total_itens_aplicados=0,
+        itens_respondidos_ids=[],
+        iniciado_em=datetime.utcnow()
+    )
+    db.add(nova_prova)
+    await db.commit()
+
+    return {
+        "sessao_cat_id": nova_prova.id,
+        "indicador_progresso": "Questão 1 (Faixa: 12 a 20 questões)",
+        "primeiro_item": {
+            "id": "uuid-item-inicial",
+            "enunciado_katex": "Seja a função real $f(x) = 2x - 4$. O zero da função é:",
+            "tipo_item": "multiple_choice",
+            "alternativas": [
+                {"letra": "A", "texto": "$x = 2$"},
+                {"letra": "B", "texto": "$x = -2$"},
+                {"letra": "C", "texto": "$x = 4$"},
+                {"letra": "D", "texto": "$x = 0$"}
+            ]
+        }
+    }
+
 
 @router.post("/cat/submeter")
 async def submeter_resposta_cat(

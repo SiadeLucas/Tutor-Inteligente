@@ -37,6 +37,10 @@ class MensagemChat(BaseModel):
 class ChatAulaRequest(BaseModel):
     capitulo_id: UUID = Field(..., description="ID do capítulo atual para ancorar a busca semântica")
     mensagem: str = Field(..., min_length=2, max_length=1000, description="Dúvida ou questionamento do estudante")
+    trecho_selecionado: Optional[str] = Field(
+        default=None, 
+        description="Fórmula ou trecho LaTeX selecionado pelo aluno na tela para 'Explicar este passo' (RN-CNT-014)"
+    )
     historico_recente: List[MensagemChat] = Field(
         default=[], 
         max_length=6, 
@@ -85,6 +89,13 @@ export interface Mensagem {
   timestamp?: string;
 }
 
+export interface ChatAulaRequest {
+  capitulo_id: string;
+  mensagem: string;
+  trecho_selecionado?: string;
+  historico_recente?: Mensagem[];
+}
+
 export interface ChatAulaResponse {
   resposta_katex: string;
   chunks_utilizados: Array<{
@@ -93,5 +104,15 @@ export interface ChatAulaResponse {
     score_similaridade: number;
   }>;
   nivel_ajuda_socratico: 1 | 2 | 3;
+}
+
+export interface SolicitarPistaRequest {
+  item_id: string;
+  resposta_incorreta_enviada: string;
+}
+
+export interface SolicitarPistaResponse {
+  pista_socratica_katex: string;
+  dica_pegadinha?: string;
 }
 ```

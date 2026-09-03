@@ -17,25 +17,75 @@ Código de referência para validação matemática estrita e geração paramét
 ## Código Fonte (`backend/app/sympy_engine/validator.py`)
 
 ```python
+import re
 import sympy as sp
+from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application
 import random
 from typing import Dict, Any, Tuple, Optional
 
 
 class SympyMathValidator:
-    """Motor de validação simbólica determinística com tolerância rigorosa."""
+    """Motor de validação simbólica determinística com tolerância rigorosa e proteção estrita contra RCE."""
     
     TOLERANCIA_NUMERICA = 0.01  # Critério acordado de ±0.01
 
-    @staticmethod
-    def validar_equivalencia(expressao_aluno_str: str, expressao_gabarito_str: str) -> bool:
+    # Palavras e padrões proibidos para mitigar injeção de código arbitrário
+    PADROES_PROIBIDOS = re.compile(
+        r"(__|import|exec|eval|open|os|sys|subprocess|shutil|globals|locals|builtins|compile|getattr|setattr)",
+        re.IGNORECASE
+    )
+
+    # Dicionário local estrito com funções matemáticas e variáveis permitidas
+    LOCAL_DICT_SEGURO = {
+        "x": sp.Symbol("x"),
+        "y": sp.Symbol("y"),
+        "z": sp.Symbol("z"),
+        "t": sp.Symbol("t"),
+        "pi": sp.pi,
+        "E": sp.E,
+        "sqrt": sp.sqrt,
+        "sin": sp.sin,
+        "cos": sp.cos,
+        "tan": sp.tan,
+        "log": sp.log,
+        "exp": sp.exp,
+        "Abs": sp.Abs,
+    }
+
+    TRANSFORMACOES_SEGURAS = standard_transformations + (implicit_multiplication_application,)
+
+    @classmethod
+    def sanitizar_expressao(cls, expr_str: str) -> Optional[sp.Expr]:
+        """Sanitiza e faz parse seguro de expressões algébricas de estudantes."""
+        if not expr_str or not isinstance(expr_str, str):
+            return None
+        
+        # Rejeita padrões maliciosos
+        if cls.PADROES_PROIBIDOS.search(expr_str):
+            return None
+            
+        try:
+            return parse_expr(
+                expr_str,
+                local_dict=cls.LOCAL_DICT_SEGURO,
+                transformations=cls.TRANSFORMACOES_SEGURAS,
+                evaluate=False
+            )
+        except Exception:
+            return None
+
+    @classmethod
+    def validar_equivalencia(cls, expressao_aluno_str: str, expressao_gabarito_str: str) -> bool:
         """
         Verifica se duas expressões algébricas são identicamente equivalentes:
-        f(x) - g(x) == 0 após simplificação simbólica formal.
+        f(x) - g(x) == 0 após simplificação simbólica formal com ambiente isolado.
         """
         try:
-            expr_aluno = sp.sympify(expressao_aluno_str)
-            expr_gabarito = sp.sympify(expressao_gabarito_str)
+            expr_aluno = cls.sanitizar_expressao(expressao_aluno_str)
+            expr_gabarito = cls.sanitizar_expressao(expressao_gabarito_str)
+
+            if expr_aluno is None or expr_gabarito is None:
+                return False
 
             # Diferença analítica simplificada
             diferenca = sp.simplify(expr_aluno - expr_gabarito)
@@ -45,9 +95,9 @@ class SympyMathValidator:
 
             # Avaliação numérica de ponto flutuante para aproximações
             valor_numerico = abs(complex(diferenca.evalf()))
-            return valor_numerico <= SympyMathValidator.TOLERANCIA_NUMERICA
+            return valor_numerico <= cls.TOLERANCIA_NUMERICA
 
-        except Exception as err:
+        except Exception:
             # Qualquer erro de sintaxe matemática inválida retorna False com segurança
             return False
 

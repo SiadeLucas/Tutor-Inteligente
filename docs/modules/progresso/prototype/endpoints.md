@@ -81,23 +81,59 @@ async def obter_progresso_geral(
     segundos_totais = res_horas.scalar() or 0
     horas_liquidas = round(segundos_totais / 3600.0, 1)
 
-    # 3. Dados para os 4 eixos do Gráfico Radar (Matemática do 2º Grau)
-    radar_mock = [
-        RadarAreaItem(area="Álgebra e Funções", score_entrada_cat=-0.20, score_atual=theta_atual),
-        RadarAreaItem(area="Geometria e Trigonometria", score_entrada_cat=-0.50, score_atual=theta_atual - 0.1),
-        RadarAreaItem(area="Álgebra Linear e Sequências", score_entrada_cat=-0.80, score_atual=theta_atual + 0.2),
-        RadarAreaItem(area="Matemática Aplicada e Estatística", score_entrada_cat=-0.10, score_atual=theta_atual + 0.05),
+    # 3. Cálculo dinâmico da Completude Curricular Global
+    stmt_total_capitulos = select(func.count(Capitulo.id))
+    total_caps = (await db.execute(stmt_total_capitulos)).scalar() or 1
+    
+    stmt_concluidos = select(func.count(HeatmapDominio.id)).where(
+        and_(
+            HeatmapDominio.usuario_id == current_user.id,
+            HeatmapDominio.taxa_acertos_ponderada >= 60.0
+        )
+    )
+    caps_concluidos = (await db.execute(stmt_concluidos)).scalar() or 0
+    completude_real = round((caps_concluidos / total_caps) * 100.0, 1)
+
+    # 4. Dados para os 4 eixos do Gráfico Radar (consultando a última calibragem por área)
+    areas_mapeadas = [
+        ("algebra_funcoes", "Álgebra e Funções"),
+        ("geometria_trigonometria", "Geometria e Trigonometria"),
+        ("algebra_linear_sequencias", "Álgebra Linear e Sequências"),
+        ("estatistica_aplicada", "Matemática Aplicada e Estatística"),
     ]
+    
+    radar_areas = []
+    for slug_area, nome_exibicao in areas_mapeadas:
+        stmt_area = (
+            select(HistoricoTheta.theta_estimado)
+            .where(
+                and_(
+                    HistoricoTheta.usuario_id == current_user.id,
+                    HistoricoTheta.grande_area == slug_area
+                )
+            )
+            .order_by(HistoricoTheta.registrado_em.desc())
+            .limit(1)
+        )
+        theta_area = (await db.execute(stmt_area)).scalar_one_or_none()
+        score_val = round(float(theta_area), 2) if theta_area is not None else round(theta_atual, 2)
+        radar_areas.append(
+            RadarAreaItem(
+                area=nome_exibicao,
+                score_entrada_cat=round(score_val - 0.25, 2),
+                score_atual=score_val
+            )
+        )
 
     return ProgressoGeralResponse(
         usuario_id=current_user.id,
         theta_atual=round(theta_atual, 2),
         erro_padrao_se=round(se_atual, 2),
         classificacao_nivel=nivel,
-        completude_global_percentual=32.5,
+        completude_global_percentual=completude_real,
         horas_estudo_liquidas_total=horas_liquidas,
-        streak_dias_consecutivos=5,
-        radar_areas=radar_mock
+        streak_dias_consecutivos=1,
+        radar_areas=radar_areas
     )
 
 

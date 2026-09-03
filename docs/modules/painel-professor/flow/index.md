@@ -18,6 +18,6 @@ Navegue pelos sub-domínios de fluxo do Painel do Professor:
 | Sub-domínio | Descrição |
 |:---|:---|
 | [1. Dashboard de Analytics](dashboard-analytics.md) | Fluxo de filtragem cruzada por demografia, instituições e métricas do CAT |
-| [2. Gestão de Alunos](gestao-alunos.md) | Consulta da ficha individual, atribuição de listas e liberação de reteste |
+| [2. Gestão de Alunos](gestao-alunos.md) | Consulta da ficha individual, acompanhamento pedagógico e emissão de boletim PDF |
 | [3. Curadoria de Conteúdo](curadoria-conteudo.md) | Workflow de revisão com preview KaTeX split-screen e aprovação em lote |
-| [4. Gestão Financeira](gestao-financeira.md) | Acompanhamento de faturamento, liberação de bolsas e gestão de acessos |
+| [4. Gestão Financeira](gestao-financeira.md) | Acompanhamento de faturamento, controle de vigência e gestão de acessos |

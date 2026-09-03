@@ -61,3 +61,11 @@ CREATE INDEX idx_usuarios_role ON usuarios(role);
 | `dados_responsavel` | JSONB | Sim | `{"nome": "...", "cpf": "...", "telefone": "...", "email": "..."}` | Obrigatório se `eh_menor_idade = true` |
 | `serie_ano` | VARCHAR(50) | Não | Série cadastrada no Onboarding | RN-ONB-009 |
 | `role` | VARCHAR(20) | Não | Perfil de permissão (`student` ou `teacher`) | RN-AUT-005 |
+
+---
+
+## 3. Arquitetura de Sessões e Presença (Redis + PostgreSQL)
+
+Para suportar milhares de alunos simultâneos sem saturação de I/O por updates contínuos de heartbeat (30s):
+- **Camada Volátil (Redis)**: O heartbeat periódico de 30 segundos e a checagem de 1 dispositivo concorrente são gerenciados em chaves Redis com TTL de 45 segundos (`session:{usuario_id}:active`).
+- **Camada de Persistência (PostgreSQL)**: A tabela `sessoes_ativas` registra a abertura, encerramento formal ou revogação forçada da sessão para auditoria de segurança.

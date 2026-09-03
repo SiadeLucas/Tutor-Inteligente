@@ -18,7 +18,7 @@ A completude curricular de um volume ou grande área é calculada por:
 $$\text{Completude} (\%) = \left( \frac{\text{Aulas Concluídas com Listas de Fixação Entregues}}{\text{Total de Capítulos do Volume}} \right) \times 100$$
 
 > [!IMPORTANT]
-> Um capítulo/aula só é contabilizado como concluído quando o aluno confirma a leitura da teoria E submete com sucesso a Bateria de Fixação (3 a 5 exercícios do Iezzi).
+> Um capítulo/aula só é contabilizado como concluído quando o aluno confirma a leitura da teoria E submete a Bateria de Fixação (3 a 5 exercícios do Iezzi) atingindo um **aproveitamento ponderado mínimo de 60%** ($\text{Score Ponderado} \ge 0.60$). Submissões com nota inferior a 60% permanecem com status pendente de reforço.
 
 #### RN-PRG-002: Taxa de Acerto Ponderada e Precisão na 1ª Tentativa
 - **Taxa de Acertos do Capítulo (Heatmap)**: Utiliza pontuação ponderada:

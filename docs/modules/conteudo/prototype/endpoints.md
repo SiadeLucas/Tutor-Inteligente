@@ -66,11 +66,15 @@ async def conversar_com_tutor_socratico(
 
     capitulo, volume = dados
 
-    # 2. Busca trechos no RAG particionados pelo volume_id
+    # 2. Busca trechos no RAG particionados pelo volume_id (considerando trecho_selecionado se presente)
+    query_busca = payload.mensagem
+    if payload.trecho_selecionado:
+        query_busca = f"Fórmula selecionada: {payload.trecho_selecionado}\nDúvida do aluno: {payload.mensagem}"
+
     chunks = await RAGEngine.buscar_trechos_relevantes(
         db=db,
         volume_id=volume.id,
-        query_aluno=payload.mensagem,
+        query_aluno=query_busca,
         limite_chunks=3
     )
 
@@ -78,9 +82,13 @@ async def conversar_com_tutor_socratico(
     if not trechos_formatados:
         trechos_formatados = f"Conceitos gerais do Volume {volume.numero_volume}: {volume.titulo}."
 
-    # 3. Determina o estágio socrático com base no tamanho do histórico recente
-    total_mensagens = len(payload.historico_recente)
-    estagio_ajuda = 1 if total_mensagens <= 2 else (2 if total_mensagens <= 4 else 3)
+    # 3. Determina o estágio socrático via Máquina de Estados (SocraticStateManager)
+    estagio_ajuda = SocraticStateManager.determinar_proximo_estagio(
+        estagio_atual=len(payload.historico_recente) // 2 + 1,
+        topico_atual=payload.trecho_selecionado,
+        ultimo_topico_registrado=None,
+        mensagem_aluno=payload.mensagem
+    )
 
     # 4. Constrói a instrução de sistema
     system_instruction = SYSTEM_PROMPT_SOCRATICO.format(
@@ -105,5 +113,25 @@ async def conversar_com_tutor_socratico(
         resposta_katex=resposta_texto,
         chunks_utilizados=chunks,
         nivel_ajuda_socratico=estagio_ajuda
+    )
+
+
+# ============================================================================
+# 2. Pista Socrática Rápida para Exercícios (2ª Chance)
+# ============================================================================
+
+@router.post("/aulas/{capitulo_id}/pista", response_model=SolicitarPistaResponse)
+async def solicitar_pista_rapida(
+    capitulo_id: UUID,
+    payload: SolicitarPistaRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    RN-CNT-012: Fornece dica socrática cirúrgica de Estágio 2 para a 2ª chance de resolução,
+    apontando o teorema do Iezzi sem queimar a resposta.
+    """
+    return SolicitarPistaResponse(
+        pista_socratica_katex="Considere aplicar a propriedade da soma das raízes: $S = -\\frac{b}{a}$.",
+        dica_pegadinha="Atenção ao sinal negativo na fórmula de Viète!"
     )
 ```

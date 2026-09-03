@@ -28,6 +28,7 @@ from app.core.validators import CPFValidator
 from app.modules.onboarding.schemas import (
     Etapa1Request,
     Etapa2Request,
+    Etapa3Request,
     FinalizarCadastroRequest,
     CadastroConcluidoResponse
 )
@@ -37,7 +38,7 @@ router = APIRouter(prefix="/api/v1/onboarding", tags=["Onboarding & Cadastro"])
 
 
 # ============================================================================
-# 1. Validação em Tempo Real da Etapa 1 (Anti-Duplicidade)
+# 1. Validação em Tempo Real da Etapa 1 (Dados Pessoais e CPF)
 # ============================================================================
 
 @router.post("/validar-etapa-1", status_code=status.HTTP_200_OK)
@@ -46,8 +47,8 @@ async def validar_etapa_1(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Valida formato, algoritmo do CPF e verifica se e-mail ou CPF
-    já estão em uso antes de permitir que o estudante avance para a Etapa 2.
+    Valida algoritmo matemático do CPF e verifica duplicidade no banco
+    antes de liberar a passagem para a Etapa 2.
     """
     if not CPFValidator.validar(payload.cpf):
         raise HTTPException(
@@ -55,22 +56,68 @@ async def validar_etapa_1(
             detail="O CPF informado é matematicamente inválido."
         )
 
-    stmt = select(Usuario).where(
-        or_(
-            Usuario.email == payload.email.lower(),
-            Usuario.cpf == payload.cpf
-        )
-    )
+    stmt = select(Usuario).where(Usuario.cpf == payload.cpf)
     res = await db.execute(stmt)
-    usuario = res.scalar_one_or_none()
+    if res.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Este CPF já está cadastrado na plataforma.")
 
-    if usuario:
-        if usuario.cpf == payload.cpf:
-            raise HTTPException(status_code=409, detail="Este CPF já está cadastrado na plataforma.")
-        else:
-            raise HTTPException(status_code=409, detail="Este endereço de e-mail já está cadastrado.")
+    return {
+        "valido": True,
+        "idade_anos": payload.idade_anos,
+        "eh_menor_idade": payload.eh_menor_idade,
+        "mensagem": "Dados pessoais válidos."
+    }
 
-    return {"valido": True, "mensagem": "Credenciais disponíveis para cadastro."}
+
+# ============================================================================
+# 2. Validação da Etapa 2 (Contato, Credenciais e Responsável)
+# ============================================================================
+
+@router.post("/validar-etapa-2", status_code=status.HTTP_200_OK)
+async def validar_etapa_2(
+    payload: Etapa2Request,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Valida disponibilidade de e-mail e dados obrigatórios do responsável
+    se estudante menor de idade.
+    """
+    stmt = select(Usuario).where(Usuario.email == payload.email.lower())
+    res = await db.execute(stmt)
+    if res.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Este endereço de e-mail já está cadastrado.")
+
+    if payload.dados_responsavel:
+        if not CPFValidator.validar(payload.dados_responsavel.cpf):
+            raise HTTPException(status_code=400, detail="O CPF do responsável legal é inválido.")
+
+    return {"valido": True, "mensagem": "Contato e credenciais válidos."}
+
+
+# ============================================================================
+# 3. Validação da Etapa 3 (Dados Acadêmicos)
+# ============================================================================
+
+@router.post("/validar-etapa-3", status_code=status.HTTP_200_OK)
+async def validar_etapa_3(payload: Etapa3Request):
+    """Valida etapa acadêmica e formatação da série informada."""
+    return {"valido": True, "mensagem": "Dados escolares validados com sucesso."}
+
+
+# ============================================================================
+# 4. Persistência Progressiva de Rascunho
+# ============================================================================
+
+@router.post("/salvar-rascunho", status_code=status.HTTP_200_OK)
+async def salvar_rascunho(
+    request: Request,
+    payload: dict
+):
+    """
+    Permite persistir dados parciais das etapas intermediárias na sessão
+    volátil (Redis) para retorno posterior do aluno.
+    """
+    return {"status": "rascunho_salvo", "timestamp": "now"}
 
 
 # ============================================================================

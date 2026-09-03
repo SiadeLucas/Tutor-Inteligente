@@ -51,3 +51,52 @@ ESTÁGIO ATUAL DE AJUDA: Nível {estagio_ajuda} de 3
 - Se Nível 3: Mostre como montar a equação inicial ou o primeiro passo do cálculo, mas pare e peça para o aluno concluir o cálculo final.
 """
 ```
+
+---
+
+## 3. Máquina de Estados da Mediação Socrática (`backend/app/ai/socratic_state.py`)
+
+Em vez de incrementar o estágio cegamente com base no tamanho bruto do histórico, o sistema utiliza uma **Máquina de Estados Finita (FSM)** por tópico:
+
+```python
+import re
+from typing import Dict, Any, Optional
+from uuid import UUID
+
+
+class SocraticStateManager:
+    """Gerencia a progressão e reset do nível socrático por tópico ou questão."""
+
+    GATILHOS_PEDIDO_DICA = re.compile(
+        r"(não entendi|como assim|dica|mais|ajuda|não sei|passo|explica|continua|travei|socorro)",
+        re.IGNORECASE
+    )
+
+    @classmethod
+    def determinar_proximo_estagio(
+        cls,
+        estagio_atual: int,
+        topico_atual: Optional[str],
+        ultimo_topico_registrado: Optional[str],
+        mensagem_aluno: str
+    ) -> int:
+        """
+        Calcula o estágio socrático adequado:
+        - Se mudou de tópico ou selecionou nova fórmula: Reseta para Estágio 1 (Reflexão).
+        - Se expressou dificuldade ou solicitou maior detalhamento no mesmo tópico: Avança estágio (máx 3).
+        - Caso contrário: Mantém o estágio atual para consolidação.
+        """
+        # Se houve mudança de tópico/fórmula selecionada, reinicia o ciclo
+        if topico_atual and ultimo_topico_registrado and topico_atual != ultimo_topico_registrado:
+            return 1
+
+        # Se o aluno solicita explicitamente mais ajuda no mesmo assunto
+        if cls.GATILHOS_PEDIDO_DICA.search(mensagem_aluno):
+            return min(3, estagio_atual + 1)
+
+        # Se já é a primeira mensagem sobre o assunto
+        if estagio_atual < 1:
+            return 1
+
+        return estagio_atual
+```

@@ -26,15 +26,15 @@ from pydantic import BaseModel, Field, EmailStr, field_validator, model_validato
 
 
 # ============================================================================
-# 1. Etapa 1: Credenciais Básicas
+# 1. Etapa 1: Dados Pessoais
 # ============================================================================
 
 class Etapa1Request(BaseModel):
-    nome_completo: str = Field(..., min_length=3, max_length=200)
-    email: EmailStr
-    cpf: str = Field(..., description="CPF válido com ou sem pontuação")
-    senha: str = Field(..., min_length=8, description="Senha com no mínimo 8 caracteres")
-    confirmacao_senha: str
+    nome_completo: str = Field(..., min_length=3, max_length=200, description="Nome completo do aluno")
+    cpf: str = Field(..., description="CPF válido do aluno com ou sem pontuação")
+    data_nascimento: date = Field(..., description="Data de nascimento para cálculo de idade")
+    genero: Optional[Literal["masculino", "feminino", "outro", "nao_informar"]] = "nao_informar"
+    foto_perfil: Optional[str] = Field(None, description="URL ou Base64 da foto do perfil (máx 5MB)")
 
     @field_validator("cpf")
     @classmethod
@@ -42,6 +42,59 @@ class Etapa1Request(BaseModel):
         digitos = re.sub(r"\D", "", v)
         if len(digitos) != 11:
             raise ValueError("O CPF deve conter exatamente 11 dígitos numéricos.")
+        return digitos
+
+    @property
+    def idade_anos(self) -> int:
+        hoje = date.today()
+        return hoje.year - self.data_nascimento.year - (
+            (hoje.month, hoje.day) < (self.data_nascimento.month, self.data_nascimento.day)
+        )
+
+    @property
+    def eh_menor_idade(self) -> bool:
+        return self.idade_anos < 18
+
+
+# ============================================================================
+# 2. Etapa 2: Contato, Endereço e Credenciais de Acesso
+# ============================================================================
+
+class DadosResponsavelSchema(BaseModel):
+    nome_completo: str = Field(..., min_length=3, description="Nome do responsável legal")
+    cpf: str = Field(..., description="CPF do responsável legal")
+    telefone: str = Field(..., min_length=10, max_length=15, description="Telefone/WhatsApp do responsável")
+    email: EmailStr = Field(..., description="E-mail do responsável legal")
+
+    @field_validator("cpf")
+    @classmethod
+    def normalizar_cpf_resp(cls, v: str) -> str:
+        digitos = re.sub(r"\D", "", v)
+        if len(digitos) != 11:
+            raise ValueError("O CPF do responsável deve conter exatamente 11 dígitos numéricos.")
+        return digitos
+
+
+class Etapa2Request(BaseModel):
+    email: EmailStr = Field(..., description="E-mail principal para login e comunicações")
+    senha: str = Field(..., min_length=8, description="Senha com no mínimo 8 caracteres")
+    confirmacao_senha: str = Field(...)
+    telefone: str = Field(..., min_length=10, max_length=15, description="WhatsApp do aluno")
+    cep: str = Field(..., description="CEP com 8 dígitos numéricos")
+    logradouro: Optional[str] = None
+    numero: Optional[str] = None
+    complemento: Optional[str] = None
+    bairro: Optional[str] = None
+    cidade: str = Field(...)
+    uf: str = Field(..., min_length=2, max_length=2)
+    dados_responsavel: Optional[DadosResponsavelSchema] = None
+
+    @field_validator("cep")
+    @classmethod
+    def limpar_cep(cls, v: str) -> str:
+        digitos = re.sub(r"\D", "", v)
+        if len(digitos) != 8:
+            raise ValueError("O CEP deve conter exatamente 8 dígitos numéricos.")
         return digitos
 
     @model_validator(mode="after")
@@ -52,54 +105,18 @@ class Etapa1Request(BaseModel):
 
 
 # ============================================================================
-# 2. Etapa 2: Dados Pessoais e Menoridade Civil
-# ============================================================================
-
-class DadosResponsavelSchema(BaseModel):
-    nome_completo: str = Field(..., min_length=3)
-    cpf: str = Field(..., description="CPF do responsável legal")
-    telefone: str = Field(..., min_length=10, max_length=15)
-    email: EmailStr
-
-
-class Etapa2Request(BaseModel):
-    data_nascimento: date
-    dados_responsavel: Optional[DadosResponsavelSchema] = None
-
-    @model_validator(mode="after")
-    def validar_menoridade(self):
-        hoje = date.today()
-        # Cálculo exato de idade
-        idade = hoje.year - self.data_nascimento.year - (
-            (hoje.month, hoje.day) < (self.data_nascimento.month, self.data_nascimento.day)
-        )
-        if idade < 18 and not self.dados_responsavel:
-            raise ValueError("Estudantes menores de 18 anos exigem o preenchimento dos dados do responsável legal.")
-        return self
-
-
-# ============================================================================
-# 3. Etapa 3: Localização e Escola
+# 3. Etapa 3: Dados Acadêmicos e Escolaridade
 # ============================================================================
 
 class Etapa3Request(BaseModel):
-    cep: str = Field(..., description="CEP com 8 dígitos numéricos")
-    cidade: str
-    uf: str = Field(..., min_length=2, max_length=2)
+    nivel_ensino_id: Optional[UUID] = Field(None, description="Identificador do nível de ensino")
     escola_tipo: Literal["publica", "privada", "outro"]
-    nome_escola: Optional[str] = None
-
-    @field_validator("cep")
-    @classmethod
-    def limpar_cep(cls, v: str) -> str:
-        digitos = re.sub(r"\D", "", v)
-        if len(digitos) != 8:
-            raise ValueError("O CEP deve conter exatamente 8 dígitos numéricos.")
-        return digitos
+    nome_escola: Optional[str] = Field(None, description="Nome da instituição de ensino")
+    serie_ano: str = Field(..., description="Série cadastrada de forma dinâmica (ex: 1_ano, 2_ano, 3_ano, 9_ano, pre_vestibular)")
 
 
 # ============================================================================
-# 4. Etapa 4: Escolaridade e Submissão Unificada
+# 4. Submissão Unificada
 # ============================================================================
 
 class FinalizarCadastroRequest(BaseModel):
@@ -107,7 +124,12 @@ class FinalizarCadastroRequest(BaseModel):
     etapa2: Etapa2Request
     etapa3: Etapa3Request
     disciplina_id: UUID = Field(..., description="Disciplina de entrada (Matemática no lançamento)")
-    serie_ano: Literal["1_ano", "2_ano", "3_ano"] = Field(..., description="Série do Ensino Médio")
+
+    @model_validator(mode="after")
+    def validar_responsavel_se_menor(self):
+        if self.etapa1.eh_menor_idade and not self.etapa2.dados_responsavel:
+            raise ValueError("Estudantes menores de 18 anos exigem obrigatoriamente os dados do responsável legal na Etapa 2.")
+        return self
 
 
 class CadastroConcluidoResponse(BaseModel):
@@ -133,23 +155,34 @@ export interface DadosResponsavel {
 }
 
 export interface OnboardingFormState {
-  // Etapa 1
+  // Etapa 1: Dados Pessoais
   nome_completo: string;
-  email: string;
   cpf: string;
+  data_nascimento: string;
+  genero?: "masculino" | "feminino" | "outro" | "nao_informar";
+  foto_perfil?: string;
+
+  // Etapa 2: Contato, Endereço e Credenciais
+  email: string;
   senha: string;
   confirmacao_senha: string;
-  // Etapa 2
-  data_nascimento: string;
-  dados_responsavel?: DadosResponsavel;
-  // Etapa 3
+  telefone: string;
   cep: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
   cidade: string;
   uf: string;
+  dados_responsavel?: DadosResponsavel;
+
+  // Etapa 3: Acadêmico
+  nivel_ensino_id?: string;
   escola_tipo: "publica" | "privada" | "outro";
   nome_escola?: string;
-  // Etapa 4
+  serie_ano: string; // Dinâmico (ex: "1_ano", "2_ano", "3_ano", "pre_vestibular")
+
+  // Contexto da Disciplina
   disciplina_id: string;
-  serie_ano: "1_ano" | "2_ano" | "3_ano";
 }
 ```

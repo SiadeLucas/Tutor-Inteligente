@@ -52,22 +52,25 @@ flowchart TD
 
 ---
 
-### 2.3 Tela de Aula / Conteúdo
+### 2.3 Tela de Aula / Conteúdo (Sessão de 50 Minutos em Split-Screen)
 
-Tela de consumo de conteúdo com vídeo, materiais e navegação entre aulas.
+Tela de aprendizado com leitor KaTeX modular e chat socrático contextualizado com IA.
 
 ```mermaid
 flowchart TD
-    A["Tela de Aula"] --> B["Player de Vídeo / Conteúdo Teórico"]
-    A --> C["Descrição + Anotações do Aluno"]
-    A --> D["Materiais Complementares (PDF, Links)"]
-    A --> E["Sidebar: Lista de Aulas do Tópico"]
-    E --> F["Aula 1 ✅"]
-    E --> G["Aula 2 ✅"]
-    E --> H["Aula 3 (atual) ▶️"]
-    E --> I["Aula 4 ⏳"]
-    B --> J["Botão: Próxima Aula"]
-    B --> K["Botão: Ir para Exercícios"]
+    A["Tela de Aula Split-Screen"] --> B["Painel Esquerdo (65%): Leitor KaTeX"]
+    A --> C["Painel Direito (35%): Chat Socrático IA"]
+    
+    B --> B1["Bloco 1: Teoria e Teoremas (10 min)"]
+    B --> B2["Bloco 2: Exemplos Resolvidos (15 min)"]
+    B --> B3["Bloco 3: Dicas IA e Armadilhas (10 min)"]
+    B --> B4["Bloco 4: Bateria de Fixação 3 a 5 itens (15 min)"]
+    
+    C --> C1["Nível 1: Pergunta reflexiva"]
+    C --> C2["Nível 2: Dica conceitual"]
+    C --> C3["Nível 3: Passo guiado"]
+    
+    B4 --> D["Critério de Conclusão: Submissão com Aproveitamento >= 60%"]
 ```
 
 ---

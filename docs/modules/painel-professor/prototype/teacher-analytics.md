@@ -107,13 +107,18 @@ class TeacherAnalyticsService:
             for uf, qtd in linhas_uf
         ]
 
+        # 5. Total de horas líquidas ativas acumuladas
+        stmt_horas_totais = select(func.sum(HorasEstudoDiaria.segundos_ativos))
+        segundos_totais = (await db.execute(stmt_horas_totais)).scalar() or 0
+        horas_liquidas_totais = round(segundos_totais / 3600.0, 1)
+
         return DashboardAnalyticsResponse(
             total_estudantes_ativos=total_alunos,
             faturamento_bruto_mes_atual=float(bruto_mes),
             taxa_gateway_mes_atual=float(taxa_mes),
             faturamento_liquido_mes_atual=float(liquido_mes),
             theta_medio_geral=round(float(theta_medio), 2),
-            horas_estudo_liquidas_total=1420.5,
+            horas_estudo_liquidas_total=horas_liquidas_totais,
             distribuicao_rede=mapa_rede,
             distribuicao_uf=lista_uf
         )
@@ -147,6 +152,13 @@ class TeacherAnalyticsService:
         )
         erros_cr = (await db.execute(stmt_cr)).scalar() or 0
 
+        # Horas líquidas ativas do estudante
+        stmt_horas_aluno = select(func.sum(HorasEstudoDiaria.segundos_ativos)).where(
+            HorasEstudoDiaria.usuario_id == aluno_id
+        )
+        segundos_aluno = (await db.execute(stmt_horas_aluno)).scalar() or 0
+        horas_aluno = round(segundos_aluno / 3600.0, 1)
+
         return AlunoFichaResponse(
             usuario_id=usuario.id,
             nome_completo=usuario.nome_completo,
@@ -160,7 +172,7 @@ class TeacherAnalyticsService:
             eh_menor_idade=usuario.eh_menor_idade,
             dados_responsavel=usuario.dados_responsavel,
             theta_atual=float(theta_val),
-            horas_liquidas_estudo=34.5,
+            horas_liquidas_estudo=horas_aluno,
             total_capitulos_concluidos=total_caps,
             erros_pendentes_caixa_reforco=erros_cr,
             data_cadastro=usuario.criado_em

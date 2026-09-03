@@ -20,7 +20,7 @@ Toda aula gerada deve conter sem exceção os 4 blocos sequenciais:
 4. **Bloco 4 - Bateria de Exercícios de Fixação**: Conjunto de 3 a 5 exercícios do Iezzi com resolução comentada (15 min).
 
 > [!IMPORTANT]
-> **Condição de Conclusão Curricular**: Uma aula/capítulo **só é considerada 100% concluída** no módulo de Progresso e libera o próximo nó da Skill Tree quando o estudante **submete a Bateria de Fixação** do Bloco 4. O avanço puramente passivo pela leitura da teoria não desbloqueia os capítulos subsequentes.
+> **Condição de Conclusão Curricular**: Uma aula/capítulo **só é considerada 100% concluída** no módulo de Progresso e libera o próximo nó da Skill Tree quando o estudante **submete a Bateria de Fixação** do Bloco 4 e atinge um **aproveitamento ponderado mínimo de 60%** ($\text{Score Ponderado} \ge 0.60$). O avanço puramente passivo pela leitura da teoria ou submissões com aproveitamento inferior a 60% não concluem o capítulo, incentivando o ciclo de recuperação ativa via Questões Gêmeas.
 
 #### RN-CNT-011: Renderização de Fórmulas com KaTeX
 - 100% dos símbolos matemáticos, frações, matrizes, integrais, somatórios e expoentes devem utilizar sintaxe LaTeX padronizada e renderizar client-side via KaTeX.

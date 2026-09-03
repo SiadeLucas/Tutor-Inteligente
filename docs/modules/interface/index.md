@@ -119,12 +119,15 @@ Layout em **grid de cards modulares** (2-3 colunas desktop, 1 coluna mobile):
 - Ao clicar num nó, abre os conteúdos/aulas daquela área
 - Similar a Khan Academy e tech trees de jogos RPG
 
-### Tela de Aula/Conteúdo
+### Tela de Aula/Conteúdo (Player de 50 Minutos em Split-Screen)
 
-- **Área principal**: player de vídeo (ou texto/imagem para conteúdo teórico)
-- **Abaixo do vídeo**: descrição, anotações do aluno, materiais complementares (PDF, links)
-- **Sidebar direita** (ou abaixo no mobile): lista de aulas do tópico com checkmarks de conclusão
-- **Botões**: "Próxima aula" e "Ir para exercícios" no final
+- **Painel Esquerdo (65%)**: Leitor de conteúdo estruturado nos 4 blocos sequenciais:
+  - *Bloco 1 (10 min)*: Teoria KaTeX e teoremas formais
+  - *Bloco 2 (15 min)*: Exemplos resolvidos passo a passo
+  - *Bloco 3 (10 min)*: Dicas do Tutor IA e armadilhas comuns
+  - *Bloco 4 (15 min)*: Bateria de Fixação (3 a 5 exercícios)
+- **Painel Direito (35%)**: Drawer/Chat com o Tutor Socrático contextual do volume (especialista Iezzi)
+- **Mobile (<1024px)**: Layout empilhado com Bottom Sheet retrátil para acionamento do Tutor IA
 
 ### Tela de Exercícios
 

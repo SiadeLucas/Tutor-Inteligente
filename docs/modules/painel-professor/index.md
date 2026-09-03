@@ -18,9 +18,9 @@ updated_by: claude
 Módulo Painel do Professor. Centro de comando administrativo, pedagógico e analítico do professor na plataforma Tutor Inteligente.
 4 grandes pilares de gestão:
 1. Dashboard de Métricas & Analytics (KPIs globais, distribuição de proficiência CAT, cruzamento por Região/Estado/Cidade, Faixa Etária e Instituições de Ensino com filtros avançados).
-2. Gestão Individual de Alunos (Ficha pedagógica completa, histórico no Iezzi, horas líquidas, atribuição de listas de reforço e reteste do CAT).
+2. Gestão Individual de Alunos (Ficha pedagógica completa, histórico no Iezzi, horas líquidas, emissão de Boletim PDF sob filosofia de Piloto Automático).
 3. Central de Curadoria e Conteúdo (Workflow Draft & Publish dos 11 volumes, editor KaTeX split-screen em tempo real, aprovação de Questões Gêmeas e upload de materiais).
-4. Visão Financeira e de Matrículas (MRR, total faturado, gestão de bolsas, controle de inadimplência e extrato de transações).
+4. Visão Financeira e de Matrículas (MRR, total faturado, controle de vigência, auditoria contábil e extrato de repasses sem bolsas manuais).
 -->
 
 # Painel do Professor
@@ -46,9 +46,9 @@ graph TD
 | Pilar | Descrição | Principais Ações |
 |:---|:---|:---|
 | **Analytics & Métricas** | Visão agregada de desempenho e demografia | Filtrar por região, escola, idade e volume |
-| **Gestão de Alunos** | Dossiê individual de cada estudante | Consultar histórico, atribuir reforço, emitir PDF |
+| **Gestão de Alunos** | Dossiê individual de cada estudante | Consultar histórico, horas líquidas, emitir Boletim PDF |
 | **Central de Curadoria** | Gestão do conteúdo dos 11 volumes | Aprovar aulas IA, editar KaTeX, gerir questões |
-| **Gestão Financeira** | Monitoramento de vendas e matrículas | Conceder bolsas, estender acessos, ver extrato |
+| **Gestão Financeira** | Monitoramento de vendas e matrículas | Acompanhar vigência, auditar transações, ver extrato |
 
 ---
 

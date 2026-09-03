@@ -136,9 +136,11 @@ class OpenAILLMService(BaseLLMService):
         return response.choices[0].message.content
 
     async def gerar_embedding(self, texto: str) -> List[float]:
+        """Gera vetor truncado para 768 dimensões garantindo compatibilidade com o schema pgvector(768)."""
         response = await self.client.embeddings.create(
             model="text-embedding-3-small",
-            input=texto
+            input=texto,
+            dimensions=768
         )
         return response.data[0].embedding
 

@@ -12,9 +12,10 @@ updated_by: claude
 
 ### 4.1 Regras de Correção e Formatação
 
-#### RN-EXE-017: Tolerância em Respostas Numéricas
+#### RN-EXE-017: Tolerância em Respostas Numéricas e Critério de Fixação
 - Para questões do tipo `numeric_input`, a correção aceita valores com tolerância de $\pm 0.01$ para compensar aproximações de arredondamento.
 - Expressões exatas fracionárias (ex: `3/4`) ou radicais simplificados devem ser suportados pelo parser de entrada.
+- **Aproveitamento Mínimo de Conclusão**: Para concluir o Bloco 4 de uma aula e liberar o avanço na Skill Tree, o estudante deve atingir ao menos 60% de aproveitamento ponderado na bateria (1.0 para acerto de 1ª, 0.5 para acerto com dica de 2ª chance).
 
 #### RN-EXE-018: Renderização Rigorosa com KaTeX
 - Todos os enunciados, fórmulas de alternativas e resoluções devem ser formatados em LaTeX padronizado e renderizados via KaTeX client-side sem quebra de diagramação.

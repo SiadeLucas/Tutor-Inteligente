@@ -22,5 +22,5 @@ flowchart TD
     
     B --> F["Termômetro de Demanda: Ranking dos Capítulos mais Comprados"]
     
-    B --> G["Gestão na Ficha do Aluno: Lista de Capítulos Ativos e Liberação de Cortesias"]
+    B --> G["Gestão na Ficha do Aluno: Lista de Capítulos Ativos, Vigência e Histórico Contábil"]
 ```

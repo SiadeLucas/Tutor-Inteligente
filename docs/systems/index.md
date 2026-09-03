@@ -12,11 +12,12 @@ updated_by: claude
 
 <!-- ai-summary
 Especificação técnica da stack, containers Docker e infraestrutura AWS da plataforma Tutor Inteligente.
-Arquitetura em 3 containers:
+Arquitetura em 4 containers:
 1. Frontend Web Responsivo (Next.js 14, TypeScript, Tailwind CSS e KaTeX).
 2. Backend API & Motor de IA (Python 3.11, FastAPI, SymPy, LangChain e NumPy/SciPy para TRI).
 3. Banco de Dados Unificado (PostgreSQL 16 com extensão pgvector para RAG e dados relacionais).
-Infraestrutura em nuvem na AWS: EC2 com Docker Compose, Amazon S3 para PDFs e Amazon CloudFront CDN com SSL/TLS.
+4. Cache & Sessões Voláteis (Redis 7 Alpine para heartbeats de 30s e controle de 1 dispositivo concorrente).
+Infraestrutura em nuvem na AWS: EC2 com Docker Compose para MVP e migração para AWS RDS no lançamento comercial.
 -->
 
 # Sistemas e Arquitetura Tecnológica
@@ -27,7 +28,7 @@ Documentação técnica oficial das linguagens, frameworks, orquestração em co
 
 ## 1. Visão Geral da Stack Tecnológica
 
-A plataforma é dividida em 3 camadas de software desacopladas, orquestradas em containers Docker e integradas a serviços gerenciados da AWS:
+A plataforma é dividida em camadas de software desacopladas, orquestradas em containers Docker e integradas a serviços gerenciados da AWS:
 
 ```mermaid
 graph TD
@@ -37,11 +38,12 @@ graph TD
         CF["Amazon CloudFront (CDN + SSL HTTPS)"]
         S3["Amazon S3 (PDFs de Apostilas e Imagens)"]
         
-        subgraph EC2["Instância AWS EC2 (Docker Compose)"]
+        subgraph EC2["Instância AWS EC2 (Docker Compose / MVP)"]
             subgraph Net["Rede Interna: ti-network"]
                 C1["🐳 Container 1: ti-frontend \n Next.js 14 + Tailwind + KaTeX \n Porta 3000"]
                 C2["🐳 Container 2: ti-backend \n Python 3.11 + FastAPI + SymPy \n Porta 8000"]
                 C3["🐳 Container 3: ti-database \n PostgreSQL 16 + pgvector \n Porta 5432"]
+                C4["🐳 Container 4: ti-redis \n Redis 7 (Heartbeats & Sessões) \n Porta 6379"]
             end
         end
     end
@@ -51,6 +53,7 @@ graph TD
     CF --> S3
     C1 -->|API REST / JSON| C2
     C2 -->|SQL & Vetores| C3
+    C2 -->|Heartbeat & Cache (TTL 45s)| C4
     C2 -->|Upload / Assinatura de URL| S3
 ```
 
@@ -82,11 +85,20 @@ graph TD
   - *Dados Vetoriais*: Tabelas de embeddings dos 11 volumes do Iezzi indexadas com algoritmos HNSW para busca semântica em milissegundos.
 - **Persistência**: Volume Docker montado (`postgres_data`) acoplado a disco EBS criptografado na AWS.
 
-### Camada 4: Infraestrutura AWS & Nuvem
+### Camada 4: Cache & Sessões Voláteis (`ti-redis`)
+
+- **Tecnologia**: **Redis 7 Alpine**.
+- **Finalidade**:
+  - *Heartbeat Escalável*: Atualização contínua de presença dos estudantes a cada 30 segundos com TTL de 45 segundos, evitando dezenas de transações por segundo no PostgreSQL.
+  - *Enforcement de Sessão Única*: Registro volátil do token ativo por estudante para congelamento instantâneo do dispositivo concorrente anterior.
+  - *Rate Limiting*: Controle de tentativas de login inválidas (limite de 5 tentativas por 15 minutos).
+
+### Camada 5: Infraestrutura AWS & Nuvem
 
 | Componente AWS | Função na Arquitetura | Vantagem / Motivação |
 |:---|:---|:---|
-| **AWS EC2 (Ubuntu Linux)** | Hospeda os 3 containers Docker via `docker-compose` | Simplicidade operacional, controle total e custo previsível |
+| **AWS EC2 (Ubuntu Linux)** | Hospeda os containers Docker no MVP/Beta | Simplicidade operacional, controle total e custo previsível |
+| **AWS RDS PostgreSQL (Produção)** | Banco gerenciado com réplicas e backups automáticos | Elimina ponto único de falha no lançamento comercial |
 | **Amazon S3** | Armazenamento de arquivos estáticos (PDFs de apostilas e imagens) | Alta durabilidade (99.999999999%), URLs pré-assinadas seguras |
 | **Amazon CloudFront** | CDN global com cache de borda e certificado SSL | Latência ultrabaixa para entrega de páginas no Brasil com HTTPS |
 | **AWS Certificate Manager (ACM)** | Emissão e renovação automática de certificado SSL gratuito | Criptografia ponta a ponta (TLS 1.3) para domínio personalizado |
@@ -96,7 +108,7 @@ graph TD
 
 ## 3. Orquestração em Containers: `docker-compose.yml`
 
-Os 3 containers operam em rede interna isolada, expondo publicamente apenas as portas estritamente necessárias:
+Os containers operam em rede interna isolada, expondo publicamente apenas as portas estritamente necessárias:
 
 ```yaml
 version: "3.9"
@@ -120,6 +132,21 @@ services:
       timeout: 5s
       retries: 5
 
+  ti-redis:
+    image: redis:7-alpine
+    container_name: ti-redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - ti-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   ti-backend:
     build:
       context: ./backend
@@ -128,11 +155,14 @@ services:
     restart: always
     environment:
       DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@ti-database:5432/tutor_inteligente
+      REDIS_URL: redis://:${REDIS_PASSWORD}@ti-redis:6379/0
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
     depends_on:
       ti-database:
+        condition: service_healthy
+      ti-redis:
         condition: service_healthy
     networks:
       - ti-network
@@ -156,6 +186,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:

@@ -55,7 +55,19 @@ async def login(
     Realiza login com E-mail OU CPF, invalida qualquer sessão anterior
     do estudante e emite Access Token (15 min) + Refresh Token em cookie HTTP-Only.
     """
-    # 1. Busca usuário por e-mail ou CPF
+    # 1. Verificação de Rate Limiting (RN-AUT-019: máx 5 tentativas por 15 min)
+    ip_cliente = request.client.host if request.client else "127.0.0.1"
+    chave_rate_limit = f"login_attempts:{payload.identificador}:{ip_cliente}"
+    
+    # Simulação de verificação no Redis (ou SessionManager)
+    tentativas_falhas = await SessionManager.obter_tentativas_login(chave_rate_limit)
+    if tentativas_falhas >= 5:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Muitas tentativas inválidas consecutivas. Conta temporariamente bloqueada por 15 minutos."
+        )
+
+    # 2. Busca usuário por e-mail ou CPF
     stmt = select(Usuario).where(
         or_(
             Usuario.email == payload.identificador,
@@ -66,10 +78,14 @@ async def login(
     usuario = result.scalar_one_or_none()
 
     if not usuario or not verificar_senha(payload.senha, usuario.senha_hash):
+        await SessionManager.incrementar_tentativa_login(chave_rate_limit, ttl_segundos=900)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciais inválidas. Verifique seu e-mail/CPF e senha."
         )
+
+    # Limpa histórico de tentativas em caso de sucesso
+    await SessionManager.limpar_tentativas_login(chave_rate_limit)
 
     if not usuario.ativo:
         raise HTTPException(
@@ -209,7 +225,7 @@ async def heartbeat(
 
 
 # ============================================================================
-# 4. Logout
+# 4. Logout e Logout Remoto
 # ============================================================================
 
 @router.post("/logout")
@@ -218,7 +234,141 @@ async def logout(
     response: Response,
     db: AsyncSession = Depends(get_db)
 ):
-    """Encerra a sessão ativa e deleta o cookie de refresh."""
+    """Encerra a sessão ativa no dispositivo atual e limpa o cookie."""
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        try:
+            token = auth_header.split(" ")[1]
+            payload = TokenService.decodificar_token(token)
+            session_id = UUID(payload["session_id"])
+            await SessionManager.revogar_sessao(db, session_id)
+        except Exception:
+            pass
+
     response.delete_cookie("refresh_token")
     return {"mensagem": "Logout realizado com sucesso."}
+
+
+@router.post("/logout-remoto")
+async def logout_remoto(
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    RN-AUT-015: Invalida TODAS as sessões ativas do estudante em todos os dispositivos,
+    forçando novo login geral.
+    """
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Não autenticado.")
+
+    token = auth_header.split(" ")[1]
+    payload = TokenService.decodificar_token(token)
+    usuario_id = UUID(payload["sub"])
+
+    # Revoga todas as sessões ativas do usuário
+    stmt = (
+        update(SessaoAtiva)
+        .where(and_(SessaoAtiva.usuario_id == usuario_id, SessaoAtiva.revogado == False))
+        .values(revogado=True)
+    )
+    await db.execute(stmt)
+    await db.commit()
+
+    response.delete_cookie("refresh_token")
+    return {"mensagem": "Todas as sessões ativas foram desconectadas com sucesso."}
+
+
+# ============================================================================
+# 5. Recuperação por Link Mágico (RN-AUT-016 a RN-AUT-018)
+# ============================================================================
+
+@router.post("/solicitar-link-magico", response_model=SolicitarLinkMagicoResponse)
+async def solicitar_link_magico(
+    payload: SolicitarLinkMagicoRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Gera token assinado de uso único com expiração de 15 minutos e envia por e-mail.
+    Retorna sempre sucesso para evitar enumeração de contas (RN-AUT-020).
+    """
+    stmt = select(Usuario).where(Usuario.email == payload.email)
+    usuario = (await db.execute(stmt)).scalar_one_or_none()
+
+    if usuario and usuario.ativo:
+        token_raw = TokenService.gerar_token_aleatorio(32)
+        token_hash = hash_senha(token_raw)
+        expira_em = datetime.utcnow() + timedelta(minutes=15)
+
+        # Registra na tabela tokens_recuperacao_senha
+        novo_token = TokenRecuperacaoSenha(
+            id=uuid4(),
+            usuario_id=usuario.id,
+            token_hash=token_hash,
+            expira_em=expira_em,
+            utilizado=False
+        )
+        db.add(novo_token)
+        await db.commit()
+
+        # Envia e-mail assíncrono com o link direto (simulado no protótipo)
+        # link = f"https://app.tutorinteligente.com.br/redefinir-senha?token={token_raw}"
+
+    return SolicitarLinkMagicoResponse(
+        mensagem="Se o e-mail informado estiver cadastrado, um link mágico de recuperação foi enviado.",
+        expira_em_minutos=15
+    )
+
+
+@router.post("/redefinir-senha")
+async def redefinir_senha(
+    payload: RedefinirSenhaRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Valida token temporário, atualiza a senha para o novo hash Argon2id
+    e invalida TODAS as sessões antigas do usuário (RN-AUT-018).
+    """
+    if payload.nova_senha != payload.confirmacao_senha:
+        raise HTTPException(status_code=400, detail="A nova senha e a confirmação não coincidem.")
+
+    if len(payload.nova_senha) < 8:
+        raise HTTPException(status_code=400, detail="A senha deve conter no mínimo 8 caracteres.")
+
+    # Busca token não utilizado e não expirado
+    stmt_token = select(TokenRecuperacaoSenha).where(
+        and_(
+            TokenRecuperacaoSenha.utilizado == False,
+            TokenRecuperacaoSenha.expira_em > datetime.utcnow()
+        )
+    )
+    tokens_candidatos = (await db.execute(stmt_token)).scalars().all()
+    token_valido = None
+    for t in tokens_candidatos:
+        if verificar_senha(payload.token, t.token_hash):
+            token_valido = t
+            break
+
+    if not token_valido:
+        raise HTTPException(status_code=400, detail="Token de recuperação expirado ou inválido.")
+
+    # Atualiza a senha do usuário
+    usuario = await db.get(Usuario, token_valido.usuario_id)
+    usuario.senha_hash = hash_senha(payload.nova_senha)
+    usuario.atualizado_em = datetime.utcnow()
+
+    # Marca token como utilizado
+    token_valido.utilizado = True
+
+    # Invalida todas as sessões ativas do usuário imediatamente
+    stmt_revogar = (
+        update(SessaoAtiva)
+        .where(SessaoAtiva.usuario_id == usuario.id)
+        .values(revogado=True)
+    )
+    await db.execute(stmt_revogar)
+    await db.commit()
+
+    return {"mensagem": "Senha alterada com sucesso! Faça login novamente com a nova credencial."}
 ```

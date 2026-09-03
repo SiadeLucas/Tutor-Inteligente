@@ -41,10 +41,10 @@ Todo o arcabouço curricular, rigor formal, teoremas, demonstrações e exercíc
 graph TD
     Iezzi["📚 Coleção Fundamentos de Matemática Elementar \n (Gelson Iezzi - 11 Volumes)"]
     
-    Iezzi --> A1["Área 1: Álgebra e Funções \n Vol 1 (Conjuntos e Funções) \n Vol 2 (Logaritmos) \n Vol 3 (Trigonometria)"]
-    Iezzi --> A2["Área 2: Geometria \n Vol 9 (Geometria Plana) \n Vol 10 (Geometria Espacial) \n Vol 7 (Geometria Analítica)"]
-    Iezzi --> A3["Área 3: Álgebra Linear e Sequências \n Vol 4 (Sequências, Matrizes e Determinantes) \n Vol 6 (Complexos e Polinômios)"]
-    Iezzi --> A4["Área 4: Matemática Aplicada e Estatística \n Vol 5 (Combinatória e Probabilidade) \n Vol 11 (Matemática Financeira) \n Vol 8 (Limites e Derivadas - Introdução)"]
+    Iezzi --> A1["Área 1: Álgebra e Funções \n Vol 1 (Conjuntos e Funções) \n Vol 2 (Logaritmos) \n Vol 6 (Complexos e Polinômios) \n Vol 8 (Limites e Derivadas)"]
+    Iezzi --> A2["Área 2: Geometria e Trigonometria \n Vol 3 (Trigonometria) \n Vol 7 (Geometria Analítica) \n Vol 9 (Geometria Plana) \n Vol 10 (Geometria Espacial)"]
+    Iezzi --> A3["Área 3: Álgebra Linear e Sequências \n Vol 4 (Sequências, Matrizes e Determinantes)"]
+    Iezzi --> A4["Área 4: Matemática Aplicada e Estatística \n Vol 5 (Combinatória e Probabilidade) \n Vol 11 (Matemática Financeira e Estatística)"]
 ```
 
 ---

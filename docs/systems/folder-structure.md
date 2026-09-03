@@ -11,12 +11,12 @@ updated_by: claude
 
 <!-- ai-summary
 Estrutura geral de pastas e organização física do código-fonte da plataforma Tutor Inteligente em arquitetura Monorepo.
-Detalhamento completo dos diretórios de Backend (FastAPI Python 3.11), Frontend (Next.js 14 App Router TypeScript), Infraestrutura Docker (3 containers) e scripts de CI/CD.
+Detalhamento completo dos diretórios de Backend (FastAPI Python 3.11), Frontend (Next.js 14 App Router TypeScript), Infraestrutura Docker (4 containers com Redis) e scripts de CI/CD.
 -->
 
 # Estrutura Geral de Pastas do Repositório (Monorepo)
 
-Para garantir máxima produtividade, facilidade de deploy e alinhamento estrito com o requisito de **3 containers Docker (Frontend, Backend e Banco de Dados)**, o projeto adota a arquitetura de **Monorepo**.
+Para garantir máxima produtividade, facilidade de deploy e alinhamento estrito com a arquitetura em containers Docker **(Frontend, Backend, Banco de Dados e Redis)**, o projeto adota o padrão de **Monorepo**.
 
 ---
 
@@ -31,7 +31,7 @@ tutor-inteligente/
 ├── backend/                      # 🐳 Container 2: FastAPI + Python 3.11 + SymPy + LangChain
 ├── frontend/                     # 🐳 Container 1: Next.js 14+ (App Router) + TypeScript + KaTeX
 ├── infra/                        # Orquestração de containers, proxies e scripts de nuvem
-│   ├── docker-compose.yml        # Orquestração dos 3 containers (ti-frontend, ti-backend, ti-database)
+│   ├── docker-compose.yml        # Orquestração dos containers (ti-frontend, ti-backend, ti-database, ti-redis)
 │   ├── deploy.sh                 # Script de atualização em 1 comando na AWS EC2
 │   └── nginx/                    # Configurações de proxy reverso e headers de segurança
 ├── docs/                         # Documentação centralizada no MkDocs (este projeto)

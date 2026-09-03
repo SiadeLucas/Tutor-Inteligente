@@ -43,8 +43,7 @@ erDiagram
     DISCIPLINAS ||--o{ PROVAS_CAT : "aplica avaliacao"
     VOLUMES_DIDATICOS ||--|{ CAPITULOS : "contem"
     CAPITULOS ||--|{ AULAS : "estrutura em 4 blocos"
-    AULAS ||--|{ LISTAS_FIXACAO : "possui"
-    LISTAS_FIXACAO ||--|{ ITENS_EXERCICIOS : "compoe (3 a 5)"
+    CAPITULOS ||--|{ ITENS_EXERCICIOS : "vincula questoes e fixacao (3 a 5)"
     
     ITENS_EXERCICIOS ||--o{ QUESTOES_GEMEAS : "gera variacoes SymPy"
     ITENS_EXERCICIOS ||--o{ TENTATIVAS_EXERCICIOS : "avalia"
@@ -52,27 +51,26 @@ erDiagram
 
     USUARIOS {
         uuid id PK
-        string cpf UK
+        string cpf UK "11 digitos numericos"
         string email UK
         string nome_completo
         date data_nascimento
         int idade_anos
+        boolean eh_menor_idade
+        jsonb dados_responsavel "se eh_menor_idade = true"
         string uf
         string cidade
         string cep
         string instituicao_ensino
         string serie_ano
         string role "student | teacher"
-        string nome_responsavel "se menor de 18"
-        string cpf_responsavel "se menor de 18"
-        string telefone_responsavel "se menor de 18"
     }
 
     MATRICULAS_PAGAMENTOS {
         uuid id PK
         uuid usuario_id FK
         string tipo_produto "capitulo_50min | volume_iezzi | passe_global"
-        uuid referencia_produto_id "id do capitulo ou volume"
+        uuid referencia_produto_id "id do capitulo ou volume (NULL se passe_global)"
         datetime data_inicio
         datetime data_expiracao "data_inicio + 365 dias"
         string status "active | past_due | canceled"
@@ -222,7 +220,7 @@ flowchart TD
 
 ## 6. Dicionário de Dados e Esquema Físico das Tabelas (PostgreSQL 16)
 
-Abaixo estão especificadas as **16 tabelas centrais** do banco de dados relacional e vetorial (`pgvector`), com chaves primárias em **UUID v4**, tipos de dados nativos, integridade referencial e índices.
+Abaixo estão especificadas as **17 tabelas centrais** do banco de dados relacional e vetorial (`pgvector`), com chaves primárias em **UUID v4**, tipos de dados nativos, integridade referencial e índices.
 
 ### 6.1 Domínio 1: Autenticação, Usuários e Sessões
 
@@ -232,23 +230,22 @@ Centraliza o cadastro unificado de Alunos e Professores gerado no Onboarding.
 ```sql
 CREATE TABLE usuarios (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    cpf VARCHAR(14) UNIQUE NOT NULL,               -- Formatado: 000.000.000-00
+    cpf VARCHAR(11) UNIQUE NOT NULL,               -- 11 dígitos normalizados (apenas números)
     email VARCHAR(255) UNIQUE NOT NULL,
     senha_hash VARCHAR(255) NOT NULL,              -- bcrypt ou Argon2id
     nome_completo VARCHAR(255) NOT NULL,
     data_nascimento DATE NOT NULL,
     idade_anos INT NOT NULL,
+    eh_menor_idade BOOLEAN NOT NULL DEFAULT FALSE, -- True se idade_anos < 18
+    dados_responsavel JSONB,                       -- Obrigatório se eh_menor_idade = true
     uf VARCHAR(2) NOT NULL,
     cidade VARCHAR(100) NOT NULL,
     bairro VARCHAR(100),
-    cep VARCHAR(9) NOT NULL,                       -- 00000-000
+    cep VARCHAR(8) NOT NULL,                       -- 8 dígitos numéricos (00000000)
     instituicao_ensino VARCHAR(255) NOT NULL,
     rede_ensino VARCHAR(20) NOT NULL,              -- 'publica' | 'privada'
-    serie_ano VARCHAR(50) NOT NULL,                -- '1_ano' | '2_ano' | '3_ano'
+    serie_ano VARCHAR(50) NOT NULL,                -- '1_ano' | '2_ano' | '3_ano' | 'outro'
     role VARCHAR(20) NOT NULL DEFAULT 'student',   -- 'student' | 'teacher'
-    nome_responsavel VARCHAR(255),                 -- Obrigatório se idade < 18
-    cpf_responsavel VARCHAR(14),                   -- Obrigatório se idade < 18
-    telefone_responsavel VARCHAR(20),              -- WhatsApp do responsável
     avatar_url TEXT,
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
     criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),

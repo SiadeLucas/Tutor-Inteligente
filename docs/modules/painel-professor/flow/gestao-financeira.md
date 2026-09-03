@@ -18,10 +18,10 @@ flowchart TD
     
     B --> C["Tabela de Status de Matrículas: Ativas, Inadimplentes e Canceladas"]
     
-    C --> D{"Operação Manual de Acesso"}
-    D -->|"Conceder Bolsa / Convite"| E["Insere e-mail do aluno e libera acesso 100% gratuito"]
-    D -->|"Estender Prazo"| F["Adiciona dias extras de vigência na assinatura"]
-    D -->|"Cancelar Matrícula"| G["Revoga acesso imediato à plataforma"]
+    C --> D{"Auditoria e Gestão Administrativa"}
+    D -->|"Consultar Vigência"| E["Verifica período restante de 365 dias"]
+    D -->|"Solicitar Estorno (CDC 7 dias)"| F["Processa estorno administrativo legal"]
+    D -->|"Suspender por Inadimplência"| G["Transição automática para status past_due"]
     
-    B --> H["Extrato Detalhado de Cobranças (PIX, Cartão e Boleto)"]
+    B --> H["Extrato Detalhado de Cobranças (PIX e Cartão de Crédito)"]
 ```

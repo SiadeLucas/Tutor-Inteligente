@@ -21,7 +21,7 @@ Modelo de 3 níveis de produto:
 3. Passe Global / Assinatura Ilimitada (Acesso a todos os 11 volumes, 11 Agentes de IA e testes CAT).
 Vigência de 12 meses (ano letivo) para compras avulsas de capítulos e volumes.
 Métodos de pagamento 100% instantâneos: PIX Dinâmico (3 a 5 segundos via webhook) e Cartão de Crédito (até 12x).
-Integração total com o Painel do Professor: desdobramento de receita por produto, ranking de capítulos mais vendidos, gestão granular de acessos e liberação de cortesias.
+Integração total com o Painel do Professor: desdobramento de receita por produto, ranking de capítulos mais vendidos, gestão granular de acessos e vigência 100% automatizada.
 -->
 
 # Pagamento
@@ -112,7 +112,7 @@ flowchart TD
     end
     
     subgraph Acessos["Gestão na Ficha do Aluno"]
-        A1["Lista de Capítulos/Volumes Ativos"] --- A2["Concessão Manual de Cortesias"]
+        A1["Lista de Capítulos/Volumes Ativos"] --- A2["Auditoria de Vigência e Matrículas"]
     end
     
     Receita --> Pedagogico
@@ -126,4 +126,4 @@ flowchart TD
 | Seção | Descrição |
 |:---|:---|
 | [Fluxo](flow/index.md) | Fluxo de checkout, ciclo de webhook PIX/Cartão, desbloqueio de 12 meses e tela docente |
-| [Regras de Negócio](business-rules/index.md) | Especificação das regras RN-PAG-001 a RN-PAG-020 (preços, vigência, conciliação e cortesias) |
+| [Regras de Negócio](business-rules/index.md) | Especificação das regras RN-PAG-001 a RN-PAG-020 (preços, vigência, conciliação e zero cortesias) |
