@@ -109,6 +109,13 @@ nav:
         - "2. Calibragem Contínua": modules/progresso/business-rules/regras-calibragem.md
         - "3. Heatmap e Radar": modules/progresso/business-rules/regras-heatmap.md
         - "4. Recomendações e PDF": modules/progresso/business-rules/regras-recomendacoes.md
+      - "Protótipos de Código":
+        - "Visão Geral": modules/progresso/prototype/index.md
+        - "1. Schemas e DTOs": modules/progresso/prototype/schemas.md
+        - "2. Calibragem Contínua de Theta": modules/progresso/prototype/theta-updater.md
+        - "3. Agregador Heatmap e Top 3": modules/progresso/prototype/heatmap-service.md
+        - "4. Gerador de Boletim (ReportLab)": modules/progresso/prototype/pdf-generator.md
+        - "5. Endpoints FastAPI": modules/progresso/prototype/endpoints.md
     - Exercícios / Avaliações:
       - "Visão Geral": modules/exercicios/index.md
       - "Fluxo":
