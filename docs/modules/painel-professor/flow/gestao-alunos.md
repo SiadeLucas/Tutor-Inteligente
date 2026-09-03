@@ -1,29 +1,30 @@
 ---
-title: Painel do Professor - 2. Gestão de Alunos
+title: Painel do Professor - 2. Acompanhamento de Alunos
 type: module
 status: draft
 related:
   - modules/painel-professor/flow/index.md
-last_updated: "2026-09-01"
+last_updated: "2026-09-03"
 updated_by: claude
 ---
 
-# 2. Gestão Individual de Alunos e Ficha Pedagógica
+# 2. Acompanhamento Individual de Alunos e Dossiê
 
-### 2.1 Acompanhamento e Intervenção Docente
+### 2.1 Consulta e Monitoramento Pedagógico (Automação Total)
 
 ```mermaid
 flowchart TD
     A["Tabela Geral de Estudantes Matriculados"] --> B["Professor busca por Nome, CPF, Cidade ou Escola"]
     B --> C["Clique sobre o Aluno desejado"]
     
-    C --> D["Abre Ficha Pedagógica Individual"]
+    C --> D["Abre Dossiê Pedagógico Individual"]
     D --> E["1. Dados Cadastrais e Contato dos Responsáveis (se menor)"]
-    D --> F["2. Gráfico Radar Multiaxial e Heatmap dos 11 Volumes"]
-    D --> G["3. Histórico de Avaliações (Provas CAT e Listas de Fixação)"]
+    D --> F["2. Gráfico Radar Multiaxial e Heatmap de Domínio"]
+    D --> G["3. Histórico da TRI (Evolução Contínua de Theta e Horas Ativas)"]
     
-    D --> H{"Ação de Intervenção"}
-    H -->|"Liberar Reteste CAT"| I["Reseta cooldown de 7 dias para novo diagnóstico"]
-    H -->|"Atribuir Lista de Reforço"| J["Seleciona tópico crítico e envia bateria personalizada"]
-    H -->|"Baixar Boletim"| K["Gera documento PDF formatado do estudante"]
+    D --> H["Operação 100% no Piloto Automático"]
+    H --> I["CAT periódico e micro-ajustes calibram automaticamente"]
+    H --> J["Baterias de reforço com IA geradas dinamicamente na Caixa de Reforço"]
+    
+    D --> K["Ação Docente: Baixar Boletim Escolar em PDF"]
 ```

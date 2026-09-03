@@ -187,6 +187,13 @@ nav:
         - "2. Gestão de Alunos": modules/painel-professor/business-rules/regras-alunos.md
         - "3. Central de Curadoria": modules/painel-professor/business-rules/regras-curadoria.md
         - "4. Gestão Financeira": modules/painel-professor/business-rules/regras-financeiro.md
+      - "Protótipos de Código":
+        - "Visão Geral": modules/painel-professor/prototype/index.md
+        - "1. Schemas e DTOs": modules/painel-professor/prototype/schemas.md
+        - "2. Agregador de Analytics": modules/painel-professor/prototype/teacher-analytics.md
+        - "3. Editor Split-Screen KaTeX": modules/painel-professor/prototype/curator-editor.md
+        - "4. Modo Visão do Aluno": modules/painel-professor/prototype/student-preview.md
+        - "5. Endpoints FastAPI": modules/painel-professor/prototype/endpoints.md
   - Sistemas:
     - "Visão Geral": systems/index.md
     - "Estrutura de Pastas (Monorepo)": systems/folder-structure.md
