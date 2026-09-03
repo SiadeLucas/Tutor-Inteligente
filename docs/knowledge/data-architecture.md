@@ -429,7 +429,7 @@ CREATE TABLE documentos_vetoriais_rag (
     capitulo_id UUID REFERENCES capitulos(id) ON DELETE CASCADE,
     trecho_conteudo TEXT NOT NULL,                 -- Texto do livro e definições
     metadados JSONB NOT NULL DEFAULT '{}',         -- Número da página, teorema, autor
-    embedding vector(1536) NOT NULL,               -- Vetor denso (OpenAI text-embedding-3-small)
+    embedding vector(768) NOT NULL,                -- Vetor denso 768d (Google text-embedding-004 gratuito)
     criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

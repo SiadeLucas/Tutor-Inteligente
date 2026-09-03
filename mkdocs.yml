@@ -4,9 +4,33 @@ site_description: Plataforma EAD de Matemática do 2º Grau - Documentação do 
 nav:
   - Início: index.md
   - Conhecimento:
-    - knowledge/index.md
-    - knowledge/project-context.md
-    - knowledge/data-architecture.md
+    - "Visão Geral": knowledge/index.md
+    - "Contexto do Projeto": knowledge/project-context.md
+    - "Arquitetura de Dados": knowledge/data-architecture.md
+    - "Dicionário de Dados (17 Tabelas)":
+      - "Visão Geral": knowledge/database/index.md
+      - "1. Autenticação & Sessões":
+        - "Tabela 01: usuarios": knowledge/database/01-usuarios.md
+        - "Tabela 02: sessoes_ativas": knowledge/database/02-sessoes-ativas.md
+        - "Tabela 03: tokens_recuperacao_senha": knowledge/database/03-tokens-recuperacao.md
+      - "2. Pagamentos & Comercial":
+        - "Tabela 04: matriculas_pagamentos": knowledge/database/04-matriculas-pagamentos.md
+        - "Tabela 05: transacoes_financeiras": knowledge/database/05-transacoes-financeiras.md
+      - "3. Conteúdo Didático & RAG":
+        - "Tabela 06: disciplinas": knowledge/database/06-disciplinas.md
+        - "Tabela 07: volumes_didaticos": knowledge/database/07-volumes-didaticos.md
+        - "Tabela 08: capitulos": knowledge/database/08-capitulos.md
+        - "Tabela 09: aulas": knowledge/database/09-aulas.md
+        - "Tabela 10: documentos_vetoriais_rag (768d)": knowledge/database/10-documentos-vetoriais-rag.md
+      - "4. Exercícios & Avaliações":
+        - "Tabela 11: itens_exercicios": knowledge/database/11-itens-exercicios.md
+        - "Tabela 12: tentativas_exercicios": knowledge/database/12-tentativas-exercicios.md
+        - "Tabela 13: caixa_reforco": knowledge/database/13-caixa-reforco.md
+        - "Tabela 14: provas_cat": knowledge/database/14-provas-cat.md
+      - "5. Progresso & Analytics":
+        - "Tabela 15: heatmap_dominio": knowledge/database/15-heatmap-dominio.md
+        - "Tabela 16: historico_theta": knowledge/database/16-historico-theta.md
+        - "Tabela 17: horas_estudo_diarias": knowledge/database/17-horas-estudo-diarias.md
   - Módulos:
     - modules/index.md
     - Onboarding:
