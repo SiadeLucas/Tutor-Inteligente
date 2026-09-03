@@ -104,6 +104,12 @@ nav:
         - "2. Modos de Prática": modules/exercicios/business-rules/regras-pratica.md
         - "3. Questões Gêmeas": modules/exercicios/business-rules/regras-validacao.md
         - "4. Correção e KaTeX": modules/exercicios/business-rules/regras-correcao.md
+      - "Protótipos de Código":
+        - "Visão Geral": modules/exercicios/prototype/index.md
+        - "1. Schemas e DTOs": modules/exercicios/prototype/schemas.md
+        - "2. Motor Psicométrico (CAT)": modules/exercicios/prototype/cat-engine.md
+        - "3. Validador SymPy e Gêmeas": modules/exercicios/prototype/sympy-validator.md
+        - "4. Endpoints FastAPI": modules/exercicios/prototype/endpoints.md
     - Painel do Professor:
       - "Visão Geral": modules/painel-professor/index.md
       - "Fluxo":
@@ -119,7 +125,8 @@ nav:
         - "3. Central de Curadoria": modules/painel-professor/business-rules/regras-curadoria.md
         - "4. Gestão Financeira": modules/painel-professor/business-rules/regras-financeiro.md
   - Sistemas:
-    - systems/index.md
+    - "Visão Geral": systems/index.md
+    - "Estrutura de Pastas (Monorepo)": systems/folder-structure.md
   - Roadmap:
     - roadmap/index.md
     - roadmap/gamificacao.md
