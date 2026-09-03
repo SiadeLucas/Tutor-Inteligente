@@ -48,6 +48,12 @@ nav:
         - "2. Vigência de Acesso": modules/pagamento/business-rules/regras-vigencia.md
         - "3. Gateway e Checkout": modules/pagamento/business-rules/regras-gateway.md
         - "4. Gestão Comercial": modules/pagamento/business-rules/regras-gestao-docente.md
+      - "Protótipos de Código":
+        - "Visão Geral": modules/pagamento/prototype/index.md
+        - "1. Schemas e DTOs": modules/pagamento/prototype/schemas.md
+        - "2. Upgrade Proporcional": modules/pagamento/prototype/upgrade-calculator.md
+        - "3. Webhook e Idempotência": modules/pagamento/prototype/webhook-service.md
+        - "4. Endpoints FastAPI": modules/pagamento/prototype/endpoints.md
     - Conteúdo:
       - "Visão Geral": modules/conteudo/index.md
       - "Fluxo":
@@ -76,6 +82,12 @@ nav:
         - "2. Perfis e Permissões": modules/autenticacao/business-rules/regras-perfis.md
         - "3. Sessão e Dispositivos": modules/autenticacao/business-rules/regras-sessao.md
         - "4. Recuperação e Antifraude": modules/autenticacao/business-rules/regras-recuperacao.md
+      - "Protótipos de Código":
+        - "Visão Geral": modules/autenticacao/prototype/index.md
+        - "1. Schemas e DTOs": modules/autenticacao/prototype/schemas.md
+        - "2. Gestão de Sessão Única": modules/autenticacao/prototype/session-manager.md
+        - "3. Tokens JWT e Silent Refresh": modules/autenticacao/prototype/jwt-service.md
+        - "4. Endpoints FastAPI": modules/autenticacao/prototype/endpoints.md
     - Progresso / Desempenho:
       - "Visão Geral": modules/progresso/index.md
       - "Fluxo":
