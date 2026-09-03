@@ -4,22 +4,24 @@ type: module
 status: draft
 related:
   - modules/exercicios/business-rules/index.md
-last_updated: "2026-08-28"
+last_updated: "2026-09-02"
 updated_by: claude
 ---
 
 # 3. Geração e Validação de Questões Gêmeas
 
-### 3.1 Dupla Validação Computacional
+### 3.1 Validação Plugável por Disciplina
 
-#### RN-EXE-012: Variação a partir de Item Matriz do Iezzi
-- Toda questão gerada por IA deve obrigatoriamente referenciar um item matriz da coleção Iezzi, preservando:
-  - O objetivo pedagógico e a competência matemática.
-  - A estrutura algébrica/geométrica de resolução.
+#### RN-EXE-012: Variação a partir de Item Matriz da Coleção
+- Toda questão gerada por IA deve obrigatoriamente referenciar um item matriz da coleção didática ativa, preservando:
+  - O objetivo pedagógico e a competência avaliada.
+  - A estrutura conceitual de resolução.
 
-#### RN-EXE-013: Validação Simbólica Determinística Obrigatória
-- Nenhuma questão gerada por IA pode ser disponibilizada aos estudantes sem que o motor de computação algébrica (SymPy) resolva a expressão e ateste convergência exata com o gabarito alegado pela IA.
-- Questões com qualquer ambiguidade ou divergência de gabarito são automaticamente descartadas.
+#### RN-EXE-013: Validação Simbólica Determinística e Validadores Plugáveis
+- Nenhuma questão gerada por IA pode ser disponibilizada aos estudantes sem passar pelo pipeline de validação determinística:
+  - **Validador Ativo de Lançamento (Matemática - SymPy)**: O motor de computação algébrica SymPy recalcula a expressão analiticamente, atestando convergência exata (tolerância $\pm 0.01$) com o gabarito alegado pela IA.
+  - **Validadores de Escalabilidade Futura**: A arquitetura do backend suporta validadores especializados por matéria (parsers de estequiometria para Química, analisadores gramaticais/semânticos determinísticos com temperatura zero para Linguagens).
+- Questões com qualquer ambiguidade ou divergência de gabarito são descartadas automaticamente antes de chegarem ao aluno.
 
 #### RN-EXE-014: Harmonia dos Valores Numéricos
 - A geração paramétrica deve priorizar valores numéricos limpos (raízes inteiras ou frações irredutíveis simples), exceto quando o objetivo didático for especificamente o tratamento de dízimas ou aproximações irracionais.

@@ -4,16 +4,16 @@ type: module
 status: draft
 related:
   - modules/progresso/business-rules/index.md
-last_updated: "2026-08-31"
+last_updated: "2026-09-02"
 updated_by: claude
 ---
 
-# 3. Parametrização do Heatmap do Iezzi e Gráfico Radar
+# 3. Parametrização do Heatmap de Domínio e Gráfico Radar
 
 ### 3.1 Regras Visuais do Heatmap de Domínio
 
-#### RN-PRG-011: Estrutura da Matriz de Capítulos dos 11 Volumes
-O Heatmap exibe todos os capítulos dos 11 volumes categorizados em cores:
+#### RN-PRG-011: Estrutura da Matriz de Capítulos por Volume
+O Heatmap exibe todos os capítulos da coleção didática da disciplina ativa, categorizados em cores:
 
 | Faixa de Taxa de Acertos | Nível de Maestria | Cor no Heatmap |
 |:---|:---|:---|
@@ -21,15 +21,20 @@ O Heatmap exibe todos os capítulos dos 11 volumes categorizados em cores:
 | 50% a 74% | Em Desenvolvimento | 🟡 Amarelo |
 | 75% a 100% | Consolidado / Avançado | 🟢 Verde |
 
+> [!NOTE]
+> No lançamento da plataforma, o Heatmap renderiza os capítulos dos 11 volumes da coleção *Gelson Iezzi* (Matemática). A arquitetura é agnóstica e renderiza os volumes da disciplina selecionada no Seletor de Disciplina do Header.
+
 #### RN-PRG-012: Critério de Desbloqueio de Cor do Capítulo
 - Um capítulo só é colorido em Amarelo ou Verde após a submissão de no mínimo 3 exercícios correspondentes àquele capítulo. Antes disso, permanece em estado neutro/cinza.
 
-#### RN-PRG-013: Gráfico Radar Multiaxial
-- O Gráfico Radar possui 4 eixos principais correspondentes às 4 Grandes Áreas:
-  1. *Álgebra e Funções*
-  2. *Geometria e Trigonometria*
-  3. *Álgebra Linear e Sequências*
-  4. *Matemática Aplicada e Estatística*
+#### RN-PRG-013: Gráfico Radar Multiaxial Dinâmico
+- O Gráfico Radar constrói seus eixos dinamicamente com base nas macro-áreas da disciplina selecionada no Header:
+  - **Configuração Ativa no Lançamento (Matemática do 2º Grau)**: 4 eixos canônicos:
+    1. *Álgebra e Funções*
+    2. *Geometria e Trigonometria*
+    3. *Álgebra Linear e Sequências*
+    4. *Matemática Aplicada e Estatística*
+  - **Expansões Futuras**: Carrega os eixos cadastrados na tabela `disciplinas` (ex: em Física: *Mecânica*, *Termologia*, *Óptica*, *Eletromagnetismo*).
 - Exibe sobreposição de duas camadas: Polígono Cinza pontilhado (Diagnóstico de Entrada) e Polígono Laranja preenchido (Nível Atual).
 
 #### RN-PRG-014: Gráfico de Linha Histórico

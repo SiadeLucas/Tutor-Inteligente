@@ -90,3 +90,13 @@ updated_by: claude
 - O professor deve poder adicionar, editar e remover aulas e exercícios.
 - Interface de edição com suporte a KaTeX para fórmulas.
 - Preview em tempo real do conteúdo antes de publicar.
+
+---
+
+### 3.6 Navegação Global e Escalabilidade
+
+#### RN-INT-019: Seletor Global de Disciplina no Header
+- A barra superior de navegação da plataforma possui um componente nativo de contexto de disciplina:
+  - **Comportamento no Lançamento (Disciplina Única Ativa)**: Exibe um badge institucional elegante: `[ 📐 Matemática (Ensino Médio) ]`, sem disparar dropdown vazio.
+  - **Comportamento em Expansão Futura (Múltiplas Disciplinas Ativas)**: Transforma-se automaticamente em um menu dropdown com busca, ícone e cor temática de cada matéria (ex: *Física*, *Química*).
+- A troca de disciplina no seletor altera instantaneamente o contexto da Skill Tree, do Heatmap de Domínio, do Gráfico Radar e do Agente Especialista de IA ativo na sessão do aluno.
