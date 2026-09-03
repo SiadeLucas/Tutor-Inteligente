@@ -46,6 +46,12 @@ nav:
         - "1. Cadastro e Validação": modules/onboarding/business-rules/cadastro.md
         - "2. Prova de Proficiência": modules/onboarding/business-rules/proficiencia.md
         - "3. Escalabilidade": modules/onboarding/business-rules/escalabilidade.md
+      - "Protótipos de Código":
+        - "Visão Geral": modules/onboarding/prototype/index.md
+        - "1. Schemas e DTOs": modules/onboarding/prototype/schemas.md
+        - "2. Validador de CPF (Módulo 11)": modules/onboarding/prototype/cpf-validator.md
+        - "3. Cadastro Atômico": modules/onboarding/prototype/onboarding-service.md
+        - "4. Endpoints FastAPI": modules/onboarding/prototype/endpoints.md
     - Interface:
       - "Visão Geral": modules/interface/index.md
       - "Fluxo":
@@ -58,6 +64,13 @@ nav:
         - "1. Design System": modules/interface/business-rules/design-system.md
         - "2. Responsividade": modules/interface/business-rules/responsividade.md
         - "3. Componentes e Telas": modules/interface/business-rules/componentes.md
+      - "Protótipos de Código":
+        - "Visão Geral": modules/interface/prototype/index.md
+        - "1. Renderizador KaTeX": modules/interface/prototype/katex-renderer.md
+        - "2. Skill Tree Visual": modules/interface/prototype/skill-tree.md
+        - "3. Player de Aula (Split-Screen)": modules/interface/prototype/lesson-player.md
+        - "4. Modal de Sessão Concorrente": modules/interface/prototype/session-modal.md
+        - "5. Seletor de Disciplinas": modules/interface/prototype/header-switcher.md
     - Pagamento:
       - "Visão Geral": modules/pagamento/index.md
       - "Fluxo":
