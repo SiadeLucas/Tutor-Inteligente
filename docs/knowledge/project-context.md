@@ -101,6 +101,6 @@ flowchart LR
 
 O professor atua como regente pedagógico e gestor comercial da sua escola digital:
 - **Demografia e Analytics**: Cruzamento de médias de proficiência ($\bar{\theta}$) por Estado, Município, Idade e Tipo de Escola (Pública vs Privada).
-- **Curadoria e Qualidade**: Workflow *Draft & Publish* com editor split-screen KaTeX para revisar aulas e baterias de Questões Gêmeas propostas pelas IAs.
-- **Ficha do Aluno**: Acompanhamento do radar individual, atribuição de listas de reforço e liberação manual de reteste do CAT.
+- **Ficha do Aluno**: Acompanhamento do radar individual, horas líquidas de estudo ativo e emissão de boletins em PDF (em modo piloto automático, sem necessidade de intervenção manual).
 - **Auditoria Financeira**: Monitoramento de vendas por produto (Capítulos vs Volumes vs Assinaturas) sem interferência manual de bolsas.
+

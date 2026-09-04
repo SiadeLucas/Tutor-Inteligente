@@ -17,15 +17,16 @@ Implementação das rotas de autenticação, rotação de tokens e controle de s
 ## Código Fonte (`backend/app/modules/auth/router.py`)
 
 ```python
-from datetime import datetime
-from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, Response, Request, status
+from datetime import datetime, timedelta
+from uuid import UUID, uuid4
+import hashlib
+from fastapi import APIRouter, Depends, HTTPException, Response, Request, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, and_, update
 
 from app.core.database import get_db
 from app.core.security import hash_senha, verificar_senha, TokenService
-from app.models.user import Usuario, SessaoAtiva
+from app.models.user import Usuario, SessaoAtiva, TokenRecuperacaoSenha
 from app.modules.auth.schemas import (
     LoginRequest,
     LoginResponse,
@@ -33,6 +34,7 @@ from app.modules.auth.schemas import (
     HeartbeatResponse,
     SolicitarLinkMagicoRequest,
     SolicitarLinkMagicoResponse,
+    VerificarTokenResponse,
     RedefinirSenhaRequest
 )
 from app.modules.auth.session_service import SessionManager
@@ -209,13 +211,17 @@ async def heartbeat(
     if not auth_header or not auth_header.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Não autenticado.")
 
-    token = auth_header.split(" ")[1]
+    partes = auth_header.split(" ")
+    if len(partes) != 2 or not partes[1].strip():
+        raise HTTPException(status_code=401, detail="Token de autorização malformado.")
+
+    token = partes[1].strip()
     payload = TokenService.decodificar_token(token)
     session_id = UUID(payload["session_id"])
     usuario_id = UUID(payload["sub"])
 
     sessao = await SessionManager.validar_sessao_ativa(db, session_id, usuario_id)
-    await SessionManager.atualizar_heartbeat(db, sessao.id)
+    await SessionManager.atualizar_heartbeat(db, sessao.id, usuario_id=usuario_id)
 
     return HeartbeatResponse(
         sessao_ativa=True,
@@ -238,10 +244,11 @@ async def logout(
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
         try:
-            token = auth_header.split(" ")[1]
-            payload = TokenService.decodificar_token(token)
-            session_id = UUID(payload["session_id"])
-            await SessionManager.revogar_sessao(db, session_id)
+            partes = auth_header.split(" ")
+            if len(partes) == 2:
+                payload = TokenService.decodificar_token(partes[1].strip())
+                session_id = UUID(payload["session_id"])
+                await SessionManager.revogar_sessao(db, session_id)
         except Exception:
             pass
 
@@ -263,18 +270,15 @@ async def logout_remoto(
     if not auth_header or not auth_header.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Não autenticado.")
 
-    token = auth_header.split(" ")[1]
-    payload = TokenService.decodificar_token(token)
+    partes = auth_header.split(" ")
+    if len(partes) != 2 or not partes[1].strip():
+        raise HTTPException(status_code=401, detail="Token de autorização malformado.")
+
+    payload = TokenService.decodificar_token(partes[1].strip())
     usuario_id = UUID(payload["sub"])
 
-    # Revoga todas as sessões ativas do usuário
-    stmt = (
-        update(SessaoAtiva)
-        .where(and_(SessaoAtiva.usuario_id == usuario_id, SessaoAtiva.revogado == False))
-        .values(revogado=True)
-    )
-    await db.execute(stmt)
-    await db.commit()
+    # Revoga todas as sessões ativas do usuário no banco e no Redis
+    await SessionManager.revogar_todas_sessoes_usuario(db, usuario_id)
 
     response.delete_cookie("refresh_token")
     return {"mensagem": "Todas as sessões ativas foram desconectadas com sucesso."}
@@ -290,18 +294,26 @@ async def solicitar_link_magico(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Gera token assinado de uso único com expiração de 15 minutos e envia por e-mail.
+    Gera token de uso único com expiração de 15 minutos e hash SHA-256.
     Retorna sempre sucesso para evitar enumeração de contas (RN-AUT-020).
     """
-    stmt = select(Usuario).where(Usuario.email == payload.email)
+    termo = payload.identificador.strip()
+    apenas_digitos = "".join(filter(str.isdigit, termo))
+    eh_cpf = (len(apenas_digitos) == 11 and "@" not in termo)
+
+    if eh_cpf:
+        stmt = select(Usuario).where(Usuario.cpf == apenas_digitos)
+    else:
+        stmt = select(Usuario).where(Usuario.email == termo.lower())
+
     usuario = (await db.execute(stmt)).scalar_one_or_none()
 
     if usuario and usuario.ativo:
         token_raw = TokenService.gerar_token_aleatorio(32)
-        token_hash = hash_senha(token_raw)
+        token_hash = hashlib.sha256(token_raw.encode("utf-8")).hexdigest()
         expira_em = datetime.utcnow() + timedelta(minutes=15)
 
-        # Registra na tabela tokens_recuperacao_senha
+        # Registra na tabela tokens_recuperacao_senha com hash determinístico
         novo_token = TokenRecuperacaoSenha(
             id=uuid4(),
             usuario_id=usuario.id,
@@ -312,12 +324,53 @@ async def solicitar_link_magico(
         db.add(novo_token)
         await db.commit()
 
-        # Envia e-mail assíncrono com o link direto (simulado no protótipo)
+        # Em produção: dispara e-mail via SES/SendGrid com link contendo token_raw
         # link = f"https://app.tutorinteligente.com.br/redefinir-senha?token={token_raw}"
 
     return SolicitarLinkMagicoResponse(
-        mensagem="Se o e-mail informado estiver cadastrado, um link mágico de recuperação foi enviado.",
+        mensagem="Se o identificador informado constar em nossa base, um link mágico de recuperação foi enviado.",
         expira_em_minutos=15
+    )
+
+
+@router.get("/verificar-token", response_model=VerificarTokenResponse)
+async def verificar_token_recuperacao(
+    token: str = Query(..., min_length=16, description="Token recebido na URL do link mágico"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Valida a vigência do token de link mágico antes de renderizar
+    o formulário de nova senha no frontend (RN-AUT-017).
+    """
+    token_hash_busca = hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+    stmt = select(TokenRecuperacaoSenha, Usuario.email).join(
+        Usuario, TokenRecuperacaoSenha.usuario_id == Usuario.id
+    ).where(
+        and_(
+            TokenRecuperacaoSenha.token_hash == token_hash_busca,
+            TokenRecuperacaoSenha.utilizado == False,
+            TokenRecuperacaoSenha.expira_em > datetime.utcnow()
+        )
+    )
+    result = await db.execute(stmt)
+    registro = result.first()
+
+    if not registro:
+        return VerificarTokenResponse(
+            valido=False,
+            email_mascarado=None,
+            mensagem="Este link mágico expirou ou já foi utilizado."
+        )
+
+    _, email_usuario = registro
+    partes = email_usuario.split("@")
+    email_mascarado = f"{partes[0][:2]}***@{partes[1]}" if len(partes) == 2 else email_usuario
+
+    return VerificarTokenResponse(
+        valido=True,
+        email_mascarado=email_mascarado,
+        mensagem="Token válido. Prossiga com a criação da nova senha."
     )
 
 
@@ -327,48 +380,41 @@ async def redefinir_senha(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Valida token temporário, atualiza a senha para o novo hash Argon2id
-    e invalida TODAS as sessões antigas do usuário (RN-AUT-018).
+    Valida token via hash SHA-256 direto no índice SQL (prevenção total de DoS),
+    atualiza a credencial para novo hash Argon2id e invalida todas as sessões anteriores.
     """
-    if payload.nova_senha != payload.confirmacao_senha:
+    if payload.confirmacao_senha and payload.nova_senha != payload.confirmacao_senha:
         raise HTTPException(status_code=400, detail="A nova senha e a confirmação não coincidem.")
 
     if len(payload.nova_senha) < 8:
         raise HTTPException(status_code=400, detail="A senha deve conter no mínimo 8 caracteres.")
 
-    # Busca token não utilizado e não expirado
+    # Busca determinística no banco via hash SHA-256 (sub-1ms, zero loop de verificação)
+    token_hash_busca = hashlib.sha256(payload.token.encode("utf-8")).hexdigest()
+
     stmt_token = select(TokenRecuperacaoSenha).where(
         and_(
+            TokenRecuperacaoSenha.token_hash == token_hash_busca,
             TokenRecuperacaoSenha.utilizado == False,
             TokenRecuperacaoSenha.expira_em > datetime.utcnow()
         )
     )
-    tokens_candidatos = (await db.execute(stmt_token)).scalars().all()
-    token_valido = None
-    for t in tokens_candidatos:
-        if verificar_senha(payload.token, t.token_hash):
-            token_valido = t
-            break
+    res_token = await db.execute(stmt_token)
+    token_valido = res_token.scalar_one_or_none()
 
     if not token_valido:
         raise HTTPException(status_code=400, detail="Token de recuperação expirado ou inválido.")
 
-    # Atualiza a senha do usuário
+    # Atualiza a senha do usuário com hash Argon2id
     usuario = await db.get(Usuario, token_valido.usuario_id)
     usuario.senha_hash = hash_senha(payload.nova_senha)
     usuario.atualizado_em = datetime.utcnow()
 
-    # Marca token como utilizado
+    # Marca token como consumido
     token_valido.utilizado = True
 
-    # Invalida todas as sessões ativas do usuário imediatamente
-    stmt_revogar = (
-        update(SessaoAtiva)
-        .where(SessaoAtiva.usuario_id == usuario.id)
-        .values(revogado=True)
-    )
-    await db.execute(stmt_revogar)
-    await db.commit()
+    # Invalida todas as sessões ativas do estudante (PostgreSQL e Redis)
+    await SessionManager.revogar_todas_sessoes_usuario(db, usuario.id)
 
     return {"mensagem": "Senha alterada com sucesso! Faça login novamente com a nova credencial."}
 ```

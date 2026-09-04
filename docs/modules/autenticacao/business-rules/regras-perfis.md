@@ -23,7 +23,7 @@ updated_by: claude
 - O usuário com perfil `teacher` acumula plenos poderes pedagógicos e administrativos:
   - Acesso irrestrito ao Painel do Professor (`/teacher`) e Dashboard de Analytics.
   - Curadoria e edição KaTeX dos 11 volumes do Iezzi.
-  - Gestão de alunos, liberação manual de reteste do CAT e atribuição de reforço.
+  - Supervisão analítica de alunos, emissão de boletins em PDF e acompanhamento do progresso.
   - Gestão de faturamento e visualização de extratos comerciais.
 - **Modo de Pré-visualização do Aluno**: A barra superior do painel disponibiliza o botão *"Visualizar como Aluno"*, permitindo ao professor navegar pela Skill Tree e testar os exercícios com a experiência exata do estudante, sem perder sua autenticação docente.
 

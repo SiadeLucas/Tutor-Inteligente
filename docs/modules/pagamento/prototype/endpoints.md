@@ -17,13 +17,16 @@ Implementação das rotas de checkout de produtos (PIX e Cartão), cálculo de u
 ## Código Fonte (`backend/app/modules/payment/router.py`)
 
 ```python
-from uuid import UUID
+from uuid import UUID, uuid4
 from datetime import datetime, timedelta
+import secrets
 from fastapi import APIRouter, Depends, HTTPException, Header, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_
 
 from app.core.database import get_db
 from app.core.config import settings
+from app.models.payment import MatriculaPagamento, TransacaoFinanceira
 from app.modules.auth.dependencies import get_current_user
 from app.modules.payment.schemas import (
     CheckoutPixRequest,
@@ -211,8 +214,12 @@ async def consultar_status_pix(
     from app.models.payment import TransacaoFinanceira
     from sqlalchemy import select
 
+    # Validação IDOR estrita: a cobrança deve pertencer ao estudante autenticado
     stmt = select(TransacaoFinanceira).where(
-        TransacaoFinanceira.gateway_payload["id"].astext == cobranca_id
+        and_(
+            TransacaoFinanceira.gateway_payload["id"].astext == cobranca_id,
+            TransacaoFinanceira.usuario_id == current_user.id
+        )
     )
     result = await db.execute(stmt)
     tx = result.scalar_one_or_none()
@@ -256,6 +263,50 @@ async def receber_webhook_gateway(
         return {"status": "ok", "resultado": resultado}
     except PermissionError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token de webhook inválido.")
-    except Exception as err:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err))
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Falha interna ao processar notificação de pagamento."
+        )
+
+
+# ============================================================================
+# 5. Consulta de Matrículas e Produtos Ativos do Aluno
+# ============================================================================
+
+@router.get("/meus-produtos")
+async def listar_meus_produtos(
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    RN-PAG-006 / RN-PAG-007: Retorna todos os produtos e volumes com vigência ativa (365 dias)
+    adquiridos pelo estudante autenticado para controle de acesso na Skill Tree.
+    """
+    stmt = (
+        select(MatriculaPagamento)
+        .where(
+            and_(
+                MatriculaPagamento.usuario_id == current_user.id,
+                MatriculaPagamento.status == "active",
+                MatriculaPagamento.data_expiracao > datetime.utcnow()
+            )
+        )
+        .order_by(MatriculaPagamento.data_expiracao.desc())
+    )
+    result = await db.execute(stmt)
+    matriculas = result.scalars().all()
+
+    return [
+        {
+            "matricula_id": str(m.id),
+            "tipo_produto": m.tipo_produto,
+            "referencia_produto_id": str(m.referencia_produto_id) if m.referencia_produto_id else None,
+            "data_inicio": m.data_inicio.isoformat(),
+            "data_expiracao": m.data_expiracao.isoformat(),
+            "dias_restantes": max(0, (m.data_expiracao - datetime.utcnow()).days),
+            "valor_pago": float(m.valor_pago)
+        }
+        for m in matriculas
+    ]
 ```

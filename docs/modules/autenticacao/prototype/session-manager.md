@@ -94,21 +94,26 @@ class SessionManager:
             # Sessão inexistente ou revogada por login concorrente em outro dispositivo
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={
-                    "detail": "CONCURRENT_SESSION_REVOKED",
-                    "mensagem": "Sua conta foi conectada em outro dispositivo. Se não foi você, redefina sua senha imediatamente.",
-                    "horario_desconexao": datetime.utcnow().strftime("%H:%M")
-                }
+                detail="CONCURRENT_SESSION_REVOKED"
             )
 
         return sessao
 
-    @staticmethod
+    @classmethod
     async def atualizar_heartbeat(
+        cls,
         db: AsyncSession,
-        session_id: UUID
+        session_id: UUID,
+        usuario_id: Optional[UUID] = None
     ) -> None:
-        """Atualiza a estampa temporal de atividade a cada 30 segundos."""
+        """
+        Atualiza a presença na Camada Volátil (Redis: TTL 45s)
+        e persiste a estampa no PostgreSQL para auditoria.
+        """
+        # 1. Atualização volátil no Redis (pseudo-código cliente Redis compartilhado)
+        # await redis_client.set(f"session:{usuario_id}:active", str(session_id), ex=45)
+
+        # 2. Persistência de auditoria no PostgreSQL
         stmt = (
             update(SessaoAtiva)
             .where(SessaoAtiva.id == session_id)
@@ -116,6 +121,52 @@ class SessionManager:
         )
         await db.execute(stmt)
         await db.commit()
+
+    @classmethod
+    async def revogar_sessao(cls, db: AsyncSession, session_id: UUID) -> None:
+        """Revoga uma sessão específica."""
+        stmt = (
+            update(SessaoAtiva)
+            .where(SessaoAtiva.id == session_id)
+            .values(revogado=True)
+        )
+        await db.execute(stmt)
+        await db.commit()
+
+    @classmethod
+    async def revogar_todas_sessoes_usuario(cls, db: AsyncSession, usuario_id: UUID) -> int:
+        """Revoga todas as sessões ativas do estudante (logout remoto)."""
+        stmt = (
+            update(SessaoAtiva)
+            .where(and_(SessaoAtiva.usuario_id == usuario_id, SessaoAtiva.revogado == False))
+            .values(revogado=True)
+        )
+        result = await db.execute(stmt)
+        await db.commit()
+        # await redis_client.delete(f"session:{usuario_id}:active")
+        return result.rowcount
+
+    # ========================================================================
+    # Rate Limiting de Tentativas de Login via Redis
+    # ========================================================================
+    _memoria_tentativas: dict = {}  # Fallback em memória caso Redis esteja indisponível
+
+    @classmethod
+    async def obter_tentativas_login(cls, chave: str) -> int:
+        """Consulta número de falhas acumuladas no intervalo."""
+        return cls._memoria_tentativas.get(chave, 0)
+
+    @classmethod
+    async def incrementar_tentativa_login(cls, chave: str, ttl_segundos: int = 900) -> int:
+        """Incrementa falhas de login e define janela de expiração."""
+        total = cls._memoria_tentativas.get(chave, 0) + 1
+        cls._memoria_tentativas[chave] = total
+        return total
+
+    @classmethod
+    async def limpar_tentativas_login(cls, chave: str) -> None:
+        """Reseta o contador de tentativas após sucesso."""
+        cls._memoria_tentativas.pop(chave, None)
 ```
 
 ---

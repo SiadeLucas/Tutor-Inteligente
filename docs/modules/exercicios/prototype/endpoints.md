@@ -204,9 +204,16 @@ async def submeter_resposta_cat(
     prova.total_itens_aplicados += 1
 
     # Recalcula Theta Bayesiano EAP (internamente sem expor)
-    novo_theta, novo_se = CatEngine.estimar_theta_eap(
-        itens_aplicados=[item], # histórico acumulado
-        respostas=[1 if acertou else 0]
+    from app.cat_engine.cat_service import ItemTRI
+    cat = CatEngine()
+    item_tri = ItemTRI(
+        id=item.id,
+        parametro_a=float(item.parametro_a),
+        parametro_b=float(item.parametro_b),
+        parametro_c=float(item.parametro_c)
+    )
+    novo_theta, novo_se = cat.estimar_theta_eap(
+        respostas=[(item_tri, 1 if acertou else 0)]
     )
     prova.theta_geral = round(novo_theta, 3)
     prova.erro_padrao_se = round(novo_se, 3)
@@ -219,15 +226,15 @@ async def submeter_resposta_cat(
 
     if not atingiu_parada:
         # Busca a próxima questão com máxima Informação de Fisher
-        # proximo_item = CatEngine.selecionar_proximo_item(...)
+        # proximo_item = cat.selecionar_proximo_item(...)
         await db.commit()
         return {
             "finalizado": False,
             "indicador_progresso": f"Questão {prova.total_itens_aplicados + 1} (Faixa: 12 a 20 questões)",
             "proximo_item": {
-                "id": "uuid-exemplo",
-                "enunciado_katex": "Seja a função f(x)...",
-                "alternativas": [{"letra": "A", "texto": "..."}]
+                "id": str(item.id),
+                "enunciado_katex": item.enunciado_katex,
+                "alternativas": item.alternativas
             }
         }
     else:
@@ -252,4 +259,71 @@ async def submeter_resposta_cat(
             },
             "redirecionar_url": "/app/skill-tree"
         }
+
+
+# ============================================================================
+# 4. Consulta de Bateria de Fixação do Capítulo (Bloco 4)
+# ============================================================================
+
+@router.get("/capitulo/{capitulo_id}", response_model=List[ItemExercicioResponse])
+async def obter_bateria_fixacao(
+    capitulo_id: UUID,
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    RN-CNT-010 / RN-EXE-001: Retorna a bateria de fixação de 3 a 5 exercícios do capítulo
+    ordenada pedagogicamente pelo parâmetro de dificuldade (b).
+    """
+    from app.models.exercise import ItemExercicio
+    stmt = (
+        select(ItemExercicio)
+        .where(and_(ItemExercicio.capitulo_id == capitulo_id, ItemExercicio.ativo == True))
+        .order_by(ItemExercicio.parametro_b.asc())
+        .limit(5)
+    )
+    result = await db.execute(stmt)
+    itens = result.scalars().all()
+    return itens
+
+
+# ============================================================================
+# 5. Consulta da Caixa de Reforço (Itens Pendentes)
+# ============================================================================
+
+@router.get("/caixa-reforco")
+async def listar_caixa_reforco(
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    RN-EXE-018: Retorna a lista de itens com erro duplo acumulados na Caixa de Reforço
+    para treinos dinâmicos de superação.
+    """
+    from app.models.exercise import CaixaReforco, ItemExercicio
+    stmt = (
+        select(CaixaReforco, ItemExercicio)
+        .join(ItemExercicio, CaixaReforco.item_id == ItemExercicio.id)
+        .where(
+            and_(
+                CaixaReforco.usuario_id == current_user.id,
+                CaixaReforco.status == "pendente"
+            )
+        )
+        .order_by(CaixaReforco.arquivado_em.desc())
+    )
+    result = await db.execute(stmt)
+    registros = result.all()
+    
+    return [
+        {
+            "id": str(cr.id),
+            "item_id": str(it.id),
+            "capitulo_id": str(cr.capitulo_id),
+            "enunciado_katex": it.enunciado_katex,
+            "total_erros": cr.total_erros,
+            "arquivado_em": cr.arquivado_em.isoformat()
+        }
+        for cr, it in registros
+    ]
 ```

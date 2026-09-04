@@ -38,7 +38,7 @@ graph TD
     Teacher["👨‍🏫 Painel do Professor"]
     
     Teacher --> P1["📊 1. Dashboard de Analytics \n KPIs, Demografia e Distribuição CAT"]
-    Teacher --> P2["👤 2. Gestão de Alunos \n Ficha Pedagógica e Intervenções"]
+    Teacher --> P2["👤 2. Gestão de Alunos \n Ficha Pedagógica e Auditoria"]
     Teacher --> P3["📚 3. Central de Curadoria \n 11 Volumes Iezzi, KaTeX e IA"]
     Teacher --> P4["💳 4. Gestão Financeira \n Matrículas, Planos e Faturamento"]
 ```
@@ -80,7 +80,7 @@ flowchart TD
 
 ## 3. Ficha Pedagógica Individual do Aluno
 
-Permite ao professor inspecionar o progresso e intervir pedagogicamente em qualquer estudante:
+Permite ao professor inspecionar o progresso e a evolução pedagógica de qualquer estudante em modo piloto automático:
 
 ```mermaid
 flowchart LR
@@ -88,8 +88,8 @@ flowchart LR
     
     B --> C["Dados & Contato dos Pais \n (Menores de 18 anos)"]
     B --> D["Gráfico Radar & Heatmap \n dos 11 Volumes do Iezzi"]
-    B --> E["Histórico Completo de Provas CAT \n e Listas de Fixação"]
-    B --> F["Ações: Liberar Reteste CAT \n Atribuir Reforço / Baixar PDF"]
+    B --> E["Histórico Completo de Provas CAT \n e Horas Líquidas"]
+    B --> F["Ações: Inspecionar Histórico \n Baixar Boletim em PDF"]
 ```
 
 ---

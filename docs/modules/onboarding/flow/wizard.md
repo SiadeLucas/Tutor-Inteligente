@@ -30,43 +30,45 @@ flowchart TD
 
 ---
 
-### 2.2 Etapa 2: Contato e Endereço
-Coleta as informações de comunicação e localização geográfica do aluno, aproveitando o CEP para preenchimento ágil.
+### 2.2 Etapa 2: Contato, Credenciais e Responsável Legal
+Coleta as informações de comunicação, segurança de acesso (e-mail, senha e confirmação), localização geográfica por CEP e, condicionalmente para estudantes menores de 18 anos, os dados obrigatórios do responsável civil.
 
 ```mermaid
 flowchart TD
-    A["Início: Etapa 2"] --> B["Preenchimento: E-mail e Telefone/WhatsApp"]
-    B --> C["Preenchimento do CEP"]
-    C --> D["Consulta Automática à API de CEP"]
-    D --> E{"CEP Encontrado?"}
-    E -->|Sim| F["Auto-preenchimento: Estado, Cidade e Bairro"]
-    E -->|Não| G["Habilita preenchimento manual dos campos de endereço"]
-    F --> H["Revisão e Ajustes pelo Aluno"]
-    G --> H
-    H --> I["Validação de Formatos e Unicidade de E-mail"]
-    I --> J{"Dados Válidos?"}
-    J -->|Sim| K["Persistência de Contato → Avançar para Etapa 3"]
-    J -->|Não| L["Exibição de Erros nos Campos"]
-    L --> H
+    A["Início: Etapa 2"] --> B["Preenchimento: E-mail, Senha e Confirmação"]
+    B --> C["Preenchimento: Telefone / WhatsApp"]
+    C --> D["Preenchimento do CEP"]
+    D --> E["Consulta Automática à API ViaCEP"]
+    E --> F{"CEP Encontrado?"}
+    F -->|Sim| G["Auto-preenchimento: UF, Cidade, Bairro e Logradouro"]
+    F -->|Não| H["Habilita preenchimento manual dos campos de endereço"]
+    G --> I{"Estudante menor de 18 anos? (Idade da Etapa 1)"}
+    H --> I
+    I -->|Sim| J["Exibição Obrigatória dos Campos do Responsável: \n Nome, CPF, Telefone e E-mail"]
+    I -->|Não| K["Prossegue diretamente para validação"]
+    J --> L["Validação Matemática do CPF do Responsável"]
+    L --> M["Validação de Unicidade de E-mail e Força da Senha (RN-AUT-005)"]
+    K --> M
+    M --> N{"Etapa 2 Válida?"}
+    N -->|Sim| O["Persistência de Contato/Credenciais → Avançar para Etapa 3"]
+    N -->|Não| P["Exibição de Erros e Alertas"]
+    P --> B
 ```
 
 ---
 
-### 2.3 Etapa 3: Dados Acadêmicos e Menoridade
-Coleta os dados escolares e insere dinamicamente os campos de responsável legal se o cálculo da idade for inferior a 18 anos.
+### 2.3 Etapa 3: Dados Acadêmicos e Escolaridade
+Coleta os dados escolares do estudante com validação dinâmica da série/ano conforme o nível de ensino da matéria selecionada.
 
 ```mermaid
 flowchart TD
-    A["Início: Etapa 3"] --> B["Seleção/Busca da Instituição de Ensino"]
-    B --> C["Seleção da Rede (Pública / Privada) e Série/Ano"]
-    C --> D{"Verificação: Idade < 18 anos?"}
-    D -->|Sim| E["Exibição dos Campos do Responsável"]
-    E --> F["Preenchimento: Nome, CPF e Telefone do Responsável"]
-    D -->|Não| G["Prossegue sem campos adicionais"]
-    F --> H["Validação dos Dados Escolares e do Responsável"]
-    G --> H
-    H --> I{"Formulário Válido?"}
-    I -->|Sim| J["Persistência Acadêmica → Avançar para Etapa 4"]
-    I -->|Não| K["Destaque dos Campos Incorretos"]
-    K --> A
+    A["Início: Etapa 3"] --> B["Seleção da Rede de Ensino (Pública / Privada)"]
+    B --> C["Preenchimento do Nome da Instituição de Ensino"]
+    C --> D["Seleção Dinâmica da Série / Ano"]
+    D --> E["Submissão da Validação da Etapa 3"]
+    E --> F{"Formulário Válido?"}
+    F -->|Sim| G["Finalização Atômica do Cadastro → Disparo da Prova CAT (Etapa 4)"]
+    F -->|Não| H["Destaque dos Campos Incorretos"]
+    H --> B
 ```
+

@@ -91,11 +91,19 @@ class SolicitarLinkMagicoRequest(BaseModel):
 
 class SolicitarLinkMagicoResponse(BaseModel):
     mensagem: str = "Se o identificador constar em nossa base, um link de redefinição válido por 15 minutos foi enviado."
+    expira_em_minutos: int = 15
+
+
+class VerificarTokenResponse(BaseModel):
+    valido: bool
+    email_mascarado: Optional[str] = None
+    mensagem: str
 
 
 class RedefinirSenhaRequest(BaseModel):
     token: str = Field(..., description="Token criptográfico de uso único recebido no link mágico")
     nova_senha: str = Field(..., min_length=8, description="Nova senha com no mínimo 8 caracteres")
+    confirmacao_senha: Optional[str] = Field(None, min_length=8, description="Confirmação idêntica da nova senha")
 ```
 
 ---

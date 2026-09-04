@@ -46,9 +46,9 @@ flowchart TD
     B --> C["Matérias"]
     C --> D["Skill Tree da Matéria"]
     D --> E["Lista de Aulas da Área"]
-    E --> F["Tela de Aula (Vídeo + Materiais)"]
-    F --> G["Exercícios da Aula"]
-    G --> H["Resultado + Feedback"]
+    E --> F["Tela de Aula: Split-screen KaTeX (4 Blocos) + Chat IA"]
+    F --> G["Bateria de Fixação (Bloco 4 com Pistas IA)"]
+    G --> H["Resultado + Atualização Heatmap (>=60%)"]
     H --> D
     B --> I["Progresso"]
     B --> J["Exercícios Pendentes"]

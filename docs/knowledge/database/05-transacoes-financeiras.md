@@ -46,8 +46,13 @@ CREATE INDEX idx_transacoes_data ON transacoes_financeiras(criado_em);
 |:---|:---|:---:|:---|:---|
 | `id` | UUID | Não | Identificador da transação financeira | UUID v4 |
 | `matricula_id` | UUID | Sim | Matrícula gerada por este pagamento | Set Null em estorno |
+| `usuario_id` | UUID | Não | Chave estrangeira para `usuarios(id)` | Estudante pagador |
 | `valor_bruto` | DECIMAL(10,2) | Não | Valor nominal pago pelo estudante | Em R$ |
-| `taxa_gateway` | DECIMAL(10,2) | Não | Taxa cobrada pelo Asaas/MercadoPago | R$ 0,99 no PIX |
-| `valor_liquido` | DECIMAL(10,2) | Não | Valor líquido repassado ao professor | Base do extrato |
-| `metodo` | VARCHAR(20) | Não | Meio de pagamento (`pix` ou `credit_card`) | RN-PAG-008 |
+| `taxa_gateway` | DECIMAL(10,2) | Não | Taxa cobrada pelo Asaas/MercadoPago | RN-PAG-013 / RN-PRF-020 |
+| `valor_liquido` | DECIMAL(10,2) | Não | Valor líquido repassado ao professor | Base do extrato docente |
+| `metodo` | VARCHAR(20) | Não | Meio de pagamento (`pix` ou `credit_card`) | RN-PAG-011 / RN-PAG-012 |
+| `status_transacao` | VARCHAR(30) | Não | Estado financeiro (`paid`, `waiting_payment`, `refunded`) | RN-PAG-014 / RN-PRF-019 |
 | `gateway_payload` | JSONB | Sim | JSON bruto retornado pelo gateway | Auditoria e conciliação |
+| `pago_em` | TIMESTAMPTZ | Sim | Carimbo temporal da liquidação confirmada | Webhook instantâneo |
+| `criado_em` | TIMESTAMPTZ | Não | Data e hora da emissão da cobrança | Auditoria |
+

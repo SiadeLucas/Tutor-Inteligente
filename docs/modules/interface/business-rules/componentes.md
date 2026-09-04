@@ -42,17 +42,19 @@ updated_by: claude
 
 ### 3.3 Tela de Aula
 
-#### RN-INT-013: Layout da Tela de Aula
-- Área principal (70%): player de vídeo ou conteúdo teórico.
-- Sidebar direita (30%): lista de aulas do tópico com checkmarks de conclusão.
-- No mobile: sidebar fica abaixo do player (empilhado).
-- Abaixo do player: descrição, anotações do aluno, materiais complementares.
-- Botões de ação: "Próxima Aula" e "Ir para Exercícios".
+#### RN-INT-013: Layout da Tela de Aula em Split-Screen (65% / 35%)
+- **Painel Esquerdo (65%)**: Leitor KaTeX sequencial em 4 blocos de 50 minutos:
+  - Bloco 1: Teoria e Teoremas do Iezzi (10 min).
+  - Bloco 2: Exemplos Resolvidos Passo a Passo (15 min).
+  - Bloco 3: Dicas da IA e Armadilhas Comuns (10 min).
+  - Bloco 4: Bateria de Fixação com 3 a 5 exercícios interativos (15 min).
+- **Painel Direito (35%)**: Chat com o Tutor Socrático IA especialista do volume correspondente, respondendo dúvidas pontuais e acionando pistas socráticas para o Bloco 4.
+- **Responsividade Mobile**: Em telas menores que 1024px, a tela se adapta em abas alternáveis no topo (*"Aula & Teoria"* e *"Tutor Socrático"*).
+- **Condição de Conclusão**: O botão de avanço para a próxima aula só é liberado mediante aproveitamento ponderado $\ge 60\%$ na bateria do Bloco 4 (RN-CNT-010 e RN-PRG-001).
 
-#### RN-INT-014: Player de Vídeo
-- O player deve suportar: play/pause, controle de velocidade (0.5x a 2x), fullscreen e legendas.
-- Salvar automaticamente a posição do vídeo para retomar depois.
-- No mobile, o player deve ocupar a largura total da tela.
+#### RN-INT-014: Suporte a Vídeo Instrucional Opcional
+- O vídeo atua exclusivamente como material complementar anexo (`video_url` opcional), acessível via botão modal *"Assistir Resumo em Vídeo"* sem interromper a leitura dos blocos KaTeX.
+- No mobile, o vídeo pode ser aberto em modal fullscreen sob demanda.
 
 ---
 
@@ -76,7 +78,7 @@ updated_by: claude
 ### 3.5 Painel do Professor
 
 #### RN-INT-017: Dashboard de Métricas
-- O painel do professor é uma tela separada acessível apenas por perfis com role `professor`.
+- O painel do professor é uma tela separada acessível apenas por perfis com role `teacher` (RN-AUT-007).
 - Layout de cards com métricas (similar a Google Analytics / Metabase).
 - Filtros globais no topo: matéria, período, região, instituição.
 - Cards de métricas:

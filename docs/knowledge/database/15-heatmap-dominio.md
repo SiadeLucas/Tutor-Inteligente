@@ -43,6 +43,7 @@ CREATE INDEX idx_heatmap_usuario_cor ON heatmap_dominio(usuario_id, status_cor);
 | `id` | UUID | Não | Identificador do registro | UUID v4 |
 | `usuario_id` | UUID | Não | Chave estrangeira para `usuarios(id)` | Estudante |
 | `capitulo_id` | UUID | Não | Chave estrangeira para `capitulos(id)` | Capítulo avaliado |
-| `taxa_acertos_ponderada`| DECIMAL(5,2) | Não | Pontuação ponderada somada / Total itens | RN-PRG-001 |
-| `status_cor` | VARCHAR(20) | Não | Cor renderizada no nó do Heatmap | **Cinza (<3 itens), Vermelho (<50%), Amarelo (<75%), Verde (>=75%)** |
-| `aula_concluida` | BOOLEAN | Não | Conclusão condicionada à entrega da bateria | RN-CNT-010 |
+| `taxa_acertos_ponderada`| DECIMAL(5,2) | Não | Pontuação ponderada somada / Total itens | RN-PRG-002 |
+| `status_cor` | VARCHAR(20) | Não | Cor renderizada no nó do Heatmap | **Cinza (<3 itens), Vermelho (<50%), Amarelo (<75%), Verde (>=75%)** (RN-PRG-012) |
+| `aula_concluida` | BOOLEAN | Não | Conclusão condicionada à entrega da bateria (aproveitamento >= 60%) | RN-CNT-010 / RN-PRG-001 |
+

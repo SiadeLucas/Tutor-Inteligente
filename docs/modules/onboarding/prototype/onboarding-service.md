@@ -55,10 +55,10 @@ class OnboardingService:
                 detail="O CPF informado é matematicamente inválido."
             )
 
-        # 2. Checagem de unicidade no banco de dados (E-mail e CPF)
+        # 2. Checagem de unicidade no banco de dados (E-mail da Etapa 2 e CPF da Etapa 1)
         stmt_existente = select(Usuario).where(
             or_(
-                Usuario.email == payload.etapa1.email.lower(),
+                Usuario.email == payload.etapa2.email.lower(),
                 Usuario.cpf == payload.etapa1.cpf
             )
         )
@@ -72,34 +72,36 @@ class OnboardingService:
                 detalhe = "Já existe uma conta cadastrada com este endereço de e-mail."
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detalhe)
 
-        # 3. Cálculo formal de idade e menoridade civil
+        # 3. Cálculo formal de idade e menoridade civil (Data de Nascimento na Etapa 1)
         hoje = date.today()
-        nasc = payload.etapa2.data_nascimento
+        nasc = payload.etapa1.data_nascimento
         idade = hoje.year - nasc.year - ((hoje.month, hoje.day) < (nasc.month, nasc.day))
         eh_menor = (idade < 18)
 
         dados_resp = None
         if eh_menor and payload.etapa2.dados_responsavel:
-            dados_resp = payload.etapa2.dados_responsavel.dict()
+            dados_resp = payload.etapa2.dados_responsavel.model_dump()
 
-        # 4. Criação atômica do usuário com senha hasheada
+        # 4. Criação atômica do usuário com senha hasheada (Argon2id)
         novo_usuario = Usuario(
             id=uuid4(),
             cpf=payload.etapa1.cpf,
-            email=payload.etapa1.email.lower(),
-            senha_hash=hash_senha(payload.etapa1.senha),
+            email=payload.etapa2.email.lower(),
+            senha_hash=hash_senha(payload.etapa2.senha),
             nome_completo=payload.etapa1.nome_completo,
             data_nascimento=nasc,
             idade_anos=idade,
             eh_menor_idade=eh_menor,
             dados_responsavel=dados_resp,
-            cep=payload.etapa3.cep,
-            cidade=payload.etapa3.cidade,
-            uf=payload.etapa3.uf.upper(),
+            uf=payload.etapa2.uf.upper(),
+            cidade=payload.etapa2.cidade,
+            bairro=payload.etapa2.bairro,
+            cep=payload.etapa2.cep,
             escola_tipo=payload.etapa3.escola_tipo,
             nome_escola=payload.etapa3.nome_escola,
-            serie_ano=payload.serie_ano,
+            serie_ano=payload.etapa3.serie_ano,
             role="student",
+            avatar_url=payload.etapa1.foto_perfil,
             ativo=True
         )
         db.add(novo_usuario)
@@ -114,7 +116,7 @@ class OnboardingService:
             refresh_token_hash="hash_inicial"
         )
 
-        # 6. Instancia a sessão da Prova Adaptativa Diagnóstica (CAT)
+        # 6. Instancia a sessão da Prova Adaptativa Diagnóstica (CAT) com prior N(0, 1)
         sessao_cat = ProvaCat(
             id=uuid4(),
             usuario_id=novo_usuario.id,
@@ -122,7 +124,12 @@ class OnboardingService:
             tipo_prova="onboarding_diagnostico",
             theta_geral=0.000,
             erro_padrao_se=1.000,
-            scores_grandes_areas={},
+            scores_grandes_areas={
+                "algebra_funcoes": 0.0,
+                "geometria": 0.0,
+                "algebra_linear": 0.0,
+                "aplicada": 0.0
+            },
             total_itens_aplicados=0,
             itens_respondidos_ids=[]
         )

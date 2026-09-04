@@ -25,8 +25,8 @@ Documentação técnica e funcional dos 8 módulos da plataforma **Tutor Intelig
 
 | Módulo | Descrição do Domínio | Status | Regras Especificadas |
 |:---|:---|:---:|:---:|
-| [Onboarding](onboarding/index.md) | Cadastro multinível, formulário de responsáveis e Prova Adaptativa (CAT) | `complete` | RN-ONB-001 a 009, RN-PRF-001 a 009, RN-ESC-001 a 003 |
-| [Interface](interface/index.md) | Design system Khan Academy, layout responsivo e árvore de habilidades | `complete` | RN-INT-001 a 018 |
+| [Onboarding](onboarding/index.md) | Cadastro multinível, formulário de responsáveis e Prova Adaptativa (CAT) | `complete` | RN-ONB-001 a 009, RN-CAT-001 a 009, RN-ESC-001 a 003 |
+| [Interface](interface/index.md) | Design system Khan Academy, layout responsivo e árvore de habilidades | `complete` | RN-INT-001 a 019 |
 | [Conteúdo](conteudo/index.md) | 11 Volumes do Iezzi, 11 Agentes Especialistas de IA e Tutor Socrático | `complete` | RN-CNT-001 a 020 |
 | [Exercícios / Avaliações](exercicios/index.md) | Motor CAT (TRI 2PL/3PL), Questões Gêmeas com SymPy e KaTeX | `complete` | RN-EXE-001 a 020 |
 | [Progresso / Desempenho](progresso/index.md) | Métricas tridimensionais, Radar, Heatmap do Iezzi e Boletim PDF | `complete` | RN-PRG-001 a 020 |

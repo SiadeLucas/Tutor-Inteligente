@@ -25,6 +25,7 @@ from sqlalchemy import select, and_, func
 from app.core.database import get_db
 from app.modules.auth.dependencies import get_current_user
 from app.models.progress import HistoricoTheta, HeatmapDominio, HorasEstudoDiaria
+from app.models.content import Capitulo, VolumeDidatico
 from app.modules.progress.schemas import (
     ProgressoGeralResponse,
     HeatmapVolumeResponse,
@@ -190,11 +191,11 @@ async def baixar_boletim_pdf(
     pdf_bytes = BoletimPDFGenerator.gerar_boletim_bytes(
         nome_aluno=current_user.nome_completo,
         cpf_aluno=current_user.cpf,
-        serie_ano="2º Ano do Ensino Médio",
+        serie_ano=getattr(current_user, "serie_ano", "Ensino Médio"),
         theta_geral=progresso.theta_atual,
         nivel_classificacao=progresso.classificacao_nivel,
         horas_liquidas=progresso.horas_estudo_liquidas_total,
-        aulas_concluidas=14,
+        aulas_concluidas=progresso.aulas_concluidas_count,
         scores_areas=areas_formatadas
     )
 
@@ -205,4 +206,51 @@ async def baixar_boletim_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{nome_arquivo}"'}
     )
+
+
+# ============================================================================
+# 5. Registro Contínuo de Tempo de Estudo Ativo
+# ============================================================================
+
+from pydantic import BaseModel, Field
+from datetime import date
+from uuid import uuid4
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+
+class RegistrarTempoEstudoRequest(BaseModel):
+    segundos_ativos: int = Field(..., ge=1, le=3600, description="Tempo ativo medido sem ociosidade")
+
+
+@router.post("/tempo-estudo")
+async def registrar_tempo_estudo(
+    payload: RegistrarTempoEstudoRequest,
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    RN-PRG-003: Recebe blocos incrementais de tempo líquido de estudo ativo
+    enviados periodicamente pelo cronômetro inteligente da tela de aula.
+    """
+    hoje = date.today()
+
+    stmt = (
+        pg_insert(HorasEstudoDiaria)
+        .values(
+            id=uuid4(),
+            usuario_id=current_user.id,
+            data_registro=hoje,
+            segundos_ativos=payload.segundos_ativos,
+            aulas_concluidas=0,
+            exercicios_submetidos=0
+        )
+        .on_conflict_do_update(
+            constraint="uk_horas_usuario_data",
+            set_={"segundos_ativos": HorasEstudoDiaria.segundos_ativos + payload.segundos_ativos}
+        )
+    )
+    await db.execute(stmt)
+    await db.commit()
+
+    return {"sucesso": True, "segundos_adicionados": payload.segundos_ativos, "data": hoje.isoformat()}
 ```

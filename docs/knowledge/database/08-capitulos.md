@@ -23,7 +23,7 @@ CREATE TABLE capitulos (
     volume_id UUID NOT NULL REFERENCES volumes_didaticos(id) ON DELETE CASCADE,
     numero_capitulo INT NOT NULL,
     titulo VARCHAR(200) NOT NULL,                  -- Ex: 'Função Quadrática e Parábola'
-    tempo_estimado_min INT NOT NULL DEFAULT 50,    -- 50 minutos (RN-CNT-009)
+    tempo_estimado_min INT NOT NULL DEFAULT 50,    -- 50 minutos (RN-CNT-010)
     preco_avulso DECIMAL(10, 2) NOT NULL DEFAULT 9.90,
     pre_requisitos_ids UUID[] DEFAULT '{}',        -- Array com IDs de capítulos recomendados
     ordem INT NOT NULL,
@@ -42,6 +42,6 @@ CREATE INDEX idx_capitulos_volume ON capitulos(volume_id, ordem);
 | `id` | UUID | Não | Identificador do capítulo | UUID v4 |
 | `volume_id` | UUID | Não | Chave estrangeira para `volumes_didaticos(id)` | Volume ao qual pertence |
 | `titulo` | VARCHAR(200) | Não | Tema central da sessão | Ex: 'Progressões Aritméticas' |
-| `tempo_estimado_min` | INT | Não | Duração pedagógica recomendada | Fixo em 50 minutos |
+| `tempo_estimado_min` | INT | Não | Duração pedagógica recomendada | Fixo em 50 minutos (RN-CNT-010) |
 | `preco_avulso` | DECIMAL(10,2) | Não | Valor avulso de venda do capítulo | R$ 9,90 (RN-PAG-001) |
 | `pre_requisitos_ids` | UUID[] | Sim | Array de IDs de capítulos recomendados | Alerta pedagógico flexível |

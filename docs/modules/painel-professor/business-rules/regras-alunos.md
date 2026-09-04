@@ -32,3 +32,7 @@ updated_by: claude
 
 #### RN-PRF-009: Emissão de Boletim Docente em PDF
 - O professor pode gerar e baixar o Boletim em PDF de qualquer estudante matriculado a qualquer momento para conferência ou envio formal aos responsáveis.
+
+#### RN-PRF-010: Auditoria e Rastreabilidade de Atividades
+- A Ficha do Aluno disponibiliza a trilha de auditoria das submissões de exercícios e provas com carimbo de data/hora, tempo de resolução em segundos e pontuação obtida, permitindo verificar a integridade acadêmica sem necessidade de supervisão presencial.
+

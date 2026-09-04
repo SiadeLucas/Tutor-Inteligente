@@ -17,14 +17,16 @@ Implementação executável da regra de negócio **RN-PRG-006**: micro-ajustes i
 ## Código Fonte (`backend/app/modules/progress/theta_updater.py`)
 
 ```python
+from typing import Optional, List, Tuple
 import numpy as np
 from uuid import UUID, uuid4
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 
 from app.models.exercise import ItemExercicio, TentativaExercicio
 from app.models.progress import HistoricoTheta, HeatmapDominio
+from app.models.content import VolumeDidatico
 
 
 class ThetaUpdaterService:
@@ -126,23 +128,26 @@ class ThetaUpdaterService:
 
     @staticmethod
     async def _atualizar_no_heatmap(db: AsyncSession, usuario_id: UUID, capitulo_id: UUID) -> None:
-        """Recalcula a taxa de acertos ponderada e a cor do nó no Heatmap."""
-        # Busca todas as tentativas do estudante para esse capítulo
-        stmt = select(TentativaExercicio).where(
-            and_(
-                TentativaExercicio.usuario_id == usuario_id,
-                TentativaExercicio.capitulo_id == capitulo_id
+        """Recalcula a taxa de acertos ponderada e a cor do nó no Heatmap diretamente no PostgreSQL."""
+        stmt_agg = (
+            select(
+                func.count(TentativaExercicio.id).label("total_itens"),
+                func.coalesce(func.sum(TentativaExercicio.pontuacao_obtida), 0.0).label("pontos_somados")
+            )
+            .where(
+                and_(
+                    TentativaExercicio.usuario_id == usuario_id,
+                    TentativaExercicio.capitulo_id == capitulo_id
+                )
             )
         )
-        result = await db.execute(stmt)
-        tentativas = result.scalars().all()
+        res_agg = await db.execute(stmt_agg)
+        total_itens, pontos_somados = res_agg.first()
 
-        if not tentativas:
+        if not total_itens or total_itens == 0:
             return
 
-        total_itens = len(tentativas)
-        pontos_somados = sum(float(t.pontuacao_obtida) for t in tentativas)
-        taxa_ponderada = round((pontos_somados / total_itens) * 100.0, 2)
+        taxa_ponderada = round((float(pontos_somados) / total_itens) * 100.0, 2)
 
         # Aplica a regra das cores da RN-PRG-011
         if total_itens < 3:

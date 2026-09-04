@@ -75,6 +75,12 @@ class TokenService:
         """Decodifica e valida assinatura e expiração."""
         secret = settings.JWT_REFRESH_SECRET_KEY if is_refresh else settings.JWT_SECRET_KEY
         return jwt.decode(token, secret, algorithms=["HS256"])
+
+    @classmethod
+    def gerar_token_aleatorio(cls, bytes_len: int = 32) -> str:
+        """Gera um token criptograficamente seguro e URL-safe para links mágicos."""
+        import secrets
+        return secrets.token_urlsafe(bytes_len)
 ```
 
 ---

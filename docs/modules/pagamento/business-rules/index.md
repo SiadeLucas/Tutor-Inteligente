@@ -18,4 +18,5 @@ updated_by: claude
 | [1. Produtos e Preços](regras-produtos.md) | Estrutura escalonada por capítulo (50 min), volume e assinatura | RN-PAG-001 a RN-PAG-005 |
 | [2. Vigência de Acesso](regras-vigencia.md) | Regra dos 12 meses (ano letivo), expiração e renovação | RN-PAG-006 a RN-PAG-010 |
 | [3. Gateway e Checkout](regras-gateway.md) | Operações PIX dinâmico, cartão em até 12x, webhooks e segurança | RN-PAG-011 a RN-PAG-015 |
-| [4. Gestão Comercial](regras-gestao-docente.md) | Métricas na tela do professor, termômetro de demanda e cortesias | RN-PAG-016 a RN-PAG-020 |
+| [4. Gestão Comercial](regras-gestao-docente.md) | Métricas na tela do professor, termômetro de demanda e conciliação financeira | RN-PAG-016 a RN-PAG-020 |
+

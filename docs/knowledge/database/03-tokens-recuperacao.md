@@ -39,5 +39,5 @@ CREATE INDEX idx_tokens_recuperacao ON tokens_recuperacao_senha(token_hash);
 | `id` | UUID | Não | Identificador primário | UUID v4 |
 | `usuario_id` | UUID | Não | Chave estrangeira para `usuarios(id)` | Usuário solicitante |
 | `token_hash` | VARCHAR(255) | Não | Hash criptográfico do token de URL | Uso único |
-| `expira_em` | TIMESTAMPTZ | Não | Data/hora limite de validade | NOW() + INTERVAL '15 minutes' (RN-AUT-014) |
-| `utilizado` | BOOLEAN | Não | Flag de consumo do token | Invalida reutilização |
+| `expira_em` | TIMESTAMPTZ | Não | Data/hora limite de validade | NOW() + INTERVAL '15 minutes' (RN-AUT-017) |
+| `utilizado` | BOOLEAN | Não | Flag de consumo do token | Invalida reutilização (RN-AUT-018) |

@@ -24,7 +24,7 @@ Renderização matemática: KaTeX.
 Responsividade: mobile-first, 3 breakpoints (mobile <768px, tablet 768-1024px, desktop >1024px).
 Dashboard: cards modulares + progresso visual (gráfico radar, continue de onde parou, recomendados, exercícios pendentes).
 Dashboard da Matéria: árvore de habilidades visual (skill tree) com nós por área/tópico.
-Tela de Aula: vídeo principal + materiais complementares + lista de aulas lateral.
+Tela de Aula: Leitor KaTeX em split-screen 65% (4 blocos) + Chat Socrático IA 35%.
 Tela de Exercícios: tela dedicada focada, uma questão por vez, feedback imediato, KaTeX.
 Painel do Professor: dashboard com cards de métricas (região, idade, instituição, CAT) + filtros.
 Roadmap de Interface: Calendário/Agenda, Comunidade/Fórum.

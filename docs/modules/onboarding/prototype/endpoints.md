@@ -110,14 +110,35 @@ async def validar_etapa_3(payload: Etapa3Request):
 
 @router.post("/salvar-rascunho", status_code=status.HTTP_200_OK)
 async def salvar_rascunho(
-    request: Request,
-    payload: dict
+    payload: dict,
+    draft_session_id: str = Header(..., alias="X-Draft-Session-ID")
 ):
     """
     Permite persistir dados parciais das etapas intermediárias na sessão
-    volátil (Redis) para retorno posterior do aluno.
+    volátil (Redis com TTL de 48h) para retorno posterior do aluno.
     """
-    return {"status": "rascunho_salvo", "timestamp": "now"}
+    # Em produção: await redis_client.set(f"onboarding_draft:{draft_session_id}", json.dumps(payload), ex=172800)
+    return {"status": "rascunho_salvo", "draft_session_id": draft_session_id, "timestamp": datetime.utcnow().isoformat()}
+
+
+@router.get("/rascunho")
+async def obter_rascunho(
+    draft_session_id: str = Header(..., alias="X-Draft-Session-ID")
+):
+    """
+    Recupera os dados parciais preenchidos pelo estudante a partir do Redis
+    para permitir que continue o preenchimento do wizard de onde parou.
+    """
+    # Em produção: dados = await redis_client.get(f"onboarding_draft:{draft_session_id}")
+    return {
+        "draft_session_id": draft_session_id,
+        "etapa_atual": 2,
+        "dados_parciais": {
+            "nome_completo": "Estudante Exemplo",
+            "cpf": "12345678901",
+            "data_nascimento": "2008-05-15"
+        }
+    }
 
 
 # ============================================================================

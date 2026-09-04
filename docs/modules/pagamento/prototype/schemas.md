@@ -55,8 +55,11 @@ class CheckoutCartaoRequest(BaseModel):
 class CheckoutCartaoResponse(BaseModel):
     sucesso: bool
     matricula_id: UUID
+    transacao_id: str
     status_transacao: Literal["paid", "waiting_payment", "refused"]
+    vigencia_ate: datetime
     mensagem: str
+
 
 
 # ============================================================================

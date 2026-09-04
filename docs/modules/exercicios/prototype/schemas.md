@@ -38,12 +38,13 @@ class ItemExercicioResponse(BaseModel):
     id: UUID
     capitulo_id: UUID
     tipo_origem: Literal["iezzi_original", "gemea_ia"]
+    tipo_item: Literal["multiple_choice", "numeric_input"] = "multiple_choice"
     enunciado_katex: str = Field(..., description="Enunciado completo formatado em Markdown + KaTeX")
-    alternativas: List[AlternativaItem]
-    parametro_a: float = Field(..., description="Discriminação da TRI (típico: 0.5 a 2.5)")
-    parametro_b: float = Field(..., description="Dificuldade da TRI (escala -3.0 a +3.0)")
+    alternativas: Optional[List[AlternativaItem]] = None
+    parametro_a: float = Field(1.0, description="Discriminação da TRI (típico: 0.5 a 2.5)")
+    parametro_b: float = Field(0.0, description="Dificuldade da TRI (escala -3.0 a +3.0)")
     parametro_c: float = Field(0.2, description="Acerto casual (0.2 para 5 alternativas)")
-    validado_sympy: bool
+    validado_sympy: bool = True
     criado_em: datetime
 
 
@@ -55,7 +56,8 @@ class SubmissaoExercicioRequest(BaseModel):
     item_id: UUID
     capitulo_id: UUID
     tentativa_numero: Literal[1, 2] = Field(..., description="1 para a primeira tentativa; 2 para a segunda com dica")
-    resposta_enviada: Literal["A", "B", "C", "D", "E"]
+    tipo_item: Literal["multiple_choice", "numeric_input"] = Field("multiple_choice", description="Tipo do item submetido")
+    resposta_enviada: str = Field(..., description="Letra da alternativa ('A'..'E') ou expressão numérica/algébrica")
     tempo_resposta_segundos: int = Field(..., ge=1, description="Tempo cronometrado em segundos para resolução")
 
 
@@ -90,6 +92,13 @@ class SubmissaoExercicioResponse(BaseModel):
 class IniciarCatRequest(BaseModel):
     disciplina_id: UUID
     tipo_prova: Literal["onboarding_diagnostico", "marco_periodico"]
+
+
+class SubmeterCatRequest(BaseModel):
+    sessao_cat_id: UUID
+    item_id: UUID
+    resposta_enviada: str
+    tempo_resposta_segundos: int = Field(..., ge=1)
 
 
 class CatStatusResponse(BaseModel):

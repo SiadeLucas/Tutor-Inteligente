@@ -28,13 +28,15 @@ CREATE TABLE usuarios (
     idade_anos INT NOT NULL,                       -- Calculado no onboarding
     eh_menor_idade BOOLEAN NOT NULL DEFAULT FALSE, -- True se idade_anos < 18
     dados_responsavel JSONB,                       -- Obrigatório se eh_menor_idade = true
-    uf CHAR(2) NOT NULL,                           -- Estado da federação (ex: 'SP', 'RJ')
+    uf VARCHAR(2) NOT NULL,                        -- Estado da federação (ex: 'SP', 'RJ')
     cidade VARCHAR(100) NOT NULL,
+    bairro VARCHAR(100),
     cep VARCHAR(8) NOT NULL,                       -- 8 dígitos numéricos
     escola_tipo VARCHAR(50) NOT NULL,              -- 'publica' | 'privada' | 'outro'
     nome_escola VARCHAR(200),
-    serie_ano VARCHAR(50) NOT NULL,                -- '1_ano', '2_ano', '3_ano', 'outro'
+    serie_ano VARCHAR(50) NOT NULL,                -- Validação dinâmica pela disciplina
     role VARCHAR(20) NOT NULL DEFAULT 'student',   -- 'student' | 'teacher'
+    avatar_url TEXT,
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
     criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -44,6 +46,7 @@ CREATE TABLE usuarios (
 CREATE INDEX idx_usuarios_cpf ON usuarios(cpf);
 CREATE INDEX idx_usuarios_email ON usuarios(email);
 CREATE INDEX idx_usuarios_role ON usuarios(role);
+CREATE INDEX idx_usuarios_uf_cidade ON usuarios(uf, cidade);
 ```
 
 ---
@@ -53,14 +56,26 @@ CREATE INDEX idx_usuarios_role ON usuarios(role);
 | Coluna | Tipo | Nulo | Descrição | Regras de Negócio |
 |:---|:---|:---:|:---|:---|
 | `id` | UUID | Não | Identificador primário universal único | Gerado via `gen_random_uuid()` |
-| `cpf` | VARCHAR(11) | Não | CPF do titular (apenas números) | RN-ONB-001 / RN-AUT-001 (Unique) |
-| `email` | VARCHAR(255) | Não | E-mail corporativo ou pessoal | RN-ONB-002 / RN-AUT-002 (Unique) |
-| `senha_hash` | VARCHAR(255) | Não | Hash criptográfico da senha | Mínimo 8 caracteres no cadastro |
-| `idade_anos` | INT | Não | Idade do estudante em anos completos | Calculado via data_nascimento |
-| `eh_menor_idade` | BOOLEAN | Não | Flag indicativa de menoridade (< 18) | RN-ONB-004 |
-| `dados_responsavel` | JSONB | Sim | `{"nome": "...", "cpf": "...", "telefone": "...", "email": "..."}` | Obrigatório se `eh_menor_idade = true` |
-| `serie_ano` | VARCHAR(50) | Não | Série cadastrada no Onboarding | RN-ONB-009 |
-| `role` | VARCHAR(20) | Não | Perfil de permissão (`student` ou `teacher`) | RN-AUT-005 |
+| `cpf` | VARCHAR(11) | Não | CPF do titular (apenas números) | RN-ONB-002 / RN-AUT-002 / RN-AUT-003 (Unique) |
+| `email` | VARCHAR(255) | Não | E-mail corporativo ou pessoal | RN-ONB-003 / RN-AUT-003 (Unique) |
+| `senha_hash` | VARCHAR(255) | Não | Hash criptográfico da senha (Argon2id) | RN-AUT-005 (Mínimo 8 caracteres) |
+| `nome_completo` | VARCHAR(255) | Não | Nome civil completo do estudante ou professor | RN-ONB-001 |
+| `data_nascimento` | DATE | Não | Data de nascimento para cômputo da idade | RN-ONB-004 |
+| `idade_anos` | INT | Não | Idade do estudante em anos completos | Calculado via `data_nascimento` |
+| `eh_menor_idade` | BOOLEAN | Não | Flag indicativa de menoridade civil (< 18 anos) | RN-ONB-005 |
+| `dados_responsavel` | JSONB | Sim | `{"nome": "...", "cpf": "...", "telefone": "...", "email": "..."}` | Obrigatório se `eh_menor_idade = true` (RN-ONB-005) |
+| `uf` | VARCHAR(2) | Não | Unidade federativa do estudante | RN-ONB-006 |
+| `cidade` | VARCHAR(100) | Não | Município de residência | RN-ONB-006 |
+| `bairro` | VARCHAR(100) | Sim | Bairro de residência | RN-ONB-006 |
+| `cep` | VARCHAR(8) | Não | Código de Endereçamento Postal (8 dígitos) | RN-ONB-006 |
+| `escola_tipo` | VARCHAR(50) | Não | Categoria da instituição (`publica` ou `privada`) | RN-ONB-008 |
+| `nome_escola` | VARCHAR(200) | Sim | Nome da escola ou instituição de ensino | RN-ONB-008 |
+| `serie_ano` | VARCHAR(50) | Não | Série cadastrada com validação dinâmica | RN-ONB-009 |
+| `role` | VARCHAR(20) | Não | Perfil de permissão (`student` ou `teacher`) | RN-AUT-006 / RN-AUT-007 |
+| `avatar_url` | TEXT | Sim | URL ou identificador de avatar no S3 | RN-ONB-007 |
+| `ativo` | BOOLEAN | Não | Status de conta ativa | RN-AUT-008 |
+| `criado_em` | TIMESTAMPTZ | Não | Data e hora de criação da conta | Auditoria |
+| `atualizado_em` | TIMESTAMPTZ | Não | Data e hora da última modificação cadastral | Auditoria |
 
 ---
 

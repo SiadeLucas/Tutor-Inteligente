@@ -177,4 +177,123 @@ class TeacherAnalyticsService:
             erros_pendentes_caixa_reforco=erros_cr,
             data_cadastro=usuario.criado_em
         )
+
+    @staticmethod
+    async def listar_alunos_paginados(
+        db: AsyncSession,
+        busca: Optional[str] = None,
+        pagina: int = 1,
+        tamanho: int = 50
+    ) -> List[AlunoFichaResponse]:
+        """
+        Consulta otimizada em 1 único roundtrip ao PostgreSQL com subqueries agregadas,
+        eliminando integralmente o problema de N+1 queries na listagem de turmas.
+        """
+        # 1. Subquery para o último theta de cada aluno
+        sub_theta_max = (
+            select(
+                HistoricoTheta.usuario_id,
+                func.max(HistoricoTheta.registrado_em).label("max_data")
+            )
+            .group_by(HistoricoTheta.usuario_id)
+            .subquery()
+        )
+        sub_theta = (
+            select(
+                HistoricoTheta.usuario_id,
+                HistoricoTheta.theta_estimado
+            )
+            .join(
+                sub_theta_max,
+                and_(
+                    HistoricoTheta.usuario_id == sub_theta_max.c.usuario_id,
+                    HistoricoTheta.registrado_em == sub_theta_max.c.max_data
+                )
+            )
+            .subquery()
+        )
+
+        # 2. Subquery para contagem de capítulos concluídos
+        sub_caps = (
+            select(
+                HeatmapDominio.usuario_id,
+                func.count(HeatmapDominio.id).label("total_caps")
+            )
+            .where(HeatmapDominio.aula_concluida == True)
+            .group_by(HeatmapDominio.usuario_id)
+            .subquery()
+        )
+
+        # 3. Subquery para erros pendentes na Caixa de Reforço
+        sub_erros = (
+            select(
+                CaixaReforco.usuario_id,
+                func.count(CaixaReforco.id).label("total_erros")
+            )
+            .where(CaixaReforco.status == "pendente")
+            .group_by(CaixaReforco.usuario_id)
+            .subquery()
+        )
+
+        # 4. Subquery para segundos líquidos de estudo acumulados
+        sub_horas = (
+            select(
+                HorasEstudoDiaria.usuario_id,
+                func.sum(HorasEstudoDiaria.segundos_ativos).label("total_segundos")
+            )
+            .group_by(HorasEstudoDiaria.usuario_id)
+            .subquery()
+        )
+
+        # Montagem da query unificada com outer joins
+        stmt = (
+            select(
+                Usuario,
+                func.coalesce(sub_theta.c.theta_estimado, 0.0).label("theta_val"),
+                func.coalesce(sub_caps.c.total_caps, 0).label("caps_val"),
+                func.coalesce(sub_erros.c.total_erros, 0).label("erros_val"),
+                func.coalesce(sub_horas.c.total_segundos, 0).label("segundos_val")
+            )
+            .outerjoin(sub_theta, Usuario.id == sub_theta.c.usuario_id)
+            .outerjoin(sub_caps, Usuario.id == sub_caps.c.usuario_id)
+            .outerjoin(sub_erros, Usuario.id == sub_erros.c.usuario_id)
+            .outerjoin(sub_horas, Usuario.id == sub_horas.c.usuario_id)
+            .where(Usuario.role == "student")
+        )
+
+        if busca:
+            termo = f"%{busca}%"
+            stmt = stmt.where(
+                or_(
+                    Usuario.nome_completo.ilike(termo),
+                    Usuario.email.ilike(termo),
+                    Usuario.cpf.like(termo)
+                )
+            )
+
+        stmt = stmt.order_by(desc(Usuario.criado_em)).offset((pagina - 1) * tamanho).limit(tamanho)
+        result = await db.execute(stmt)
+        linhas = result.all()
+
+        return [
+            AlunoFichaResponse(
+                usuario_id=u.id,
+                nome_completo=u.nome_completo,
+                email=u.email,
+                cpf=u.cpf,
+                cidade=u.cidade,
+                uf=u.uf,
+                escola_tipo=u.escola_tipo,
+                nome_escola=u.nome_escola,
+                serie_ano=u.serie_ano,
+                eh_menor_idade=u.eh_menor_idade,
+                dados_responsavel=u.dados_responsavel,
+                theta_atual=float(theta),
+                horas_liquidas_estudo=round(float(segundos) / 3600.0, 1),
+                total_capitulos_concluidos=int(caps),
+                erros_pendentes_caixa_reforco=int(erros),
+                data_cadastro=u.criado_em
+            )
+            for u, theta, caps, erros, segundos in linhas
+        ]
 ```

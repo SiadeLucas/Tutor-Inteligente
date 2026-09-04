@@ -36,8 +36,8 @@ O onboarding é um **wizard de 4 etapas** que guia o aluno desde o cadastro até
 | Etapa | Nome | Descrição |
 |---|---|---|
 | 1 | Dados Pessoais | Nome, CPF, nascimento, gênero, foto |
-| 2 | Contato | E-mail, telefone, endereço completo |
-| 3 | Acadêmico | Instituição de ensino, série/ano, dados do responsável (se menor) |
+| 2 | Contato & Credenciais | E-mail, senha, telefone, endereço e responsável (se menor) |
+| 3 | Acadêmico | Instituição de ensino, rede pública/privada, série/ano |
 | 4 | Prova de Proficiência | Prova adaptativa (CAT) para classificar o aluno por área |
 
 ## Campos de Cadastro
@@ -46,52 +46,56 @@ O onboarding é um **wizard de 4 etapas** que guia o aluno desde o cadastro até
 
 | Campo | Tipo | Obrigatório | Observação |
 |---|---|---|---|
-| Nome completo | texto | ✅ | |
-| Data de nascimento | data | ✅ | Usado para calcular idade e exigir responsável |
-| CPF | texto (validado) | ✅ | Identificação única, certificados, pagamento |
+| Nome completo | texto | ✅ | Identificação civil |
+| Data de nascimento | data | ✅ | Usado para calcular idade e acionar responsável na Etapa 2 |
+| CPF | texto (validado) | ✅ | Identificação única matemática (11 dígitos numéricos) |
 | Gênero | select | ✅ | Métricas demográficas no Painel do Professor |
 | Foto de perfil | upload imagem | ❌ | Personalização do perfil |
 
-### Contato (Etapa 2)
+### Contato, Credenciais e Responsável Legal (Etapa 2)
 
 | Campo | Tipo | Obrigatório | Observação |
 |---|---|---|---|
-| E-mail | e-mail | ✅ | Login e comunicação |
+| E-mail | e-mail | ✅ | Login único e comunicação oficial |
+| Senha | senha (min 8 chars) | ✅ | Hash seguro via Argon2id (RN-AUT-005) |
+| Confirmação de senha | senha | ✅ | Deve coincidir com a senha |
 | Telefone/WhatsApp | telefone | ✅ | Comunicação e recuperação de conta |
-| CEP | texto | ✅ | Auto-preenche estado, cidade, bairro |
-| Estado | select | ✅ | Métrica por região |
+| CEP | texto | ✅ | Auto-preenche UF, cidade, bairro e logradouro |
+| Estado (UF) | select | ✅ | Métrica por região |
 | Cidade | texto | ✅ | Métrica por região |
-| Bairro | texto | ✅ | Métrica por região |
+| Bairro | texto | ❌ | Endereçamento |
+| Logradouro e número | texto | ❌ | Endereçamento completo |
+
+#### Responsável Legal (Etapa 2 - condicional)
+
+> Exibido **obrigatoriamente se o aluno tiver menos de 18 anos** (calculado pela data de nascimento da Etapa 1).
+
+| Campo | Tipo | Obrigatório | Observação |
+|---|---|---|---|
+| Nome do responsável | texto | ✅ (se menor) | Representante civil |
+| CPF do responsável | texto (validado) | ✅ (se menor) | Validação matemática de CPF |
+| Telefone do responsável | telefone | ✅ (se menor) | Contato para avisos pedagógicos |
+| E-mail do responsável | e-mail | ❌ | Comunicação complementar |
 
 ### Acadêmico (Etapa 3)
 
 | Campo | Tipo | Obrigatório | Observação |
 |---|---|---|---|
-| Instituição de ensino | texto/autocomplete | ✅ | Métrica por instituição |
-| Série/ano atual | select | ✅ | Adaptável para outros níveis de ensino |
-| Rede de ensino | select (pública/privada) | ✅ | Métrica adicional |
-
-### Responsável (Etapa 3 - condicional)
-
-> Exibido **somente se o aluno tiver menos de 18 anos** (calculado pela data de nascimento).
-
-| Campo | Tipo | Obrigatório | Observação |
-|---|---|---|---|
-| Nome do responsável | texto | ✅ (se menor) | |
-| CPF do responsável | texto (validado) | ✅ (se menor) | |
-| Telefone do responsável | telefone | ✅ (se menor) | |
+| Rede de ensino | select (pública/privada) | ✅ | Métrica demográfica institucional |
+| Instituição de ensino | texto/autocomplete | ❌ | Nome da escola |
+| Série/ano atual | select dinâmico | ✅ | Adaptável para Ensino Médio, Fundamental ou Pré-Vestibular |
 
 ## Prova de Proficiência (Etapa 4)
 
 ### Modelo: Computerized Adaptive Testing (CAT)
 
-A prova utiliza o modelo **CAT** (teste adaptativo computadorizado):
+A prova utiliza o modelo **CAT** (teste adaptativo computadorizado cego com prior $\mathcal{N}(0, 1)$):
 
-- Começa com questões de **nível médio**
-- Acertou → próxima questão **mais difícil**
-- Errou → próxima questão **mais fácil**
-- Calcula o nível com **~15-20 questões** por matéria
-- Mais preciso e mais rápido que provas fixas
+- Começa com questões de **dificuldade média** ($\theta = 0$)
+- Acertou → próxima questão **mais desafiadora**
+- Errou → próxima questão **de menor dificuldade**
+- Critério de parada híbrido: **12 a 20 questões** com erro padrão $SE(\theta) \le 0.30$
+- Revelação diagnóstica integral com Gráfico Radar apenas na conclusão do teste
 
 ### Gatilho da Prova
 

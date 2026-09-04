@@ -75,22 +75,17 @@ async def listar_estudantes(
     teacher: Usuario = Depends(require_teacher_role),
     db: AsyncSession = Depends(get_db)
 ):
-    """Lista os estudantes matriculados com paginação para supervisão passiva."""
-    stmt = select(Usuario).where(Usuario.role == "student")
-    if busca:
-        termo = f"%{busca}%"
-        stmt = stmt.where(
-            or_(
-                Usuario.nome_completo.ilike(termo),
-                Usuario.email.ilike(termo),
-                Usuario.cpf.like(termo)
-            )
-        )
-    stmt = stmt.order_by(desc(Usuario.criado_em)).offset((pagina - 1) * tamanho).limit(tamanho)
-    result = await db.execute(stmt)
-    alunos = result.scalars().all()
+    """
+    Lista os estudantes matriculados com paginação através de consulta única agregada,
+    eliminando integralmente o gargalo de N+1 queries para supervisão docente passiva.
+    """
+    return await TeacherAnalyticsService.listar_alunos_paginados(
+        db=db,
+        busca=busca,
+        pagina=pagina,
+        tamanho=tamanho
+    )
 
-    return [await TeacherAnalyticsService.obter_ficha_aluno(db, a.id) for a in alunos]
 
 
 @router.get("/alunos/{aluno_id}", response_model=AlunoFichaResponse)

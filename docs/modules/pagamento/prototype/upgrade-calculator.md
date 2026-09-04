@@ -22,7 +22,7 @@ from typing import Tuple, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, func
 
-from app.models.commercial import MatriculaPagamento
+from app.models.payment import MatriculaPagamento
 from app.models.content import VolumeDidatico, Capitulo
 from app.modules.payment.schemas import UpgradeCalculationResponse
 

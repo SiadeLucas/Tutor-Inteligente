@@ -54,20 +54,30 @@ class SympyMathValidator:
 
     TRANSFORMACOES_SEGURAS = standard_transformations + (implicit_multiplication_application,)
 
+    MAX_CARACTERES = 150
+    TIMEOUT_SEGUNDOS = 5.0
+
     @classmethod
     def sanitizar_expressao(cls, expr_str: str) -> Optional[sp.Expr]:
         """Sanitiza e faz parse seguro de expressões algébricas de estudantes."""
         if not expr_str or not isinstance(expr_str, str):
             return None
+
+        # Limite estrito de tamanho para prevenir DoS por estouro de recursão no parser
+        expr_limpa = expr_str.strip()
+        if len(expr_limpa) > cls.MAX_CARACTERES:
+            return None
         
         # Rejeita padrões maliciosos
-        if cls.PADROES_PROIBIDOS.search(expr_str):
+        if cls.PADROES_PROIBIDOS.search(expr_limpa):
             return None
             
         try:
+            # Isolamento total: global_dict={} neutraliza built-ins do Python
             return parse_expr(
-                expr_str,
+                expr_limpa,
                 local_dict=cls.LOCAL_DICT_SEGURO,
+                global_dict={},
                 transformations=cls.TRANSFORMACOES_SEGURAS,
                 evaluate=False
             )
@@ -78,11 +88,13 @@ class SympyMathValidator:
     def validar_equivalencia(cls, expressao_aluno_str: str, expressao_gabarito_str: str) -> bool:
         """
         Verifica se duas expressões algébricas são identicamente equivalentes:
-        f(x) - g(x) == 0 após simplificação simbólica formal com ambiente isolado.
+        f(x) - g(x) == 0 após simplificação simbólica formal com ambiente isolado e timeout de 5s.
         """
-        try:
-            expr_aluno = cls.sanitizar_expressao(expressao_aluno_str)
-            expr_gabarito = cls.sanitizar_expressao(expressao_gabarito_str)
+        import concurrent.futures
+
+        def _executar_simplificacao(aluno_str: str, gabarito_str: str) -> bool:
+            expr_aluno = cls.sanitizar_expressao(aluno_str)
+            expr_gabarito = cls.sanitizar_expressao(gabarito_str)
 
             if expr_aluno is None or expr_gabarito is None:
                 return False
@@ -97,8 +109,13 @@ class SympyMathValidator:
             valor_numerico = abs(complex(diferenca.evalf()))
             return valor_numerico <= cls.TOLERANCIA_NUMERICA
 
+        try:
+            # Executa com timeout estrito de 5 segundos para prevenir exaustão de CPU
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(_executar_simplificacao, expressao_aluno_str, expressao_gabarito_str)
+                return future.result(timeout=cls.TIMEOUT_SEGUNDOS)
         except Exception:
-            # Qualquer erro de sintaxe matemática inválida retorna False com segurança
+            # Timeout ou sintaxe inválida resulta em False com segurança absoluta
             return False
 
     @staticmethod

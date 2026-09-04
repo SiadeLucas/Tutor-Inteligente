@@ -23,11 +23,13 @@ CREATE TABLE matriculas_pagamentos (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
     tipo_produto VARCHAR(30) NOT NULL,             -- 'capitulo_50min' | 'volume_iezzi' | 'passe_global'
-    referencia_produto_id UUID NOT NULL,           -- capitulo_id OU volume_id
-    status VARCHAR(20) NOT NULL DEFAULT 'active',  -- 'active' | 'past_due' | 'canceled'
+    referencia_produto_id UUID,                    -- capitulo_id OU volume_id (NULL se passe_global)
     data_inicio TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     data_expiracao TIMESTAMPTZ NOT NULL,           -- data_inicio + 365 dias (RN-PAG-006)
+    status VARCHAR(20) NOT NULL DEFAULT 'active',  -- 'active' | 'past_due' | 'canceled'
     valor_pago DECIMAL(10, 2) NOT NULL,            -- Valor efetivamente cobrado
+    metodo_pagamento VARCHAR(20) NOT NULL,         -- 'pix' | 'credit_card'
+    transacao_gateway_id VARCHAR(100),
     criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -47,7 +49,12 @@ ON matriculas_pagamentos(tipo_produto, referencia_produto_id);
 | `id` | UUID | Não | Identificador da matrícula | UUID v4 |
 | `usuario_id` | UUID | Não | Chave estrangeira para `usuarios(id)` | Aluno comprador |
 | `tipo_produto` | VARCHAR(30) | Não | Escopo do produto adquirido | RN-PAG-001 |
-| `referencia_produto_id` | UUID | Não | ID do capítulo ou volume didático | Chave polimórfica |
-| `status` | VARCHAR(20) | Não | Situação contratual do acesso | `active`, `past_due`, `canceled` |
+| `referencia_produto_id` | UUID | Sim | ID do capítulo ou volume didático | NULL se `passe_global` |
+| `data_inicio` | TIMESTAMPTZ | Não | Momento da ativação da matrícula | NOW() |
 | `data_expiracao` | TIMESTAMPTZ | Não | Prazo final de acesso | 365 dias corridos (RN-PAG-006) |
+| `status` | VARCHAR(20) | Não | Situação contratual do acesso | `active`, `past_due`, `canceled` |
 | `valor_pago` | DECIMAL(10,2) | Não | Preço final pago (usado no abatimento) | RN-PAG-005 |
+| `metodo_pagamento` | VARCHAR(20) | Não | Meio utilizado para liquidação | `pix` ou `credit_card` |
+| `transacao_gateway_id` | VARCHAR(100) | Sim | ID da cobrança ou autorização no Asaas | Conciliação contábil |
+| `criado_em` | TIMESTAMPTZ | Não | Carimbo temporal do registro | Auditoria |
+

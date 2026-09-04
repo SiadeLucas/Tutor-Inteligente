@@ -33,21 +33,32 @@ A base de dados centraliza as informações cadastrais do **Onboarding**, os con
 ```mermaid
 erDiagram
     USUARIOS ||--o{ SESSOES_ATIVAS : "mantem (max 1)"
+    USUARIOS ||--o{ TOKENS_RECUPERACAO_SENHA : "gera"
     USUARIOS ||--o{ MATRICULAS_PAGAMENTOS : "adquire"
+    USUARIOS ||--o{ TRANSACOES_FINANCEIRAS : "paga"
+    USUARIOS ||--o{ PROVAS_CAT : "realiza"
     USUARIOS ||--o{ TENTATIVAS_EXERCICIOS : "submete"
     USUARIOS ||--o{ CAIXA_REFORCO : "acumula"
     USUARIOS ||--o{ HISTORICO_THETA : "registra"
     USUARIOS ||--o{ HEATMAP_DOMINIO : "possui"
+    USUARIOS ||--o{ HORAS_ESTUDO_DIARIAS : "acumula"
     
     DISCIPLINAS ||--|{ VOLUMES_DIDATICOS : "organiza em colecoes"
     DISCIPLINAS ||--o{ PROVAS_CAT : "aplica avaliacao"
+    DISCIPLINAS ||--o{ HISTORICO_THETA : "avalia"
     VOLUMES_DIDATICOS ||--|{ CAPITULOS : "contem"
-    CAPITULOS ||--|{ AULAS : "estrutura em 4 blocos"
+    VOLUMES_DIDATICOS ||--o{ DOCUMENTOS_VETORIAIS_RAG : "indexa RAG"
+    VOLUMES_DIDATICOS ||--o{ HISTORICO_THETA : "calibra"
+    CAPITULOS ||--|| AULAS : "estrutura em 4 blocos (1:1)"
     CAPITULOS ||--|{ ITENS_EXERCICIOS : "vincula questoes e fixacao (3 a 5)"
+    CAPITULOS ||--o{ HEATMAP_DOMINIO : "avalia dominio"
+    CAPITULOS ||--o{ TENTATIVAS_EXERCICIOS : "registra"
+    CAPITULOS ||--o{ CAIXA_REFORCO : "associa"
     
-    ITENS_EXERCICIOS ||--o{ QUESTOES_GEMEAS : "gera variacoes SymPy"
+    ITENS_EXERCICIOS ||--o{ ITENS_EXERCICIOS : "gera variacoes SymPy (item_matriz_id)"
     ITENS_EXERCICIOS ||--o{ TENTATIVAS_EXERCICIOS : "avalia"
     ITENS_EXERCICIOS ||--o{ CAIXA_REFORCO : "arquiva erros"
+    MATRICULAS_PAGAMENTOS ||--o{ TRANSACOES_FINANCEIRAS : "gera faturamento"
 
     USUARIOS {
         uuid id PK
@@ -58,12 +69,15 @@ erDiagram
         int idade_anos
         boolean eh_menor_idade
         jsonb dados_responsavel "se eh_menor_idade = true"
-        string uf
+        string uf "VARCHAR(2)"
         string cidade
+        string bairro
         string cep
-        string instituicao_ensino
+        string escola_tipo "publica | privada"
+        string nome_escola
         string serie_ano
         string role "student | teacher"
+        string avatar_url
     }
 
     MATRICULAS_PAGAMENTOS {
@@ -75,7 +89,8 @@ erDiagram
         datetime data_expiracao "data_inicio + 365 dias"
         string status "active | past_due | canceled"
         decimal valor_pago
-        string metodo "pix | credit_card"
+        string metodo_pagamento "pix | credit_card"
+        string transacao_gateway_id
     }
 
     DISCIPLINAS {
@@ -93,7 +108,7 @@ erDiagram
         string nome_colecao "Coleção Gelson Iezzi"
         int numero_volume "1 a 11"
         string titulo "Conjuntos e Funções"
-        string grande_area "algebra_funcoes"
+        string grande_area "algebra_funcoes | geometria | algebra_linear | aplicada"
         decimal preco_padrao
     }
 
@@ -102,10 +117,11 @@ erDiagram
         uuid usuario_id FK
         uuid disciplina_id FK
         uuid volume_id FK
+        string grande_area
         decimal theta_estimado "escala -3.0 a +3.0"
         decimal erro_padrao_se
-        string origem_calibragem "onboarding_cat | marco_cat | micro_ajuste_exercicio"
-        datetime timestamp
+        string origem_ajuste "onboarding_cat | marco_cat | micro_ajuste_exercicio"
+        datetime registrado_em
     }
 
     HEATMAP_DOMINIO {
@@ -114,8 +130,9 @@ erDiagram
         uuid capitulo_id FK
         decimal taxa_acertos_ponderada "0 a 100%"
         string status_cor "cinza | vermelho | amarelo | verde"
+        boolean aula_concluida
         int total_questoes_respondidas
-        datetime ultima_atualizacao
+        datetime ultima_interacao
     }
 ```
 
@@ -190,13 +207,15 @@ $$\text{Taxa Ponderada} (\%) = \left( \frac{\sum_{q=1}^{N} \text{Score}(q)}{N} \
 Todos os eventos gerados pela Tríade Pedagógica são consumidos pelo **Painel do Professor**:
 - **Filtro Demográfico**: Cruza a Taxa Ponderada com a Rede de Ensino (Pública vs Privada) e Região/UF do Onboarding.
 - **Dossiê Individual**: O professor abre a Ficha do Aluno e inspeciona em quais capítulos o estudante solicitou mais Questões Gêmeas e quais estão arquivados na Caixa de Reforço.
-- **Intervenção Docente**: O professor pode emitir uma lista extra de reforço com 1 clique diretamente para o aluno com dificuldades.
+- **Supervisão em Piloto Automático**: O professor acompanha o progresso e saúde da turma sem necessidade de intervenções manuais (conforme RN-PRF-008 e RN-PRF-018).
 
 ---
 
 ## 5. Arquitetura de Sessões, Segurança e Roteamento
 
-A segurança de acesso e a proteção de rotas operam com validação distribuída em camadas:
+A segurança de acesso e a proteção de rotas operam com validação distribuída em camadas. O controle de concorrência e presença adota uma **arquitetura híbrida**:
+1. **Camada Volátil (Redis 7)**: Armazena a chave de presença `session:{usuario_id}:active` com **TTL de 45 segundos**, atualizada pelos heartbeats a cada 30 segundos (`useHeartbeat.ts`). Absorve a alta frequência sem onerar o banco de dados.
+2. **Camada de Persistência (PostgreSQL)**: Mantém o registro auditável na tabela `sessoes_ativas` para histórico de conexões, geolocalização por IP e auditoria forense.
 
 ```mermaid
 flowchart TD
@@ -207,7 +226,7 @@ flowchart TD
     end
     
     subgraph Servidor["Middleware de Autenticação"]
-        Dispatch --> AuthCheck{"Token Válido & Session ID Ativo?"}
+        Dispatch --> AuthCheck{"Token Válido & Session Ativa no Redis?"}
         AuthCheck -->|Sim| RoleCheck{"Verifica Permissão (Role)"}
         AuthCheck -->|Sessão invalidada por 2º aparelho| Freeze["Erro 401: Dispara Modal de Congelamento com Salvamento"]
         
@@ -242,9 +261,9 @@ CREATE TABLE usuarios (
     cidade VARCHAR(100) NOT NULL,
     bairro VARCHAR(100),
     cep VARCHAR(8) NOT NULL,                       -- 8 dígitos numéricos (00000000)
-    instituicao_ensino VARCHAR(255) NOT NULL,
-    rede_ensino VARCHAR(20) NOT NULL,              -- 'publica' | 'privada'
-    serie_ano VARCHAR(50) NOT NULL,                -- '1_ano' | '2_ano' | '3_ano' | 'outro'
+    escola_tipo VARCHAR(50) NOT NULL,              -- 'publica' | 'privada'
+    nome_escola VARCHAR(200),
+    serie_ano VARCHAR(50) NOT NULL,                -- Validação dinâmica pela disciplina
     role VARCHAR(20) NOT NULL DEFAULT 'student',   -- 'student' | 'teacher'
     avatar_url TEXT,
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
@@ -254,6 +273,7 @@ CREATE TABLE usuarios (
 
 CREATE INDEX idx_usuarios_cpf ON usuarios(cpf);
 CREATE INDEX idx_usuarios_email ON usuarios(email);
+CREATE INDEX idx_usuarios_role ON usuarios(role);
 CREATE INDEX idx_usuarios_uf_cidade ON usuarios(uf, cidade);
 ```
 

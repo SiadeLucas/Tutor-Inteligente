@@ -11,7 +11,10 @@ updated_by: claude
 
 # Tabela 02: `sessoes_ativas`
 
-Controla a regra de **1 único dispositivo conectado simultaneamente por estudante**, registrando a revogação atômica e as estampas de heartbeat.
+Controla a regra de **1 único dispositivo conectado simultaneamente por estudante** (RN-AUT-011 a RN-AUT-015), operando em conjunto com uma arquitetura híbrida de alto desempenho:
+
+1. **Camada Volátil (Redis 7 - `ti-redis`)**: Os heartbeats de 30 segundos (`useHeartbeat.ts`) atualizam a chave volátil `session:{usuario_id}:active` com TTL de 45 segundos. As validações em tempo real ocorrem no Redis em memória (sub-1ms), absorvendo a carga de milhares de conexões sem onerar o PostgreSQL.
+2. **Camada de Persistência (PostgreSQL 16 - `sessoes_ativas`)**: Registra a abertura de sessão, dados de auditoria forense (IP e User-Agent) e a revogação de sessões legadas.
 
 ---
 

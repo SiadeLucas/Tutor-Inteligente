@@ -23,7 +23,8 @@ from typing import Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 
-from app.models.commercial import MatriculaPagamento, TransacaoFinanceira
+import secrets
+from app.models.payment import MatriculaPagamento, TransacaoFinanceira
 from app.modules.payment.schemas import GatewayWebhookPayload
 
 
@@ -40,8 +41,8 @@ class WebhookService:
         """
         Valida segurança, garante idempotência estrita e ativa a matrícula por 365 dias.
         """
-        # 1. Validação do Token de Segurança do Webhook
-        if token_recebido != token_esperado:
+        # 1. Validação em tempo constante contra timing attack
+        if not secrets.compare_digest(token_recebido, token_esperado):
             raise PermissionError("Assinatura de webhook inválida ou não autorizada.")
 
         # Só processa eventos de pagamento concluído
