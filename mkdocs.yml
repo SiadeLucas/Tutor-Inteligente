@@ -197,6 +197,18 @@ nav:
   - Sistemas:
     - "Visão Geral": systems/index.md
     - "Estrutura de Pastas (Monorepo)": systems/folder-structure.md
+  - Plano de Implementação:
+    - "Visão Geral": implementation/index.md
+    - "Etapa 1: Repositório e Ambiente Local": implementation/etapa-01-repositorio.md
+    - "Etapa 2: Infraestrutura AWS": implementation/etapa-02-infraestrutura-aws.md
+    - "Etapa 3: Autenticação e Sessões": implementation/etapa-03-autenticacao.md
+    - "Etapa 4: Onboarding e Cadastro": implementation/etapa-04-onboarding.md
+    - "Etapa 5: Conteúdo Didático": implementation/etapa-05-conteudo.md
+    - "Etapa 6: Motor de IA e RAG": implementation/etapa-06-ia-rag.md
+    - "Etapa 7: Exercícios e Motor CAT": implementation/etapa-07-exercicios.md
+    - "Etapa 8: Progresso e Analytics": implementation/etapa-08-progresso.md
+    - "Etapa 9: Pagamento e Checkout": implementation/etapa-09-pagamento.md
+    - "Etapa 10: Painel Professor e Deploy Final": implementation/etapa-10-professor-deploy.md
   - Roadmap:
     - roadmap/index.md
     - roadmap/gamificacao.md
