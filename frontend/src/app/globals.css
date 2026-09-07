@@ -3,14 +3,46 @@
 @tailwind utilities;
 
 :root {
-  --background: #0b0f19;
-  --foreground: #f8fafc;
+  /* Tokens Oficiais Tutor Inteligente (RN-INT-001) - Modo Claro */
+  --ti-primary: #F57C00;
+  --ti-primary-dark: #EF6C00;
+  --ti-primary-light: #FB8C00;
+  --ti-accent: #FFB74D;
+  --ti-deep: #E65100;
+  --ti-tint: #FFF3E0;
+  --ti-bg: #F8FAFC;
+  --ti-card: #FFFFFF;
+  --ti-text: #1E293B;
+  --ti-text-muted: #64748B;
+  --ti-border: #E2E8F0;
+
+  --background: var(--ti-bg);
+  --foreground: var(--ti-text);
+}
+
+.dark {
+  /* Tokens Oficiais Tutor Inteligente (RN-INT-001) - Modo Escuro */
+  --ti-primary: #FFB74D;
+  --ti-primary-dark: #FB8C00;
+  --ti-primary-light: #FFCC80;
+  --ti-accent: #FFCC80;
+  --ti-deep: #FF9800;
+  --ti-tint: rgba(255, 183, 77, 0.1);
+  --ti-bg: #1a1408;
+  --ti-card: #261d11;
+  --ti-text: #E0E0E0;
+  --ti-text-muted: #A89F91;
+  --ti-border: #3d2f1f;
+
+  --background: var(--ti-bg);
+  --foreground: var(--ti-text);
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--background);
   margin: 0;
   padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

@@ -1,7 +1,7 @@
 ---
 title: Autenticação
 type: module
-status: draft
+status: complete
 related:
   - modules/autenticacao/flow/index.md
   - modules/autenticacao/business-rules/index.md
@@ -9,7 +9,7 @@ related:
   - modules/interface/index.md
   - modules/painel-professor/index.md
   - modules/pagamento/index.md
-last_updated: "2026-09-01"
+last_updated: "2026-09-07"
 updated_by: claude
 ---
 

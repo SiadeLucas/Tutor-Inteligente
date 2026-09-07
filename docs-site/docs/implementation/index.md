@@ -55,8 +55,8 @@ Roteiro completo e sequencial para a construção da plataforma **Tutor Intelige
 graph LR
     E1["✅ Etapa 1\nRepositório\ne Ambiente Local"]
     E2["⏸️ Etapa 2\nInfraestrutura AWS\n(Postergada / Nuvem)"]
-    E3["🎯 Etapa 3\nAutenticação\ne Sessões"]
-    E4["📋 Etapa 4\nOnboarding\ne Cadastro"]
+    E3["✅ Etapa 3\nAutenticação\ne Sessões"]
+    E4["🎯 Etapa 4\nOnboarding\ne Cadastro"]
     E5["📚 Etapa 5\nConteúdo\nDidático"]
     E6["🤖 Etapa 6\nMotor de IA\ne RAG"]
     E7["✏️ Etapa 7\nExercícios\ne Motor CAT"]
@@ -69,7 +69,8 @@ graph LR
 
     style E1 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E2 fill:#334155,stroke:#64748b,stroke-dasharray: 5 5,color:#94a3b8
-    style E3 fill:#1d4ed8,stroke:#3b82f6,stroke-width:2px,color:#fff
+    style E3 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
+    style E4 fill:#1d4ed8,stroke:#3b82f6,stroke-width:2px,color:#fff
 ```
 
 ---
@@ -95,17 +96,17 @@ Criação do repositório GitHub, estrutura de pastas do Monorepo, migração do
 
 ---
 
-### [Etapa 3: Autenticação e Sessões](etapa-03-autenticacao.md)
-**Duração estimada: 1-2 semanas**
+### [Etapa 3: Autenticação e Sessões](etapa-03-autenticacao.md) — :white_check_mark: **Concluída**
+**Duração estimada: 1-2 semanas** | **Status:** `Concluída`
 
-Tabelas `usuarios`, `sessoes_ativas` e `tokens_recuperacao_senha`. Backend com login por e-mail/CPF, JWT com refresh token, sessão única concorrente (heartbeat 30s), link mágico com SHA-256, e rate limiting. Frontend com telas de login, redefinição de senha e modal de sessão concorrente.
+Tabelas `usuarios`, `sessoes_ativas` e `tokens_recuperacao_senha`. Backend com login por e-mail/CPF, JWT com refresh token em cookie HTTP-Only, sessão única concorrente (heartbeat 30s no Redis), link mágico com SHA-256 e rate limiting. Frontend com telas de login, recuperação de senha, redefinição e modal de conflito concorrente, completamente aderente ao Design System institucional Khan Academy (Laranja `#F57C00` e fundos neutros).
 
-**Entregável:** Login funcional no navegador com sessão única entre abas.
+**Entregável:** Login funcional no navegador com sessão única entre abas e design system institucional. [x] Concluído!
 
 ---
 
-### [Etapa 4: Onboarding e Cadastro](etapa-04-onboarding.md)
-**Duração estimada: 1-2 semanas**
+### [Etapa 4: Onboarding e Cadastro](etapa-04-onboarding.md) — :dart: **Em Andamento (Próxima)**
+**Duração estimada: 1-2 semanas** | **Status:** `Próxima`
 
 Wizard de 3 etapas (Identificação → Credenciais/Contato → Acadêmico) com validação matemática de CPF, consulta automática de CEP via ViaCEP, detecção de menor de idade e dados do responsável legal. Persistência de rascunho no Redis. Frontend com wizard multi-step e máscaras de input.
 
@@ -186,7 +187,8 @@ graph TD
 
     style E1 fill:#15803d,color:#fff
     style E2 fill:#475569,stroke:#64748b,stroke-dasharray: 5 5,color:#cbd5e1
-    style E3 fill:#1d4ed8,color:#fff
+    style E3 fill:#15803d,color:#fff
+    style E4 fill:#1d4ed8,color:#fff
     style E10 fill:#7e22ce,color:#fff
 ```
 

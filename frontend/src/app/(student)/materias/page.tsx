@@ -1,105 +1,86 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { BookOpen, LogOut, ShieldCheck, Activity, User } from "lucide-react";
-import { api, clearAuth } from "@/lib/api";
+import React from "react";
+import { BookOpen, ShieldCheck, Activity, User, Sparkles, Award } from "lucide-react";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
+import { GlobalHeader } from "@/components/header/GlobalHeader";
 
 export default function MateriasPage() {
-  const router = useRouter();
-  const [carregandoLogout, setCarregandoLogout] = useState(false);
-
-  // Ativa o heartbeat de sessão única a cada 30 segundos
+  // Mantém a sessão única ativa via Redis com heartbeat a cada 30 segundos
   useHeartbeat();
 
-  const handleLogout = async () => {
-    setCarregandoLogout(true);
-    try {
-      await api.post("/api/v1/auth/logout");
-    } catch {
-      // Mesmo com erro de rede, limpa credenciais locais
-    } finally {
-      clearAuth();
-      router.push("/login");
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">
-            TI
-          </div>
-          <div>
-            <h1 className="font-bold text-white text-lg leading-tight">Tutor Inteligente</h1>
-            <p className="text-xs text-slate-400">Ambiente do Aluno</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Sessão Ativa (Heartbeat 30s)
-          </div>
-
-          <button
-            onClick={handleLogout}
-            disabled={carregandoLogout}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium bg-slate-800 hover:bg-rose-950/40 hover:text-rose-400 hover:border-rose-800/60 border border-slate-700 text-slate-300 transition-all cursor-pointer"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>{carregandoLogout ? "Saindo..." : "Sair"}</span>
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#1a1408] text-slate-900 dark:text-slate-100 flex flex-col">
+      <GlobalHeader userRole="student" userName="Aluno" showDisciplineBadge={true} />
 
       {/* Main Content */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-10">
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-4">
-            <ShieldCheck className="w-4 h-4 text-indigo-400" />
-            Etapa 03: Autenticação Validada com Sucesso
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        {/* Banner de Boas-Vindas */}
+        <div className="bg-white dark:bg-[#261d11] border border-slate-200/90 dark:border-[#3d2f1f] rounded-2xl p-6 sm:p-8 shadow-sm mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#FFF3E0] dark:bg-[#2b1f10] text-[#E65100] dark:text-[#FFB74D] border border-[#FFB74D]/30 mb-4">
+            <ShieldCheck className="w-4 h-4 text-[#F57C00]" />
+            <span>Etapa 03: Autenticação Validada com Sucesso</span>
           </div>
 
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-            Bem-vindo ao Painel de Matérias! 🎓
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight mb-2">
+            Painel do Estudante 🎓
           </h2>
-          <p className="text-slate-400 text-sm leading-relaxed mb-6">
-            Você efetuou login com sucesso no perfil de <strong>Aluno</strong>. Seu token de acesso (JWT) e cookie de refresh estão ativos, e o monitoramento em segundo plano contra sessões simultâneas está funcionando via Redis.
+          <p className="text-slate-600 dark:text-[#A89F91] text-sm leading-relaxed max-w-3xl">
+            Sua sessão está devidamente autenticada. O token JWT e o cookie seguro estão ativos no navegador, e a infraestrutura do Redis monitora a unicidade do seu dispositivo em tempo real.
           </p>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/60">
-              <div className="flex items-center gap-2 text-indigo-400 font-semibold text-sm mb-1">
-                <BookOpen className="w-4 h-4" />
-                Matérias
+        {/* Grade de Cards Modulares do Ecossistema */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="bg-white dark:bg-[#261d11] border border-slate-200/90 dark:border-[#3d2f1f] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-[#FFF3E0] dark:bg-[#2b1f10] text-[#E65100] dark:text-[#FFB74D] flex items-center justify-center mb-4">
+                <BookOpen className="w-5 h-5" />
               </div>
-              <p className="text-xs text-slate-400">
-                O catálogo didático de Matemática do Ensino Médio será implementado na <strong>Etapa 05</strong>.
+              <h3 className="font-bold text-slate-900 dark:text-white text-base mb-1.5">
+                Coleção Gelson Iezzi
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-[#A89F91] leading-relaxed">
+                Os 11 volumes de Fundamentos de Matemática Elementar e a Skill Tree de áreas serão estruturados na <strong>Etapa 05</strong>.
               </p>
             </div>
+            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-[#382b1c] text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              Próximas Etapas
+            </div>
+          </div>
 
-            <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/60">
-              <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm mb-1">
-                <Activity className="w-4 h-4" />
-                Sessão Única
+          <div className="bg-white dark:bg-[#261d11] border border-slate-200/90 dark:border-[#3d2f1f] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 border border-emerald-100 dark:border-emerald-800/30">
+                <Activity className="w-5 h-5" />
               </div>
-              <p className="text-xs text-slate-400">
-                Abra uma aba anônima e faça login com este mesmo usuário para testar o modal de derrubada imediata!
+              <h3 className="font-bold text-slate-900 dark:text-white text-base mb-1.5">
+                Sessão Única em Execução
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-[#A89F91] leading-relaxed">
+                O heartbeat silencioso de 30s mantém sua presença confirmada. Caso faça login em outra janela ou dispositivo, a sessão anterior será notificada.
               </p>
             </div>
+            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-[#382b1c] text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span>Operando Normalmente</span>
+            </div>
+          </div>
 
-            <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/60">
-              <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm mb-1">
-                <User className="w-4 h-4" />
-                Onboarding
+          <div className="bg-white dark:bg-[#261d11] border border-slate-200/90 dark:border-[#3d2f1f] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-[#F57C00] flex items-center justify-center mb-4 border border-amber-100 dark:border-amber-800/30">
+                <Sparkles className="w-5 h-5" />
               </div>
-              <p className="text-xs text-slate-400">
-                O fluxo de questionário inicial do aluno está previsto para a <strong>Etapa 04</strong>.
+              <h3 className="font-bold text-slate-900 dark:text-white text-base mb-1.5">
+                Onboarding & CAT
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-[#A89F91] leading-relaxed">
+                O questionário de metas e a Prova Adaptativa de Nivelamento baseada em Teoria da Resposta ao Item serão implementados na <strong>Etapa 04</strong>.
               </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-[#382b1c] text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              Planejamento
             </div>
           </div>
         </div>

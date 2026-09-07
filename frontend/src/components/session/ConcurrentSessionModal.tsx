@@ -27,29 +27,29 @@ export function ConcurrentSessionModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-600/50 rounded-2xl shadow-2xl max-w-md w-full p-6 text-center">
-        <div className="mx-auto w-14 h-14 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mb-4 ring-8 ring-amber-50 dark:ring-amber-950/30">
-          <ShieldAlert className="w-8 h-8" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-[#1a1408] border border-slate-200 dark:border-[#3d2f1f] rounded-2xl shadow-xl max-w-md w-full p-6 text-center">
+        <div className="mx-auto w-14 h-14 bg-[#FFF3E0] dark:bg-[#2b1f10] text-[#F57C00] rounded-full flex items-center justify-center mb-4 ring-8 ring-[#FFF3E0]/50 dark:ring-[#2b1f10]/50">
+          <ShieldAlert className="w-7 h-7" />
         </div>
 
-        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-          Sessão Conectada em Outro Dispositivo
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+          Sessão Conectada em Outro Aparelho
         </h3>
 
-        <p className="text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+        <p className="text-sm text-slate-600 dark:text-[#A89F91] mb-5 leading-relaxed">
           {details?.mensagem ||
-            "Sua conta foi conectada em outro dispositivo. Por questões de segurança, cada estudante pode ter apenas uma sessão ativa por vez."}
+            "Sua conta foi acessada em outro dispositivo. Para garantir a segurança dos seus dados pedagógicos e avaliações, apenas uma conexão simultânea é permitida."}
         </p>
 
-        <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 mb-6 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-          <span>Se você não reconhece esta atividade, redefina sua senha imediatamente.</span>
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-xl p-3 mb-6 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2 text-left">
+          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <span>Se você não reconhece esta atividade, recomendamos redefinir sua senha imediatamente.</span>
         </div>
 
         <button
           onClick={handleRedirect}
-          className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-lg shadow-indigo-600/20 transition-colors"
+          className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#F57C00] hover:bg-[#EF6C00] text-white font-medium text-sm shadow-sm transition-colors cursor-pointer"
         >
           <LogIn className="w-4 h-4" />
           Fazer Login Novamente

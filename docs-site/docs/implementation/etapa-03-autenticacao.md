@@ -1,18 +1,18 @@
 ---
 title: "Etapa 3: Autenticação e Sessões"
 type: "implementation"
-status: "planned"
+status: "complete"
 related: ["etapa-02-infraestrutura.md", "etapa-04-onboarding.md"]
-last_updated: "2026-09-06"
+last_updated: "2026-09-07"
 ---
 <!-- ai-summary: Implementação detalhada dos fluxos de autenticação, JWT, sessões únicas com Redis e fluxos de recuperação de senha do Tutor Inteligente. -->
 
 # Etapa 3: Autenticação e Sessões
 
 > [!NOTE]
-> **Duração Estimada:** 1-2 semanas
+> **Duração Estimada:** 1-2 semanas | **Status:** `Concluída`
 > **Pré-requisito:** Etapa 1 concluída (Ambiente Local Docker operacional com PostgreSQL e Redis)
-> **Entregável:** Login funcional no navegador com sessão única entre abas e proteção de rotas.
+> **Entregável:** Login funcional no navegador com sessão única entre abas e proteção de rotas. [x] Concluído!
 
 Nesta etapa, implementaremos o núcleo de segurança da aplicação. O Tutor Inteligente exige uma política estrita de "uma sessão por usuário" (para evitar compartilhamento de contas), que gerenciaremos combinando JWT (para autorização stateless) e Redis (para rastreamento de estado e heartbeats).
 
@@ -373,14 +373,15 @@ async def test_rate_limiting(async_client: AsyncClient):
 ---
 
 ## 3.7 Critérios de Aceitação
-
-- [ ] Tabelas `usuarios`, `sessoes_ativas` e `tokens_recuperacao_senha` criadas e versionadas via Alembic.
-- [ ] Hashes de senhas gerados e validados utilizando o algoritmo `Argon2id`.
-- [ ] Endpoints de Autenticação construídos: login, refresh, heartbeat, logout, recuperar e redefinir senha.
-- [ ] Prevenção de ataques de tempo (timing attacks) implementada com `secrets.compare_digest`.
-- [ ] Rate Limit no endpoint de login (máx. 5 tentativas por IP a cada 15 min) validado.
-- [ ] Sistema garante **apenas 1 sessão ativa por usuário**, derrubando sessões antigas ao fazer um novo login.
-- [ ] Heartbeat a cada 30 segundos configurado no frontend e backend (Redis).
-- [ ] Frontend possui Modal interceptor bloqueando a tela em caso de conflito de sessão.
-- [ ] Tokens de recuperação de senha usam lookup determinístico em hash (SHA-256) com tempo de expiração.
-- [ ] Testes de integração (pytest) garantem o bloqueio do rate-limit, a invalidacão de sessões redundantes e a geração de magic links seguros.
+ 
+- [x] Tabelas `usuarios`, `sessoes_ativas` e `tokens_recuperacao_senha` criadas e versionadas via Alembic.
+- [x] Hashes de senhas gerados e validados utilizando o algoritmo `Argon2id`.
+- [x] Endpoints de Autenticação construídos: login, refresh, heartbeat, logout, recuperar e redefinir senha.
+- [x] Prevenção de ataques de tempo (timing attacks) implementada com `secrets.compare_digest`.
+- [x] Rate Limit no endpoint de login (máx. 5 tentativas por IP a cada 15 min) validado.
+- [x] Sistema garante **apenas 1 sessão ativa por usuário**, derrubando sessões antigas ao fazer um novo login.
+- [x] Heartbeat a cada 30 segundos configurado no frontend e backend (Redis).
+- [x] Frontend possui Modal interceptor bloqueando a tela em caso de conflito de sessão.
+- [x] Tokens de recuperação de senha usam lookup determinístico em hash (SHA-256) com tempo de expiração.
+- [x] Testes de integração (pytest) garantem o bloqueio do rate-limit, a invalidacão de sessões redundantes e a geração de magic links seguros.
+- [x] Interface do frontend e componentes totalmente padronizados no Design System institucional Khan Academy (paleta Laranja `#F57C00`, fundos neutros, tipografia Inter, cabeçalho institucional com badge de Matemática e eliminação de aspectos de template de IA).
