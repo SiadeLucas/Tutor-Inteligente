@@ -1,6 +1,8 @@
 """
 Testes automatizados da Etapa 03: Autenticação, Sessões e Recuperação de Senha.
 """
+import asyncio
+
 import pytest
 from httpx import AsyncClient
 
@@ -209,3 +211,37 @@ async def test_fluxo_link_magico_e_redefinicao(async_client: AsyncClient, usuari
     # 5. Token consumido não deve ser aceito novamente
     valida_reuso = await async_client.get(f"/api/v1/auth/verificar-token?token={token_recuperacao}")
     assert valida_reuso.json()["valido"] is False
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_hash_rotacao_e_reuso(async_client: AsyncClient, usuario_teste):
+    """
+    Valida a rotação anti-reuso do refresh token:
+    - O hash SHA-256 do cookie é persistido em sessoes_ativas.refresh_token_hash;
+    - Após a rotação, o cookie ANTIGO é rejeitado (401);
+    - O cookie NOVO é aceito normalmente.
+    """
+    login_resp = await async_client.post(
+        "/api/v1/auth/login",
+        json={"identificador": usuario_teste["email"], "senha": usuario_teste["senha_plana"]}
+    )
+    assert login_resp.status_code == 200
+    cookie_antigo = login_resp.cookies.get("refresh_token")
+    assert cookie_antigo is not None
+
+    # 1. Primeira rotação: cookie original é válido
+    # Aguarda >1s para garantir iat/exp distintos entre os tokens (JWT tem resolução de 1 segundo)
+    await asyncio.sleep(1.1)
+    refresh_1 = await async_client.post("/api/v1/auth/refresh", cookies={"refresh_token": cookie_antigo})
+    assert refresh_1.status_code == 200
+    # Lê o cookie rotacionado do jar do cliente (Set-Cookie da resposta)
+    cookie_novo = async_client.cookies.get("refresh_token")
+    assert cookie_novo is not None and cookie_novo != cookie_antigo
+
+    # 2. Reuso do cookie antigo após rotação: deve ser rejeitado com 401
+    reuso = await async_client.post("/api/v1/auth/refresh", cookies={"refresh_token": cookie_antigo})
+    assert reuso.status_code == 401
+
+    # 3. Cookie novo (atual) continua válido
+    refresh_2 = await async_client.post("/api/v1/auth/refresh", cookies={"refresh_token": cookie_novo})
+    assert refresh_2.status_code == 200

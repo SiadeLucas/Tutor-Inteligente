@@ -1,22 +1,7 @@
----
-title: Onboarding - Algoritmo de Validação de CPF (Módulo 11)
-type: module
-status: draft
-related:
-  - modules/onboarding/prototype/index.md
-last_updated: "2026-09-07"
-updated_by: buffy
----
-
-# 2. Algoritmo de Validação de CPF (Módulo 11)
-
-Implementação executável do cálculo oficial dos **dois dígitos verificadores do CPF** da Receita Federal do Brasil segundo o algoritmo do **Módulo 11**, rodando em Python puro em menos de 1 microssegundo. Implementada em `backend/app/core/validators.py` com cobertura em `backend/tests/test_validators.py`.
-
----
-
-## Código Fonte (`backend/app/core/validators.py`)
-
-```python
+"""
+Validadores determinísticos de dados nacionais (CPF - Módulo 11).
+Referência canônica: docs-site/docs/modules/onboarding/prototype/cpf-validator.md
+"""
 import re
 
 
@@ -36,7 +21,7 @@ class CPFValidator:
         if len(digitos) != 11:
             return False
 
-        # 3. Elimina sequências com todos os dígitos iguais (ex: 111.111.111-11, 000.000.000-00)
+        # 3. Elimina sequências com todos os dígitos iguais (ex: 111.111.111-11)
         if digitos == digitos[0] * 11:
             return False
 
@@ -50,7 +35,7 @@ class CPFValidator:
             return False
 
         # 5. Cálculo do Segundo Dígito Verificador
-        # Pesos decrescentes de 11 a 2 aplicados aos primeiros 10 dígitos (incluindo o digito1)
+        # Pesos decrescentes de 11 a 2 aplicados aos primeiros 10 dígitos (incluindo o dígito 1)
         soma_segundo = sum(int(digitos[i]) * (11 - i) for i in range(10))
         resto_segundo = (soma_segundo * 10) % 11
         digito2_esperado = 0 if resto_segundo in (10, 11) else resto_segundo
@@ -59,4 +44,8 @@ class CPFValidator:
             return False
 
         return True
-```
+
+    @staticmethod
+    def normalizar(cpf_str: str) -> str:
+        """Extrai apenas os 11 dígitos numéricos do CPF, sem validar."""
+        return re.sub(r"\D", "", str(cpf_str))

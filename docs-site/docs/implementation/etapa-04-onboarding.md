@@ -1,11 +1,12 @@
 ---
 title: "Etapa 4: Onboarding e Cadastro"
 type: implementation-guide
-status: planned
-related: ["etapa-03-autenticacao.md", "etapa-05-conteudo.md"]
-last_updated: "2026-09-06"
+status: complete
+related: ["etapa-03-autenticacao.md", "etapa-05-conteudo.md", "../modules/onboarding/index.md"]
+last_updated: "2026-09-07"
+updated_by: antigravity
 ---
-<!-- ai-summary: Guia detalhado de implementação do fluxo multi-step de onboarding e cadastro de alunos, com salvamento de rascunho via Redis, validação robusta de CPF, preenchimento automático por CEP e integração atômica com PostgreSQL no FastAPI. -->
+<!-- ai-summary: Guia detalhado de implementação do wizard de cadastro em 3 etapas (Dados Pessoais → Contato/Credenciais → Acadêmico/Endereço), com rascunho no Redis (48h), validação de CPF (Módulo 11), faixa etária (6 a 120 anos), auto-preenchimento ViaCEP, menoridade civil e integração atômica com PostgreSQL no FastAPI. Não inicializa sessão CAT: a prova diagnóstica ocorre no primeiro acesso a uma matéria (Etapa 7). -->
 
 # Etapa 4: Onboarding e Cadastro
 
@@ -13,212 +14,220 @@ Este documento detalha a implementação do fluxo de onboarding para o Tutor Int
 
 **Duração Estimada:** 1-2 semanas
 **Pré-requisito:** Etapa 3 concluída (Autenticação funcional)
-**Entregável:** Assistente de cadastro (wizard) multi-step funcional com rascunhos no Redis e persistência final no PostgreSQL.
+**Entregável:** Assistente de cadastro (wizard) de 3 etapas funcional com rascunhos no Redis e persistência final no PostgreSQL. [x] Concluído!
+
+> [!NOTE]
+> **Status da implementação (2026-09-07):** backend completo (15 testes de integração em `backend/tests/test_onboarding.py`, suíte total 39/39 aprovada no container `ti-backend`), frontend wizard em `(auth)/cadastro` com auto-save, recuperação de rascunho, máscaras, força e correspondência de senha em tempo real, validação de limites de idade (6 a 120 anos), bloco condicional do responsável e auto-fill ViaCEP.
 
 > [!NOTE]
 > O onboarding é o primeiro contato real do aluno com a plataforma. A taxa de conversão depende de um fluxo sem fricções. O uso do Redis para salvar rascunhos garante que o usuário possa retomar o cadastro caso a página seja recarregada ou a internet caia.
+>
+> **Decisão arquitetural (2026-09-07):** o wizard tem **3 etapas** e **não inicializa sessão CAT**. A prova de proficiência é disparada ao entrar numa matéria pela primeira vez (motor CAT da Etapa 7). Nenhuma tabela da Etapa 7 é criada nesta etapa.
+
+> [!IMPORTANT]
+> **Fundação já implementada** (migração `f3a9c1d24b57`): as colunas `genero`, `telefone`, `logradouro` e `numero` já existem na tabela `usuarios`, e o validador de CPF já está implementado em `backend/app/core/validators.py` (`CPFValidator`) com testes em `backend/tests/test_validators.py`.
 
 ---
 
-## 4.1 Backend: Schemas Pydantic do Onboarding
+## 4.1 Backend: Schemas Pydantic v2 do Onboarding
 
 Precisamos de schemas específicos para validar cada etapa do fluxo separadamente e um schema final para o registro.
 
-Crie o arquivo `backend/app/schemas/onboarding.py`:
+Crie o arquivo `backend/app/modules/onboarding/schemas.py` (especificação canônica em `modules/onboarding/prototype/schemas.md`):
 
 ```python
-from pydantic import BaseModel, EmailStr, constr, validator, Field
+from __future__ import annotations
+import re
 from datetime import date
-from typing import Optional
-from app.utils.validators import validar_cpf
+from typing import Optional, Literal
+from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
+
 
 class Etapa1Request(BaseModel):
-    cpf: str
-    nome_completo: constr(min_length=3, max_length=150)
+    nome_completo: str = Field(..., min_length=3, max_length=200)
+    cpf: str = Field(..., description="CPF com ou sem pontuação")
     data_nascimento: date
+    genero: Literal["masculino", "feminino", "outro", "nao_informar"] = "nao_informar"
+    foto_perfil: Optional[str] = None  # URL ou Base64 (máx 5MB), opcional
 
-    @validator("cpf")
-    def valida_formato_e_digito_cpf(cls, v):
-        cpf_limpo = ''.join(filter(str.isdigit, v))
-        if not validar_cpf(cpf_limpo):
-            raise ValueError("CPF inválido")
-        return cpf_limpo
+    @field_validator("cpf")
+    @classmethod
+    def normalizar_cpf(cls, v: str) -> str:
+        digitos = re.sub(r"\D", "", v)
+        if len(digitos) != 11:
+            raise ValueError("O CPF deve conter exatamente 11 dígitos numéricos.")
+        return digitos
+
+    @field_validator("data_nascimento")
+    @classmethod
+    def validar_data_nascimento(cls, v: date) -> date:
+        hoje = date.today()
+        if v >= hoje:
+            raise ValueError("A data de nascimento deve ser uma data no passado.")
+        idade = hoje.year - v.year - ((hoje.month, hoje.day) < (v.month, v.day))
+        if idade < 6:
+            raise ValueError("O estudante deve ter no mínimo 6 anos de idade.")
+        if idade > 120:
+            raise ValueError("Data de nascimento inválida. A idade máxima permitida é de 120 anos.")
+        return v
+
+    @property
+    def idade_anos(self) -> int:
+        hoje = date.today()
+        return hoje.year - self.data_nascimento.year - (
+            (hoje.month, hoje.day) < (self.data_nascimento.month, self.data_nascimento.day)
+        )
+
+    @property
+    def eh_menor_idade(self) -> bool:
+        return self.idade_anos < 18
+
+
+class DadosResponsavelSchema(BaseModel):
+    nome_completo: str = Field(..., min_length=3)
+    cpf: str = Field(...)
+    telefone: str = Field(..., min_length=10, max_length=15)
+    email: Optional[EmailStr] = None  # opcional (RN-ONB-005)
+
+    @field_validator("cpf")
+    @classmethod
+    def normalizar_cpf_resp(cls, v: str) -> str:
+        digitos = re.sub(r"\D", "", v)
+        if len(digitos) != 11:
+            raise ValueError("O CPF do responsável deve conter exatamente 11 dígitos numéricos.")
+        return digitos
+
 
 class Etapa2Request(BaseModel):
     email: EmailStr
-    senha: constr(min_length=8)
+    senha: str = Field(..., min_length=8)
     confirmacao_senha: str
-    celular: Optional[str] = Field(None, pattern=r"^\d{10,11}$")
+    telefone: str = Field(..., min_length=10, max_length=15, description="Telefone/WhatsApp (obrigatório)")
+    dados_responsavel: Optional[DadosResponsavelSchema] = None
 
-    @validator("confirmacao_senha")
-    def senhas_iguais(cls, v, values):
-        if "senha" in values and v != values["senha"]:
-            raise ValueError("As senhas não conferem")
-        return v
+    @field_validator("email")
+    @classmethod
+    def normalizar_email(cls, v: str) -> str:
+        return v.strip().lower()
+
+    @model_validator(mode="after")
+    def verificar_senhas_iguais(self):
+        if self.senha != self.confirmacao_senha:
+            raise ValueError("As senhas não conferem.")
+        return self
+
 
 class Etapa3Request(BaseModel):
-    uf: constr(length=2)
+    cep: str = Field(..., description="CEP com 8 dígitos numéricos")
+    uf: str = Field(..., min_length=2, max_length=2)
     cidade: str
-    bairro: str
-    cep: str
-    escola_tipo: str = Field(..., description="Pública ou Privada")
+    bairro: Optional[str] = None
+    logradouro: Optional[str] = None   # auto-preenchido pelo ViaCEP, editável
+    numero: Optional[str] = None
+    escola_tipo: Literal["publica", "privada", "outro"]
     nome_escola: Optional[str] = None
-    serie_ano: str
+    serie_ano: str  # dinâmico: 1_ano, 2_ano, 3_ano, 9_ano, pre_vestibular
+
+    @field_validator("cep")
+    @classmethod
+    def limpar_cep(cls, v: str) -> str:
+        digitos = re.sub(r"\D", "", v)
+        if len(digitos) != 8:
+            raise ValueError("O CEP deve conter exatamente 8 dígitos numéricos.")
+        return digitos
+
 
 class FinalizarCadastroRequest(BaseModel):
     etapa1: Etapa1Request
     etapa2: Etapa2Request
     etapa3: Etapa3Request
-    dados_responsavel: Optional[dict] = None
+
+    @model_validator(mode="after")
+    def validar_responsavel_se_menor(self):
+        if self.etapa1.eh_menor_idade and not self.etapa2.dados_responsavel:
+            raise ValueError(
+                "Estudantes menores de 18 anos exigem obrigatoriamente os dados do responsável legal na Etapa 2."
+            )
+        return self
+
 
 class CadastroConcluidoResponse(BaseModel):
+    """O refresh token NUNCA retorna no corpo: é injetado em cookie HTTP-Only (padrão da Etapa 3)."""
     usuario_id: str
+    nome_completo: str
     access_token: str
-    refresh_token: str
-    mensagem: str = "Cadastro realizado com sucesso"
+    token_type: Literal["bearer"] = "bearer"
+    expires_in_seconds: int = 900
+    sessao_id: str
+    mensagem: str = "Cadastro realizado com sucesso! Redirecionando para o dashboard de matérias."
 ```
 
 ---
 
-## 4.2 Backend: Validador de CPF (Módulo 11)
+## 4.2 Backend: Validador de CPF (Módulo 11) — JÁ IMPLEMENTADO
 
-A validação de CPF deve conferir os dígitos verificadores para evitar CPFs falsos (ex: geradores simples).
+A validação de CPF confere os dígitos verificadores para evitar CPFs falsos (ex: geradores simples).
 
-Crie `backend/app/utils/validators.py`:
-
-```python
-import re
-
-def validar_cpf(cpf: str) -> bool:
-    """Valida um CPF completo (algoritmo Módulo 11)"""
-    cpf = ''.join(filter(str.isdigit, str(cpf)))
-    
-    if len(cpf) != 11:
-        return False
-        
-    # Rejeita CPFs conhecidos inválidos (todos os dígitos iguais)
-    if cpf in (str(i) * 11 for i in range(10)):
-        return False
-
-    # Validação do primeiro dígito
-    soma = sum(int(cpf[i]) * (10 - i) for i in range(9))
-    resto = soma % 11
-    digito1 = 0 if resto < 2 else 11 - resto
-    if digito1 != int(cpf[9]):
-        return False
-
-    # Validação do segundo dígito
-    soma = sum(int(cpf[i]) * (11 - i) for i in range(10))
-    resto = soma % 11
-    digito2 = 0 if resto < 2 else 11 - resto
-    if digito2 != int(cpf[10]):
-        return False
-
-    return True
-```
+**Já implementado** em `backend/app/core/validators.py` (classe `CPFValidator`, com os métodos `validar()` e `normalizar()`), conforme o protótipo `modules/onboarding/prototype/cpf-validator.md`. Os testes unitários estão em `backend/tests/test_validators.py`.
 
 ---
 
 ## 4.3 Backend: OnboardingService
 
-Serviço responsável por regras de negócio de criação do usuário, incluindo cálculo de idade e gerenciamento de rascunhos no Redis.
+Serviço responsável pelas regras de negócio de criação do usuário: revalidação de unicidade, cálculo de idade/menoridade e criação da sessão única via `SessionManager` da Etapa 3.
 
-Crie `backend/app/services/onboarding_service.py`:
+Crie `backend/app/modules/onboarding/onboarding_service.py` (especificação canônica em `modules/onboarding/prototype/onboarding-service.md`). Pontos obrigatórios:
 
-```python
-import json
-from datetime import date
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException
-from app.models.usuario import Usuario
-from app.core.security import get_password_hash
-from app.core.redis import redis_client
-
-class OnboardingService:
-    @staticmethod
-    def calcular_idade(data_nascimento: date) -> int:
-        hoje = date.today()
-        return hoje.year - data_nascimento.year - ((hoje.month, hoje.day) < (data_nascimento.month, data_nascimento.day))
-
-    @staticmethod
-    async def salvar_rascunho(session_id: str, dados: dict):
-        # 48h TTL = 172800 segundos
-        await redis_client.setex(f"onboarding_draft:{session_id}", 172800, json.dumps(dados))
-
-    @staticmethod
-    async def obter_rascunho(session_id: str) -> dict:
-        dados = await redis_client.get(f"onboarding_draft:{session_id}")
-        return json.loads(dados) if dados else {}
-
-    @staticmethod
-    async def finalizar_cadastro(db: AsyncSession, dados: FinalizarCadastroRequest) -> Usuario:
-        # Verifica se CPF ou Email já existem (revisão de segurança na transação atômica)
-        # Calcula idade
-        idade = OnboardingService.calcular_idade(dados.etapa1.data_nascimento)
-        eh_menor = idade < 18
-
-        if eh_menor and not dados.dados_responsavel:
-            raise HTTPException(status_code=400, detail="Dados do responsável são obrigatórios para menores de idade")
-
-        # Criação Atômica
-        novo_usuario = Usuario(
-            cpf=dados.etapa1.cpf,
-            nome_completo=dados.etapa1.nome_completo,
-            data_nascimento=dados.etapa1.data_nascimento,
-            email=dados.etapa2.email,
-            senha_hash=get_password_hash(dados.etapa2.senha),
-            celular=dados.etapa2.celular,
-            cep=dados.etapa3.cep,
-            # (outros campos mapeados...)
-            eh_menor_idade=eh_menor
-        )
-
-        db.add(novo_usuario)
-        await db.commit()
-        await db.refresh(novo_usuario)
-        
-        return novo_usuario
-```
+1. **Unicidade revalidada na transação final**: consulta `or_(Usuario.email == email.lower(), Usuario.cpf == cpf)` → `409 Conflict` detalhado (CPF vs E-mail).
+2. **Cálculo exato de idade** (considera aniversário ainda não ocorrido no ano corrente) + rejeição de datas futuras.
+3. **Menoridade**: sem `dados_responsavel` → `400`; com responsável → persiste JSONB em `usuarios.dados_responsavel`.
+4. **Normalizações**: e-mail em minúsculas, UF em maiúsculas.
+5. **Sessão única**: `SessionManager.registrar_nova_sessao(...)` do módulo de autenticação; persistir o hash SHA-256 do refresh token em `sessao.refresh_token_hash` (nunca placeholder).
+6. **Rascunho**: após o commit, deletar `onboarding_draft:{X-Draft-Session-ID}` do Redis.
+7. **Atomicidade**: `db.commit()` único no final; qualquer falha antes disso é coberta pelo rollback da sessão async (`get_db`).
 
 ---
 
 ## 4.4 Backend: 7 Endpoints do Onboarding
 
-Adicione as rotas em `backend/app/api/v1/onboarding.py`. Todos os endpoints que manipulam o rascunho devem ler/receber o header `X-Draft-Session-ID`.
+Crie `backend/app/modules/onboarding/router.py` (prefixo `/api/v1/onboarding`) e registre-o em `backend/app/main.py`. Todos os endpoints que manipulam o rascunho devem ler o header `X-Draft-Session-ID`.
 
 > [!IMPORTANT]
-> A requisição no ViaCEP (Endpoint 6) deve ter um timeout curto (4s) para não prender a thread em caso de instabilidade externa.
+> A requisição no ViaCEP (Endpoint 6) deve ter um timeout curto (4s) via `httpx.AsyncClient(timeout=4.0)` para não prender o event loop em caso de instabilidade externa.
 
 | Endpoint | Método | Descrição |
 |----------|--------|-----------|
-| `/validar-etapa-1` | `POST` | Valida formatação do CPF, Módulo 11 e verifica se já existe no banco. |
-| `/validar-etapa-2` | `POST` | Valida formato de email e verifica duplicidade. |
-| `/validar-etapa-3` | `POST` | Valida preenchimento dos dados escolares. |
-| `/salvar-rascunho` | `POST` | Recebe payload parcial e guarda no Redis (48h TTL). Usa header `X-Draft-Session-ID`. |
-| `/rascunho` | `GET` | Recupera rascunho baseado no `X-Draft-Session-ID`. |
-| `/cep/{cep}` | `GET` | Faz proxy seguro pro ViaCEP para auto-complete, com timeout de 4s (Httpx). |
-| `/finalizar-cadastro` | `POST` | Junta dados, aplica regras de menor de idade, cria no PG e emite tokens. |
+| `/validar-etapa-1` | `POST` | Valida CPF (Módulo 11) e verifica duplicidade no banco. |
+| `/validar-etapa-2` | `POST` | Valida formato/disponibilidade do e-mail e CPF do responsável (se presente). |
+| `/validar-etapa-3` | `POST` | Valida preenchimento dos dados escolares e de endereço. |
+| `/salvar-rascunho` | `POST` | Guarda payload parcial no Redis (`onboarding_draft:{id}`, TTL 48h). Header `X-Draft-Session-ID`. |
+| `/rascunho` | `GET` | Recupera o rascunho baseado no `X-Draft-Session-ID`. |
+| `/cep/{cep}` | `GET` | Proxy seguro para o ViaCEP (auto-complete), timeout de 4s; `503` em indisponibilidade para liberar digitação manual. |
+| `/finalizar-cadastro` | `POST` | Validações finais, cria usuário + sessão no PG, emite tokens (refresh em cookie HTTP-Only) e limpa o rascunho. |
+
+> [!TIP]
+> O módulo de autenticação já expõe as dependências `get_current_user` / `get_current_session` em `backend/app/core/deps.py`. Os endpoints de onboarding são públicos (cadastro), mas esta base já está pronta para as rotas protegidas das etapas seguintes.
 
 ---
 
 ## 4.5 Frontend: Wizard Multi-Step
 
-O assistente de cadastro deve guiar o usuário em 3 etapas claras. Utilizaremos Zustand ou ContextAPI para guardar o estado global do formulário e sincronizar com o Redis.
+O assistente de cadastro guia o usuário em 3 etapas. Rota canônica: `frontend/src/app/(auth)/cadastro/page.tsx` (a rota `(student)/onboarding` fica reservada para a prova diagnóstica CAT, Etapa 7). Utilize Zustand ou Context API para o estado global do formulário, sincronizado com o Redis via backend.
 
 ### Estrutura Sugerida de Componentes React
 
 ```tsx
-// frontend/src/app/(auth)/onboarding/page.tsx
+// frontend/src/app/(auth)/cadastro/page.tsx
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import Step1Identity from './_components/Step1Identity';
 import Step2Credentials from './_components/Step2Credentials';
 import Step3Academic from './_components/Step3Academic';
 import ProgressBar from './_components/ProgressBar';
 
-export default function OnboardingPage() {
+export default function CadastroPage() {
   const [currentStep, setCurrentStep] = useState(1);
 
   return (
@@ -226,7 +235,7 @@ export default function OnboardingPage() {
       <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg">
         <h1 className="text-2xl font-bold mb-6">Crie sua Conta no Tutor Inteligente</h1>
         <ProgressBar currentStep={currentStep} totalSteps={3} />
-        
+
         <div className="mt-8">
           {currentStep === 1 && <Step1Identity onNext={() => setCurrentStep(2)} />}
           {currentStep === 2 && <Step2Credentials onNext={() => setCurrentStep(3)} onBack={() => setCurrentStep(1)} />}
@@ -239,32 +248,36 @@ export default function OnboardingPage() {
 ```
 
 > [!TIP]
-> Use as bibliotecas `react-hook-form`, `zod` e `react-input-mask` (ou `react-imask`) para máscaras (CPF: `000.000.000-00`, CEP: `00000-000`). Para o auto-save, coloque um `useEffect` na alteração de campos chave, implementando `debounce` de 1000ms.
+> Use `react-hook-form`, `zod` e `react-imask` para máscaras (CPF: `000.000.000-00`, CEP: `00000-000`, Telefone: `(00) 00000-0000`). Para o auto-save, coloque um `useEffect` na alteração de campos chave com `debounce` de 1000ms.
 
 ### Funcionalidades do Frontend:
-1. **Auto-save no Redis**: A cada field change (com debounce), chama `/salvar-rascunho`.
-2. **Recuperação de Rascunho**: No montante inicial da página (`useEffect` vazio), tenta buscar o `/rascunho` no backend usando o ID armazenado no localStorage ou Cookies.
-3. **Indicador de Força de Senha**: No Step 2, ao digitar, validar regras de segurança em tempo real.
-4. **Auto-fill de CEP**: Ao digitar 8 dígitos no Step 3, acionar `/cep/{cep}` e popular `cidade`, `uf` e `bairro`.
+1. **Auto-save no Redis**: a cada field change (com debounce), chama `/salvar-rascunho` com o header `X-Draft-Session-ID`.
+2. **Recuperação de Rascunho**: no mount da página (`useEffect` vazio), busca `/rascunho` usando o ID armazenado no localStorage.
+3. **Indicador de Força de Senha**: no Step 2, validar as regras de segurança em tempo real.
+4. **Auto-fill de CEP**: ao digitar 8 dígitos no Step 3, acionar `/cep/{cep}` e popular `cidade`, `uf`, `bairro` e `logradouro` (campos permanecem editáveis).
+5. **Bloco condicional do responsável**: exibido no Step 2 quando a idade calculada no Step 1 for < 18.
 
 ---
 
 ## 4.6 Testes
 
-É essencial cobrir os fluxos lógicos no pytest. Crie os testes em `backend/tests/api/test_onboarding.py` e `backend/tests/utils/test_validators.py`.
+Crie os testes em `backend/tests/test_onboarding.py` (o arquivo `backend/tests/test_validators.py` do validador de CPF já existe).
 
 ```powershell
 # Comando para rodar testes específicos do onboarding
-pytest tests/api/test_onboarding.py -v
+docker exec ti-backend pytest tests/test_onboarding.py -v
 ```
 
 **Casos a Cobrir:**
-- `test_cpf_validation`: CPF válido retorna True, inválido retorna False, CPF com dígitos iguais (ex `111.111.111-11`) retorna False.
-- `test_duplicate_cpf_rejection`: Cadastro com CPF já salvo acusa erro 409 Conflict.
-- `test_duplicate_email_rejection`: Cadastro com email já salvo acusa erro 409 Conflict.
-- `test_minor_requires_responsavel`: Se calcular a idade < 18, recusa caso o bloco `dados_responsavel` esteja nulo.
-- `test_complete_registration_flow`: Envia payload final completo, verifica se o usuário foi criado no PostgreSQL e JWT emitido.
-- `test_draft_save_and_recovery`: Salva o rascunho, recupera e valida os dados correspondentes.
+- `test_duplicate_cpf_rejection`: cadastro com CPF já salvo acusa erro 409 Conflict.
+- `test_duplicate_email_rejection`: cadastro com e-mail já salvo acusa erro 409 Conflict.
+- `test_email_normalizado_lowercase`: e-mail maiúsculo no cadastro permite login com minúsculas.
+- `test_minor_requires_responsavel`: idade < 18 recusa cadastro sem `dados_responsavel` (400).
+- `test_telefone_obrigatorio`: payload sem telefone (ou < 10 dígitos) é rejeitado na Etapa 2.
+- `test_complete_registration_flow`: payload final completo cria o usuário no PostgreSQL (incl. `genero`, `telefone`, `logradouro`, `numero`), abre sessão única e retorna JWT + cookie HTTP-Only.
+- `test_draft_save_and_recovery`: salva o rascunho, recupera e valida os dados correspondentes; TTL de 48h (`setex` 172800s).
+- `test_cep_proxy_timeout`: ViaCEP indisponível → 503 com permissão de digitação manual.
+- `test_refresh_token_hash_persistido`: `sessoes_ativas.refresh_token_hash` contém o SHA-256 do cookie emitido.
 
 ---
 
@@ -272,14 +285,17 @@ pytest tests/api/test_onboarding.py -v
 
 Verifique os itens abaixo antes de considerar a Etapa 4 concluída:
 
-- [ ] `Validador de CPF` com Módulo 11 funcionando corretamente no backend.
-- [ ] Schema de Pydantic separado em três etapas e validando inputs antes de processar.
-- [ ] O `OnboardingService` calcula a idade via `data_nascimento` de forma exata (considerando anos bissextos).
-- [ ] Caso o usuário seja menor, o cadastro falha sem informar `dados_responsavel`.
-- [ ] O endpoint do ViaCEP tem timeout configurado e trata falhas graciosamente (permite digitação manual pelo usuário se a API cair).
-- [ ] Ao salvar rascunhos no Redis, eles expiram sozinhos em exatos 48 horas (TTL).
-- [ ] Transação final no banco é atômica (`db.commit()`), se houver erro ao salvar o perfil de estudante vinculado, faz *rollback* de tudo.
-- [ ] O Frontend exibe uma Progress Bar indicativa clara das 3 etapas.
-- [ ] Inputs possuem máscara (CPF, CEP, Celular) bloqueando letras.
-- [ ] Auto-save funcional no frontend (não gera loop infinito de requests).
-- [ ] Mobile responsive: o wizard não quebra em telas de 320px (ex: iPhone SE).
+- [x] Schemas Pydantic v2 separados em três etapas, validando inputs antes de processar (com `@field_validator` / `@model_validator`).
+- [x] `OnboardingService` calcula a idade via `data_nascimento` de forma exata (considerando aniversário do ano corrente e datas futuras rejeitadas).
+- [x] Caso o usuário seja menor, o cadastro falha sem informar `dados_responsavel` (422 na validação do schema; 400 como defesa no serviço).
+- [x] Campos `genero`, `telefone`, `logradouro` e `numero` persistidos corretamente em `usuarios` (migração `f3a9c1d24b57`).
+- [x] E-mail armazenado em minúsculas; UF em maiúsculas.
+- [x] O endpoint do ViaCEP tem timeout de 4s e trata falhas graciosamente (permite digitação manual pelo usuário se a API cair).
+- [x] Ao salvar rascunhos no Redis, eles expiram sozinhos em 48 horas (TTL 172800s).
+- [x] Transação final no banco é atômica (`db.commit()` único); a sessão única é criada via `SessionManager` com o hash SHA-256 real do refresh token.
+- [x] O refresh token é entregue exclusivamente em cookie HTTP-Only (nunca no corpo da resposta).
+- [x] Nenhuma tabela da Etapa 7 (CAT) é criada ou referenciada nesta etapa.
+- [x] O Frontend exibe uma Progress Bar indicativa das 3 etapas, em `(auth)/cadastro`.
+- [x] Inputs possuem máscara (CPF, CEP, Telefone) bloqueando letras (`src/lib/formatters.ts`).
+- [x] Auto-save funcional no frontend (não gera loop infinito de requests; debounce 1000ms só após recuperação do rascunho).
+- [x] Mobile responsive: o wizard não quebra em telas de 320px (ex: iPhone SE). (Verificado por revisão de código: layout fluido com `w-full`, paddings responsivos `p-4 sm:p-6`, grids que colapsam para coluna única `grid-cols-1 sm:grid-cols-2`, sem larguras fixas ou overflow horizontal.)

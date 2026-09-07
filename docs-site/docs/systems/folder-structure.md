@@ -5,8 +5,8 @@ status: complete
 related:
   - systems/index.md
   - knowledge/data-architecture.md
-last_updated: "2026-09-02"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: buffy
 ---
 
 <!-- ai-summary
@@ -57,10 +57,13 @@ backend/
 │   ├── main.py                   # Ponto de entrada FastAPI (CORS, middlewares, routers)
 │   ├── core/                     # Configurações fundamentais e segurança
 │   │   ├── config.py             # Leitura de variáveis de ambiente com Pydantic Settings
-│   │   ├── security.py           # Hashing de senhas (Argon2id/bcrypt), criação e validação de JWT
-│   │   └── database.py           # Conexão assíncrona SQLAlchemy (asyncpg) e pool de conexões
+│   │   ├── security.py           # Hashing de senhas (Argon2id/bcrypt), TokenService (JWT) e safe_compare
+│   │   ├── database.py           # Conexão assíncrona SQLAlchemy (asyncpg), pool e Base declarativa
+│   │   ├── redis.py              # Pool singleton de conexão com o Redis (sessões/rascunhos)
+│   │   ├── validators.py         # CPFValidator (Módulo 11) — validação de CPF do onboarding
+│   │   └── deps.py               # Dependências FastAPI: extrair_bearer_token, get_current_session, get_current_user
 │   ├── models/                   # Mapeamento ORM SQLAlchemy das 17 Tabelas do PostgreSQL
-│   │   ├── base.py
+│   │   ├── __init__.py           # Registro dos modelos para o Alembic
 │   │   ├── user.py               # usuarios, sessoes_ativas, tokens_recuperacao_senha
 │   │   ├── commercial.py         # matriculas_pagamentos, transacoes_financeiras
 │   │   ├── content.py            # disciplinas, volumes_didaticos, capitulos, aulas, documentos_vetoriais_rag
@@ -87,9 +90,13 @@ backend/
 │       ├── fisher_info.py        # Seleção gulosa de itens por Máxima Informação de Fisher
 │       └── eap_estimator.py      # Estimador Bayesiano EAP para atualização do theta
 ├── tests/                        # Bateria de testes automatizados com Pytest
-│   ├── test_cat_engine.py        # Testes de convergência do theta na TRI
-│   ├── test_sympy_validator.py   # Testes de gabaritos matemáticos e gêmeas
-│   └── test_auth_session.py      # Testes de sessão concorrente única
+│   ├── conftest.py               # Fixtures (usuario_teste, async_client) com NullPool
+│   ├── test_health.py            # Endpoint de saúde
+│   ├── test_auth.py              # Autenticação: login híbrido, sessão única, refresh, link mágico
+│   ├── test_validators.py        # CPFValidator (Módulo 11)
+│   ├── test_onboarding.py        # Wizard de cadastro (Etapa 4)
+│   ├── test_cat_engine.py        # Testes de convergência do theta na TRI (Etapa 7)
+│   └── test_sympy_validator.py   # Testes de gabaritos matemáticos e gêmeas (Etapa 7)
 ├── Dockerfile                    # Imagem de produção python:3.11-slim
 ├── requirements.txt              # Dependências Python estritas
 └── alembic.ini
@@ -109,11 +116,12 @@ frontend/
 │   ├── app/                      # Roteamento baseado em arquivos (App Router)
 │   │   ├── (auth)/               # Grupo de rotas públicas
 │   │   │   ├── login/            # Tela de Login (E-mail ou CPF com máscara)
-│   │   │   ├── cadastro/         # Wizard de Onboarding em 4 passos
+│   │   │   ├── esqueci-senha/    # Solicitação de link mágico de recuperação
+│   │   │   ├── cadastro/         # Wizard de Cadastro em 3 passos (Etapa 4: Onboarding)
 │   │   │   └── redefinir-senha/  # Validação do token de link mágico
 │   │   ├── (student)/            # Grupo de rotas autenticadas do Aluno
 │   │   │   ├── layout.tsx        # Shell do aluno: Sidebar fixa Khan Academy + Header
-│   │   │   ├── onboarding/       # Prova Adaptativa Diagnóstica (CAT)
+│   │   │   ├── onboarding/       # Prova Adaptativa Diagnóstica (CAT — Etapa 7, pós-cadastro)
 │   │   │   ├── materias/         # Skill Tree visual dos 11 volumes do Iezzi
 │   │   │   ├── aula/[id]/        # Player de aula de 50 min em 4 blocos + Chat Socrático
 │   │   │   ├── exercicios/[id]/  # Interface de fixação KaTeX com 2ª chance e Questões Gêmeas
@@ -134,9 +142,9 @@ frontend/
 │   │   ├── header/               # DisciplineSwitcher (Seletor Global de Matéria)
 │   │   └── session/              # ConcurrentSessionModal (aviso de desconexão e rascunho)
 │   ├── hooks/                    # Custom React Hooks
-│   │   ├── useStudyTimer.ts      # Cronômetro de tempo líquido ativo com pausa em inatividade
-│   │   ├── useSilentAuth.ts      # Interceptor HTTP para renovação automática de token JWT
-│   │   └── useSocraticChat.ts    # Hook de conversação fluida com o Agente de IA da aula
+│   │   ├── useHeartbeat.ts       # Pulso de presença a cada 30s + detecção de conflito de sessão
+│   │   ├── useStudyTimer.ts      # Cronômetro de tempo líquido ativo com pausa em inatividade (Etapa 5)
+│   │   └── useSocraticChat.ts    # Hook de conversação fluida com o Agente de IA da aula (Etapa 6)
 │   ├── lib/                      # Utilitários e instâncias globais
 │   │   ├── api.ts                # Cliente Axios/Fetch com interceptors de erro e refresh
 │   │   ├── formatters.ts         # Máscara de CPF, CEP e conversão de moeda BRL

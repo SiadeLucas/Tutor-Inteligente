@@ -5,14 +5,14 @@ status: draft
 related:
   - modules/onboarding/flow/index.md
   - modules/onboarding/flow/proficiencia.md
-last_updated: "2026-08-26"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: buffy
 ---
 
 # 4. Fluxos Contínuos e Futuros
 
 ### 4.1 Descoberta e Avaliação em Novas Matérias
-Com a expansão da plataforma para outras disciplinas, a prova de proficiência é disparada no primeiro ingresso do aluno em cada nova matéria.
+Com a expansão da plataforma para outras disciplinas, a prova de proficiência é disparada no primeiro ingresso do aluno em cada nova matéria (o mesmo gatilho aplicado à Matemática imediatamente após o cadastro).
 
 ```mermaid
 flowchart TD

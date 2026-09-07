@@ -5,7 +5,7 @@ import re
 import hashlib
 from uuid import UUID
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Response, Request, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,8 +13,9 @@ from sqlalchemy import select, or_, and_
 
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.deps import extrair_bearer_token, get_current_session
 from app.core.redis import get_redis
-from app.core.security import hash_senha, verificar_senha, TokenService
+from app.core.security import hash_senha, verificar_senha, safe_compare, TokenService
 from app.models.user import Usuario, SessaoAtiva, TokenRecuperacaoSenha
 from app.modules.auth.schemas import (
     LoginRequest,
@@ -29,25 +30,6 @@ from app.modules.auth.schemas import (
 from app.modules.auth.session_manager import SessionManager
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Autenticação & Sessões"])
-
-
-def _extrair_bearer_token(request: Request) -> str:
-    """Extrai e valida o cabeçalho Authorization no formato Bearer."""
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Cabeçalho de autorização não fornecido."
-        )
-
-    partes = auth_header.strip().split(" ")
-    if len(partes) != 2 or partes[0].lower() != "bearer" or not partes[1].strip():
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Formato de token Bearer malformado."
-        )
-
-    return partes[1].strip()
 
 
 # ============================================================================
@@ -112,7 +94,7 @@ async def login(
         usuario_id=usuario.id,
         ip_address=ip_cliente,
         user_agent=user_agent,
-        refresh_token_hash="hash_provisorio"
+        refresh_token_hash="pendente"
     )
 
     # 5. Emite tokens
@@ -125,6 +107,10 @@ async def login(
         usuario_id=usuario.id,
         session_id=nova_sessao.id
     )
+
+    # 5.1 Persiste o hash SHA-256 do refresh token (verificado na rotação do silent refresh)
+    nova_sessao.refresh_token_hash = hashlib.sha256(refresh_token.encode("utf-8")).hexdigest()
+    await db.commit()
 
     # 6. Injeta Refresh Token em cookie HTTP-Only seguro
     eh_desenvolvimento = settings.ENVIRONMENT == "development"
@@ -187,6 +173,15 @@ async def silent_refresh(
     # Valida se a sessão ainda está ativa
     sessao = await SessionManager.validar_sessao_ativa(db, session_id, usuario_id)
 
+    # Verifica o hash SHA-256 do refresh token contra o registrado no banco.
+    # Cookies já rotacionados são rejeitados (proteção contra reuso de token).
+    token_hash_atual = hashlib.sha256(refresh_token.encode("utf-8")).hexdigest()
+    if not safe_compare(sessao.refresh_token_hash, token_hash_atual):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token inválido ou já utilizado em rotação anterior."
+        )
+
     usuario = await db.get(Usuario, usuario_id)
     if not usuario or not usuario.ativo:
         raise HTTPException(
@@ -197,6 +192,10 @@ async def silent_refresh(
     # Rotação de tokens
     novo_access_token = TokenService.criar_access_token(usuario.id, usuario.role, sessao.id)
     novo_refresh_token = TokenService.criar_refresh_token(usuario.id, sessao.id)
+
+    # Persiste o hash do novo refresh token (rotação anti-reuso)
+    sessao.refresh_token_hash = hashlib.sha256(novo_refresh_token.encode("utf-8")).hexdigest()
+    await db.commit()
 
     eh_desenvolvimento = settings.ENVIRONMENT == "development"
     response.set_cookie(
@@ -218,27 +217,17 @@ async def silent_refresh(
 @router.get("/heartbeat", response_model=HeartbeatResponse)
 async def heartbeat(
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current: Tuple[Usuario, SessaoAtiva] = Depends(get_current_session)
 ):
     """
     Verifica periodicamente a vigência da sessão.
     Se outro dispositivo tiver efetuado login, retorna 401 CONCURRENT_SESSION_REVOKED.
     """
-    token = _extrair_bearer_token(request)
-
-    try:
-        payload = TokenService.decodificar_token(token)
-        session_id = UUID(payload["session_id"])
-        usuario_id = UUID(payload["sub"])
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token de acesso inválido ou expirado."
-        )
+    usuario, sessao = current
 
     redis = get_redis()
-    sessao = await SessionManager.validar_sessao_ativa(db, session_id, usuario_id)
-    await SessionManager.atualizar_heartbeat(db, redis, sessao.id, usuario_id)
+    await SessionManager.atualizar_heartbeat(db, redis, sessao.id, usuario.id)
 
     return HeartbeatResponse(
         sessao_ativa=True,
@@ -261,7 +250,7 @@ async def logout(
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.strip().startswith("Bearer "):
         try:
-            token = _extrair_bearer_token(request)
+            token = extrair_bearer_token(request)
             payload = TokenService.decodificar_token(token)
             session_id = UUID(payload["session_id"])
             usuario_id = UUID(payload["sub"])
@@ -284,7 +273,7 @@ async def logout_remoto(
     RN-AUT-015: Invalida TODAS as sessões ativas do estudante em todos os dispositivos,
     forçando desconexão geral.
     """
-    token = _extrair_bearer_token(request)
+    token = extrair_bearer_token(request)
     try:
         payload = TokenService.decodificar_token(token)
         usuario_id = UUID(payload["sub"])

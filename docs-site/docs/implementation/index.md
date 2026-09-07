@@ -6,8 +6,8 @@ related:
   - systems/index.md
   - systems/folder-structure.md
   - knowledge/data-architecture.md
-last_updated: "2026-09-06"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: antigravity
 ---
 
 <!-- ai-summary
@@ -56,7 +56,7 @@ graph LR
     E1["✅ Etapa 1\nRepositório\ne Ambiente Local"]
     E2["⏸️ Etapa 2\nInfraestrutura AWS\n(Postergada / Nuvem)"]
     E3["✅ Etapa 3\nAutenticação\ne Sessões"]
-    E4["🎯 Etapa 4\nOnboarding\ne Cadastro"]
+    E4["✅ Etapa 4\nOnboarding\ne Cadastro"]
     E5["📚 Etapa 5\nConteúdo\nDidático"]
     E6["🤖 Etapa 6\nMotor de IA\ne RAG"]
     E7["✏️ Etapa 7\nExercícios\ne Motor CAT"]
@@ -70,7 +70,7 @@ graph LR
     style E1 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E2 fill:#334155,stroke:#64748b,stroke-dasharray: 5 5,color:#94a3b8
     style E3 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
-    style E4 fill:#1d4ed8,stroke:#3b82f6,stroke-width:2px,color:#fff
+    style E4 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
 ```
 
 ---
@@ -105,12 +105,12 @@ Tabelas `usuarios`, `sessoes_ativas` e `tokens_recuperacao_senha`. Backend com l
 
 ---
 
-### [Etapa 4: Onboarding e Cadastro](etapa-04-onboarding.md) — :dart: **Em Andamento (Próxima)**
-**Duração estimada: 1-2 semanas** | **Status:** `Próxima`
+### [Etapa 4: Onboarding e Cadastro](etapa-04-onboarding.md) — :white_check_mark: **Concluída**
+**Duração estimada: 1-2 semanas** | **Status:** `Concluída`
 
-Wizard de 3 etapas (Identificação → Credenciais/Contato → Acadêmico) com validação matemática de CPF, consulta automática de CEP via ViaCEP, detecção de menor de idade e dados do responsável legal. Persistência de rascunho no Redis. Frontend com wizard multi-step e máscaras de input.
+Wizard de 3 etapas (Identificação → Credenciais/Contato → Acadêmico/Endereço) com validação matemática de CPF (Módulo 11 em `app/core/validators.py`), consulta automática de CEP via ViaCEP, detecção de menor de idade e dados do responsável legal. Persistência de rascunho no Redis (TTL 48h). Frontend com wizard multi-step em `(auth)/cadastro` e máscaras de input. A prova de proficiência CAT é disparada no primeiro acesso a uma matéria (Etapa 7).
 
-**Entregável:** Cadastro de novo aluno funcional, com dados salvos no PostgreSQL e redirect para o dashboard.
+**Entregável:** Cadastro de novo aluno funcional, com dados salvos no PostgreSQL e redirect para o dashboard. [x] Concluído!
 
 ---
 

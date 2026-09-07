@@ -4,8 +4,8 @@ type: module
 status: draft
 related:
   - modules/autenticacao/prototype/index.md
-last_updated: "2026-09-03"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: buffy
 ---
 
 # 4. Endpoints da API FastAPI
@@ -102,13 +102,15 @@ async def login(
     # 3. Registra nova sessão e REVOGA qualquer sessão anterior do aluno
     nova_sessao = await SessionManager.registrar_nova_sessao(
         db=db,
+        redis=redis,
         usuario_id=usuario.id,
         ip_address=ip_cliente,
         user_agent=user_agent,
-        refresh_token_hash="hash_provisorio"
+        refresh_token_hash="pendente"
     )
 
-    # 4. Emite tokens
+    # 4. Emite tokens e persiste o hash SHA-256 do refresh token em sessoes_ativas
+    #    (hash verificado em /refresh; rotação anti-reuso)
     access_token = TokenService.criar_access_token(
         usuario_id=usuario.id,
         role=usuario.role,
@@ -118,6 +120,8 @@ async def login(
         usuario_id=usuario.id,
         session_id=nova_sessao.id
     )
+    nova_sessao.refresh_token_hash = hashlib.sha256(refresh_token.encode("utf-8")).hexdigest()
+    await db.commit()
 
     # 5. Injeta Refresh Token em cookie HTTP-Only seguro
     response.set_cookie(

@@ -42,6 +42,18 @@ async def override_get_db():
 app.dependency_overrides[get_db] = override_get_db
 
 
+@pytest_asyncio.fixture(autouse=True)
+async def reset_redis_pool():
+    """
+    Isolamento de event loops: o pool singleton do Redis é criado no loop do
+    primeiro teste e conexões seriam reutilizadas em loops distintos entre testes.
+    Após cada teste, o pool é descartado para que o próximo crie conexões frescas.
+    """
+    yield
+    from app.core.redis import close_redis
+    await close_redis()
+
+
 @pytest_asyncio.fixture
 async def async_client():
     """Cliente HTTP assíncrono para testar endpoints FastAPI."""

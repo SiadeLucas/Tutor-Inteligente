@@ -1,28 +1,15 @@
----
-title: Onboarding - Schemas e DTOs do Wizard
-type: module
-status: draft
-related:
-  - modules/onboarding/prototype/index.md
-last_updated: "2026-09-07"
-updated_by: antigravity
----
-
-# 1. Schemas e DTOs do Wizard (Pydantic v2 & TypeScript)
-
-Contratos tipados para cada etapa do **wizard de 3 etapas** (sem inicialização de CAT), validação condicional de menoridade civil e submissão atômica unificada. Especificação alinhada ao dicionário de dados (`knowledge/database/01-usuarios.md`) e à Etapa 4 do plano de implementação.
-
----
-
-## 1. Modelos Backend em Python (`backend/app/modules/onboarding/schemas.py`)
-
-```python
+"""
+Schemas Pydantic v2 do Onboarding (wizard de 3 etapas).
+Especificação canônica: docs-site/docs/modules/onboarding/prototype/schemas.md
+"""
 from __future__ import annotations
+
 import re
+from datetime import date
+from typing import Any, Literal, Optional
 from uuid import UUID
-from datetime import date, datetime
-from typing import Optional, Literal, Any
-from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
+
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 # ============================================================================
@@ -30,6 +17,7 @@ from pydantic import BaseModel, Field, EmailStr, field_validator, model_validato
 # ============================================================================
 
 class Etapa1Request(BaseModel):
+    """Dados de identificação civil do aluno (inclui gênero e foto opcional)."""
     nome_completo: str = Field(..., min_length=3, max_length=200, description="Nome completo do aluno")
     cpf: str = Field(..., description="CPF válido do aluno com ou sem pontuação")
     data_nascimento: date = Field(..., description="Data de nascimento para cálculo de idade")
@@ -70,10 +58,11 @@ class Etapa1Request(BaseModel):
 
 
 # ============================================================================
-# 2. Etapa 2: Contato, Endereço e Credenciais de Acesso
+# 2. Etapa 2: Contato, Credenciais e Responsável Legal
 # ============================================================================
 
 class DadosResponsavelSchema(BaseModel):
+    """Bloco condicional obrigatório para menores de 18 anos (RN-ONB-005)."""
     nome_completo: str = Field(..., min_length=3, description="Nome do responsável legal")
     cpf: str = Field(..., description="CPF do responsável legal")
     telefone: str = Field(..., min_length=10, max_length=15, description="Telefone/WhatsApp do responsável")
@@ -89,11 +78,17 @@ class DadosResponsavelSchema(BaseModel):
 
 
 class Etapa2Request(BaseModel):
-    email: EmailStr = Field(..., description="E-mail principal para login e comunicações (armazenado em minúsculas)")
+    """Contato e credenciais de acesso (telefone/WhatsApp obrigatório)."""
+    email: EmailStr = Field(..., description="E-mail principal para login (armazenado em minúsculas)")
     senha: str = Field(..., min_length=8, description="Senha com no mínimo 8 caracteres")
-    confirmacao_senha: str = Field(...)
+    confirmacao_senha: str = Field(..., description="Confirmação idêntica da senha")
     telefone: str = Field(..., min_length=10, max_length=15, description="Telefone/WhatsApp do aluno (obrigatório)")
     dados_responsavel: Optional[DadosResponsavelSchema] = None
+
+    @field_validator("email")
+    @classmethod
+    def normalizar_email(cls, v: str) -> str:
+        return v.strip().lower()
 
     @model_validator(mode="after")
     def verificar_senhas_iguais(self):
@@ -103,19 +98,20 @@ class Etapa2Request(BaseModel):
 
 
 # ============================================================================
-# 3. Etapa 3: Dados Acadêmicos e Escolaridade
+# 3. Etapa 3: Acadêmico e Endereço
 # ============================================================================
 
 class Etapa3Request(BaseModel):
+    """Endereço (auto-preenchido pelo ViaCEP) e dados escolares."""
     cep: str = Field(..., description="CEP com 8 dígitos numéricos")
     uf: str = Field(..., min_length=2, max_length=2, description="Unidade federativa (ex: SP)")
-    cidade: str = Field(..., description="Município de residência")
+    cidade: str = Field(..., min_length=2, description="Município de residência")
     bairro: Optional[str] = None
     logradouro: Optional[str] = Field(None, description="Auto-preenchido pelo ViaCEP, editável")
     numero: Optional[str] = Field(None, description="Número do endereço (preenchimento manual)")
     escola_tipo: Literal["publica", "privada", "outro"]
     nome_escola: Optional[str] = Field(None, description="Nome da instituição de ensino")
-    serie_ano: str = Field(..., description="Série cadastrada de forma dinâmica (ex: 1_ano, 2_ano, 3_ano, 9_ano, pre_vestibular)")
+    serie_ano: str = Field(..., min_length=1, description="Série dinâmica (ex: 1_ano, 2_ano, 3_ano, 9_ano, pre_vestibular)")
 
     @field_validator("cep")
     @classmethod
@@ -125,12 +121,18 @@ class Etapa3Request(BaseModel):
             raise ValueError("O CEP deve conter exatamente 8 dígitos numéricos.")
         return digitos
 
+    @field_validator("uf")
+    @classmethod
+    def normalizar_uf(cls, v: str) -> str:
+        return v.strip().upper()
+
 
 # ============================================================================
-# 4. Submissão Unificada
+# 4. Submissão Unificada (Atômica)
 # ============================================================================
 
 class FinalizarCadastroRequest(BaseModel):
+    """Consolidação atômica das 3 etapas do wizard (sem inicialização de CAT)."""
     etapa1: Etapa1Request
     etapa2: Etapa2Request
     etapa3: Etapa3Request
@@ -171,60 +173,21 @@ class FinalizarCadastroRequest(BaseModel):
     @model_validator(mode="after")
     def validar_responsavel_se_menor(self):
         if self.etapa1.eh_menor_idade and not self.etapa2.dados_responsavel:
-            raise ValueError("Estudantes menores de 18 anos exigem obrigatoriamente os dados do responsável legal na Etapa 2.")
+            raise ValueError(
+                "Estudantes menores de 18 anos exigem obrigatoriamente os dados do responsável legal na Etapa 2."
+            )
         return self
 
 
 class CadastroConcluidoResponse(BaseModel):
-    """Refresh token NÃO retorna no corpo: é injetado em cookie HTTP-Only (padrão da Etapa 3)."""
+    """
+    Resposta pública do cadastro concluído.
+    O refresh token NUNCA retorna no corpo: é injetado em cookie HTTP-Only (padrão da Etapa 3).
+    """
     usuario_id: UUID
     nome_completo: str
     access_token: str
     token_type: Literal["bearer"] = "bearer"
-    expires_in_seconds: int = 900
+    expires_in_seconds: int = Field(900, description="15 minutos (900 segundos)")
     sessao_id: UUID
     mensagem: str = "Cadastro realizado com sucesso! Redirecionando para o dashboard de matérias."
-```
-
----
-
-## 2. Tipos Equivalentes em TypeScript (`frontend/src/types/onboarding.ts`)
-
-> [!NOTE]
-> O campo `complemento` foi removido da especificação (não existe coluna correspondente em `usuarios`). O `nivel_ensino_id` e o `disciplina_id` saem do escopo do cadastro: o contexto de disciplina passa a ser relevante apenas no primeiro acesso à matéria (Etapa 7).
-
-```typescript
-export interface DadosResponsavel {
-  nome_completo: string;
-  cpf: string;
-  telefone: string;
-  email: string;
-}
-
-export interface OnboardingFormState {
-  // Etapa 1: Dados Pessoais
-  nome_completo: string;
-  cpf: string;
-  data_nascimento: string;
-  genero?: "masculino" | "feminino" | "outro" | "nao_informar";
-  foto_perfil?: string;
-
-  // Etapa 2: Contato e Credenciais
-  email: string;
-  senha: string;
-  confirmacao_senha: string;
-  telefone: string;
-  dados_responsavel?: DadosResponsavel;
-
-  // Etapa 3: Acadêmico e Endereço
-  cep: string;
-  uf: string;
-  cidade: string;
-  bairro?: string;
-  logradouro?: string;
-  numero?: string;
-  escola_tipo: "publica" | "privada" | "outro";
-  nome_escola?: string;
-  serie_ano: string; // Dinâmico (ex: "1_ano", "2_ano", "3_ano", "pre_vestibular")
-}
-```

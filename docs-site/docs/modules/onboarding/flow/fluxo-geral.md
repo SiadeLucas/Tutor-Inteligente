@@ -5,32 +5,34 @@ status: draft
 related:
   - modules/onboarding/flow/index.md
   - modules/onboarding/flow/wizard.md
-last_updated: "2026-08-26"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: buffy
 ---
 
 # 1. Fluxo Geral de Onboarding
 
 ### 1.1 Visão Macro do Processo
-O fluxo guia o aluno desde o primeiro acesso através de um wizard estruturado, garantindo a coleta de dados cadastrais e a calibragem do seu nível de aprendizado através do teste adaptativo.
+O fluxo guia o aluno desde o primeiro acesso através de um **wizard de 3 etapas**, garantindo a coleta de dados cadastrais. A calibragem do nível de aprendizado (teste adaptativo CAT) ocorre no primeiro ingresso em uma matéria, após a conclusão do cadastro.
 
 ```mermaid
 flowchart TD
-    A["Início: Acesso ao Cadastro"] --> B["1. Dados Pessoais"]
-    B --> C["2. Contato e Endereço"]
-    C --> D["3. Dados Acadêmicos"]
-    D --> E{"Menor de 18 anos?"}
-    E -->|Sim| F["3.1 Dados do Responsável"]
-    E -->|Não| G["4. Prova de Proficiência"]
-    F --> G
-    G --> H{"Decisão do Aluno"}
-    H -->|Fazer Prova| I["Execução do Teste CAT"]
-    H -->|Pular Prova| J["Classificação Padrão: Básico"]
-    I --> K["Exibição de Resultados"]
-    J --> L["Acesso ao Dashboard da Matéria"]
-    K --> L
-    L --> M["Onboarding Concluído ✅"]
+    A["Início: Acesso ao Cadastro"] --> B["1. Dados Pessoais (Nome, CPF, Nascimento, Gênero, Foto opcional)"]
+    B --> C["2. Contato e Credenciais (E-mail, Senha, Telefone)"]
+    C --> D{"Menor de 18 anos?"}
+    D -->|Sim| E["2.1 Dados do Responsável Legal"]
+    D -->|Não| F["3. Acadêmico e Endereço (CEP/ViaCEP, Rede, Série)"]
+    E --> F
+    F --> G["Finalização Atômica do Cadastro (usuário + sessão ativa)"]
+    G --> H["Dashboard de Matérias"]
+    H --> I{"Primeiro Acesso a uma Matéria?"}
+    I -->|Sim| J{"Decisão do Aluno"}
+    J -->|Fazer Prova| K["Execução do Teste CAT"]
+    J -->|Pular Prova| L["Classificação Padrão: Básico"]
+    K --> M["Exibição de Resultados (Radar)"]
+    L --> N["Acesso ao Dashboard da Matéria"]
+    M --> N
+    N --> O["Onboarding Concluído ✅"]
 ```
 
 ### 1.2 Transição entre Etapas e Persistência
-Cada etapa do formulário é validada e salva incrementalmente no backend. Se o aluno interromper o cadastro antes da conclusão, seu progresso nas etapas concluídas é preservado para retomada posterior.
+Cada etapa do formulário é validada no backend e o rascunho parcial é sincronizado com o Redis (TTL de 48 horas). Se o aluno interromper o cadastro antes da conclusão, seu progresso é preservado para retomada posterior.

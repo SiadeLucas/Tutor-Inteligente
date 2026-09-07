@@ -6,8 +6,8 @@ related:
   - modules/onboarding/business-rules/cadastro.md
   - modules/onboarding/business-rules/proficiencia.md
   - modules/onboarding/business-rules/escalabilidade.md
-last_updated: "2026-08-26"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: buffy
 ---
 
 <!-- ai-summary

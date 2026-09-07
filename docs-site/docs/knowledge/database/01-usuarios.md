@@ -5,8 +5,8 @@ status: complete
 related:
   - knowledge/database/index.md
   - modules/autenticacao/business-rules/regras-credenciais.md
-last_updated: "2026-09-03"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: antigravity
 ---
 
 # Tabela 01: `usuarios`
@@ -28,9 +28,13 @@ CREATE TABLE usuarios (
     idade_anos INT NOT NULL,                       -- Calculado no onboarding
     eh_menor_idade BOOLEAN NOT NULL DEFAULT FALSE, -- True se idade_anos < 18
     dados_responsavel JSONB,                       -- Obrigatório se eh_menor_idade = true
+    genero VARCHAR(20) NOT NULL DEFAULT 'nao_informar', -- 'masculino' | 'feminino' | 'outro' | 'nao_informar'
+    telefone VARCHAR(15) NOT NULL DEFAULT '',      -- Telefone/WhatsApp do aluno (obrigatório no onboarding)
     uf VARCHAR(2) NOT NULL,                        -- Estado da federação (ex: 'SP', 'RJ')
     cidade VARCHAR(100) NOT NULL,
     bairro VARCHAR(100),
+    logradouro VARCHAR(200),                       -- Auto-preenchido pelo ViaCEP
+    numero VARCHAR(20),                            -- Número do endereço
     cep VARCHAR(8) NOT NULL,                       -- 8 dígitos numéricos
     escola_tipo VARCHAR(50) NOT NULL,              -- 'publica' | 'privada' | 'outro'
     nome_escola VARCHAR(200),
@@ -60,13 +64,17 @@ CREATE INDEX idx_usuarios_uf_cidade ON usuarios(uf, cidade);
 | `email` | VARCHAR(255) | Não | E-mail corporativo ou pessoal | RN-ONB-003 / RN-AUT-003 (Unique) |
 | `senha_hash` | VARCHAR(255) | Não | Hash criptográfico da senha (Argon2id) | RN-AUT-005 (Mínimo 8 caracteres) |
 | `nome_completo` | VARCHAR(255) | Não | Nome civil completo do estudante ou professor | RN-ONB-001 |
-| `data_nascimento` | DATE | Não | Data de nascimento para cômputo da idade | RN-ONB-004 |
-| `idade_anos` | INT | Não | Idade do estudante em anos completos | Calculado via `data_nascimento` |
+| `data_nascimento` | DATE | Não | Data de nascimento no passado (ano $\ge$ 1900) | RN-ONB-004 (Idade entre 6 e 120 anos) |
+| `idade_anos` | INT | Não | Idade do estudante em anos completos (6 a 120) | Calculado via `data_nascimento` |
 | `eh_menor_idade` | BOOLEAN | Não | Flag indicativa de menoridade civil (< 18 anos) | RN-ONB-005 |
 | `dados_responsavel` | JSONB | Sim | `{"nome": "...", "cpf": "...", "telefone": "...", "email": "..."}` | Obrigatório se `eh_menor_idade = true` (RN-ONB-005) |
+| `genero` | VARCHAR(20) | Não | Gênero declarado pelo estudante | Valores: `masculino`, `feminino`, `outro`, `nao_informar`. Métricas demográficas do Painel do Professor (Etapa 10) |
+| `telefone` | VARCHAR(15) | Não | Telefone/WhatsApp do estudante (10 ou 11 dígitos) | Obrigatório no onboarding (comunicação e recuperação de conta). Default `''` apenas para compatibilidade de registros legados |
 | `uf` | VARCHAR(2) | Não | Unidade federativa do estudante | RN-ONB-006 |
 | `cidade` | VARCHAR(100) | Não | Município de residência | RN-ONB-006 |
 | `bairro` | VARCHAR(100) | Sim | Bairro de residência | RN-ONB-006 |
+| `logradouro` | VARCHAR(200) | Sim | Logradouro do endereço (auto-preenchido pelo ViaCEP) | Editável pelo aluno em caso de divergência |
+| `numero` | VARCHAR(20) | Sim | Número do endereço | Preenchimento manual |
 | `cep` | VARCHAR(8) | Não | Código de Endereçamento Postal (8 dígitos) | RN-ONB-006 |
 | `escola_tipo` | VARCHAR(50) | Não | Categoria da instituição (`publica` ou `privada`) | RN-ONB-008 |
 | `nome_escola` | VARCHAR(200) | Sim | Nome da escola ou instituição de ensino | RN-ONB-008 |
@@ -84,3 +92,10 @@ CREATE INDEX idx_usuarios_uf_cidade ON usuarios(uf, cidade);
 Para suportar milhares de alunos simultâneos sem saturação de I/O por updates contínuos de heartbeat (30s):
 - **Camada Volátil (Redis)**: O heartbeat periódico de 30 segundos e a checagem de 1 dispositivo concorrente são gerenciados em chaves Redis com TTL de 45 segundos (`session:{usuario_id}:active`).
 - **Camada de Persistência (PostgreSQL)**: A tabela `sessoes_ativas` registra a abertura, encerramento formal ou revogação forçada da sessão para auditoria de segurança.
+
+---
+
+## 4. Notas de Migração
+
+- Migração `452e8214a3fc` (001_auth_tables): criação das tabelas de autenticação.
+- Migração `f3a9c1d24b57` (002_onboarding_fields): adiciona `genero`, `telefone`, `logradouro` e `numero` a `usuarios`; cria `idx_usuarios_uf_cidade` e substitui o índice integral de `sessoes_ativas` pelo índice parcial `idx_sessoes_ativas_usuario WHERE revogado = FALSE`.

@@ -7,15 +7,15 @@ related:
   - modules/onboarding/flow/wizard.md
   - modules/onboarding/flow/proficiencia.md
   - modules/onboarding/flow/futuros.md
-last_updated: "2026-08-26"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: buffy
 ---
 
 <!-- ai-summary
 Visão geral dos fluxos do módulo Onboarding divididos em sub-domínios:
 1. Fluxo Geral (Visão Macro e Transição de Estados)
-2. Wizard de Cadastro (Dados Pessoais, Contato, Acadêmico e Menoridade)
-3. Avaliação de Proficiência (Iniciação, CAT Adaptativo, Resultados)
+2. Wizard de Cadastro (Dados Pessoais, Contato, Acadêmico/Endereço e Menoridade) — 3 etapas, sem CAT
+3. Avaliação de Proficiência (Pós-cadastro: CAT Adaptativo, Resultados e Cooldown)
 4. Fluxos Contínuos e Futuros (Novas Matérias e Cooldown)
 -->
 

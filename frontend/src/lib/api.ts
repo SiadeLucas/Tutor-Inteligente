@@ -176,3 +176,24 @@ export const api = {
   delete: <T = any>(endpoint: string, options?: RequestInit) =>
     request<T>(endpoint, { ...options, method: "DELETE" }),
 };
+
+export function extrairMensagemErro(err: any, fallback = "Ocorreu um erro na requisição."): string {
+  if (!err) return fallback;
+  const detail = err?.data?.detail ?? err?.detail;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item: any) => {
+        if (typeof item === "string") return item;
+        const campo = item.loc ? item.loc.filter((p: any) => p !== "body").join(".") : "";
+        const msg = item.msg || item.message || JSON.stringify(item);
+        return campo ? `${campo}: ${msg}` : msg;
+      })
+      .join("; ");
+  }
+  if (detail && typeof detail === "object") {
+    return detail.msg || detail.message || JSON.stringify(detail);
+  }
+  if (typeof err.message === "string") return err.message;
+  return fallback;
+}

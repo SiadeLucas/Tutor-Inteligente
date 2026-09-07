@@ -4,8 +4,8 @@ type: module
 status: draft
 related:
   - modules/onboarding/prototype/index.md
-last_updated: "2026-09-03"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: buffy
 ---
 
 # 4. Endpoints da API FastAPI
@@ -17,14 +17,20 @@ Implementação das rotas de validação passo a passo em tempo real, consulta d
 ## Código Fonte (`backend/app/modules/onboarding/router.py`)
 
 ```python
+import json
+from datetime import datetime
+
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 
+from app.core.config import settings
 from app.core.database import get_db
-from app.models.user import Usuario
+from app.core.redis import get_redis
+from app.core.security import TokenService
 from app.core.validators import CPFValidator
+from app.models.user import Usuario
 from app.modules.onboarding.schemas import (
     Etapa1Request,
     Etapa2Request,
@@ -33,6 +39,8 @@ from app.modules.onboarding.schemas import (
     CadastroConcluidoResponse
 )
 from app.modules.onboarding.onboarding_service import OnboardingService
+
+DRAFT_TTL_SEGUNDOS = 48 * 3600  # 48 horas
 
 router = APIRouter(prefix="/api/v1/onboarding", tags=["Onboarding & Cadastro"])
 
@@ -94,18 +102,14 @@ async def validar_etapa_2(
     return {"valido": True, "mensagem": "Contato e credenciais válidos."}
 
 
-# ============================================================================
-# 3. Validação da Etapa 3 (Dados Acadêmicos)
-# ============================================================================
-
 @router.post("/validar-etapa-3", status_code=status.HTTP_200_OK)
 async def validar_etapa_3(payload: Etapa3Request):
-    """Valida etapa acadêmica e formatação da série informada."""
-    return {"valido": True, "mensagem": "Dados escolares validados com sucesso."}
+    """Valida etapa acadêmica/endereço e formatação da série informada."""
+    return {"valido": True, "mensagem": "Dados escolares e endereço validados com sucesso."}
 
 
 # ============================================================================
-# 4. Persistência Progressiva de Rascunho
+# 4. Persistência Progressiva de Rascunho (Redis, TTL 48h)
 # ============================================================================
 
 @router.post("/salvar-rascunho", status_code=status.HTTP_200_OK)
@@ -114,10 +118,15 @@ async def salvar_rascunho(
     draft_session_id: str = Header(..., alias="X-Draft-Session-ID")
 ):
     """
-    Permite persistir dados parciais das etapas intermediárias na sessão
-    volátil (Redis com TTL de 48h) para retorno posterior do aluno.
+    Persiste dados parciais das etapas intermediárias na sessão volátil
+    (Redis com TTL de 48h) para retorno posterior do aluno.
     """
-    # Em produção: await redis_client.set(f"onboarding_draft:{draft_session_id}", json.dumps(payload), ex=172800)
+    redis = get_redis()
+    await redis.setex(
+        f"onboarding_draft:{draft_session_id}",
+        DRAFT_TTL_SEGUNDOS,
+        json.dumps(payload)
+    )
     return {"status": "rascunho_salvo", "draft_session_id": draft_session_id, "timestamp": datetime.utcnow().isoformat()}
 
 
@@ -129,15 +138,11 @@ async def obter_rascunho(
     Recupera os dados parciais preenchidos pelo estudante a partir do Redis
     para permitir que continue o preenchimento do wizard de onde parou.
     """
-    # Em produção: dados = await redis_client.get(f"onboarding_draft:{draft_session_id}")
+    redis = get_redis()
+    dados = await redis.get(f"onboarding_draft:{draft_session_id}")
     return {
         "draft_session_id": draft_session_id,
-        "etapa_atual": 2,
-        "dados_parciais": {
-            "nome_completo": "Estudante Exemplo",
-            "cpf": "12345678901",
-            "data_nascimento": "2008-05-15"
-        }
+        "dados_parciais": json.loads(dados) if dados else {}
     }
 
 
@@ -172,7 +177,7 @@ async def consultar_cep(cep: str):
 
 
 # ============================================================================
-# 3. Finalização Atômica do Cadastro
+# 5. Finalização Atômica do Cadastro
 # ============================================================================
 
 @router.post("/finalizar-cadastro", response_model=CadastroConcluidoResponse)
@@ -183,11 +188,11 @@ async def finalizar_cadastro(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Submissão atômica de todas as etapas do Wizard:
-    1. Grava o estudante na tabela usuarios.
-    2. Registra a primeira sessão autorizada.
-    3. Inicializa a sessão da Prova Adaptativa Diagnóstica (CAT).
-    4. Devolve tokens e redireciona direto para a avaliação.
+    Submissão atômica de todas as etapas do Wizard (3 etapas, sem CAT):
+    1. Grava o estudante na tabela usuarios (com menoridade calculada).
+    2. Registra a primeira sessão autorizada (SessionManager).
+    3. Devolve o access token e injeta o refresh token em cookie HTTP-Only.
+    A sessão da Prova CAT só é criada no primeiro acesso a uma matéria (Etapa 7).
     """
     ip_cliente = request.client.host if request.client else "127.0.0.1"
     user_agent = request.headers.get("user-agent", "Desconhecido")
@@ -199,5 +204,21 @@ async def finalizar_cadastro(
         user_agent=user_agent
     )
 
-    return resultado
+    # Injeta o refresh token em cookie HTTP-Only (mesmo padrão do módulo de autenticação)
+    eh_desenvolvimento = settings.ENVIRONMENT == "development"
+    response.set_cookie(
+        key="refresh_token",
+        value=resultado.refresh_token,
+        httponly=True,
+        secure=not eh_desenvolvimento,
+        samesite="lax" if eh_desenvolvimento else "strict",
+        max_age=7 * 24 * 3600
+    )
+
+    return CadastroConcluidoResponse(
+        usuario_id=resultado.usuario_id,
+        nome_completo=resultado.nome_completo,
+        access_token=resultado.access_token,
+        sessao_id=resultado.sessao_id
+    )
 ```

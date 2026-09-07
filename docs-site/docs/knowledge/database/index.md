@@ -5,8 +5,8 @@ status: complete
 related:
   - knowledge/data-architecture.md
   - systems/index.md
-last_updated: "2026-09-03"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: antigravity
 ---
 
 <!-- ai-summary
@@ -62,7 +62,7 @@ graph LR
 ## Catálogo de Páginas das Tabelas
 
 ### 1. Autenticação, Usuários e Sessões
-- [Tabela 01: `usuarios`](01-usuarios.md) — Cadastro central de alunos e professores, CPF, idade e menoridade.
+- [Tabela 01: `usuarios`](01-usuarios.md) — Cadastro central de alunos e professores, CPF, idade, menoridade, gênero, telefone e endereço.
 - [Tabela 02: `sessoes_ativas`](02-sessoes-ativas.md) — Controle de 1 dispositivo concorrente por aluno e heartbeat.
 - [Tabela 03: `tokens_recuperacao_senha`](03-tokens-recuperacao.md) — Links mágicos temporários (15 min) para redefinição.
 

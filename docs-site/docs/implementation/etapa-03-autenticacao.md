@@ -4,7 +4,7 @@ type: "implementation"
 status: "complete"
 related: ["etapa-02-infraestrutura.md", "etapa-04-onboarding.md"]
 last_updated: "2026-09-07"
----
+updated_by: buffy---
 <!-- ai-summary: Implementação detalhada dos fluxos de autenticação, JWT, sessões únicas com Redis e fluxos de recuperação de senha do Tutor Inteligente. -->
 
 # Etapa 3: Autenticação e Sessões
@@ -13,6 +13,9 @@ last_updated: "2026-09-07"
 > **Duração Estimada:** 1-2 semanas | **Status:** `Concluída`
 > **Pré-requisito:** Etapa 1 concluída (Ambiente Local Docker operacional com PostgreSQL e Redis)
 > **Entregável:** Login funcional no navegador com sessão única entre abas e proteção de rotas. [x] Concluído!
+
+> [!IMPORTANT]
+> **Sincronização (2026-09-07):** os trechos de código abaixo foram atualizados para refletir a implementação real (modelo híbrido PostgreSQL + Redis, APIs Pydantic v2 e estrutura modular `app/modules/auth/`). O dicionário de dados canônico está em `knowledge/database/02-sessoes-ativas.md` e `03-tokens-recuperacao.md`.
 
 Nesta etapa, implementaremos o núcleo de segurança da aplicação. O Tutor Inteligente exige uma política estrita de "uma sessão por usuário" (para evitar compartilhamento de contas), que gerenciaremos combinando JWT (para autorização stateless) e Redis (para rastreamento de estado e heartbeats).
 
@@ -37,13 +40,16 @@ Edite o arquivo `alembic/env.py` para usar o engine assíncrono e importar seus 
 Crie o arquivo `backend/app/models/user.py`:
 
 ```python
-from sqlalchemy import Column, String, Integer, Boolean, Date, JSON, ForeignKey, DateTime
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-from app.db.base_class import Base
 import uuid
+from sqlalchemy import Column, String, Integer, Boolean, Date, ForeignKey, DateTime, Text
+from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
+from app.core.database import Base
+
 
 class Usuario(Base):
+    """Modelo de usuário (Estudante ou Professor)."""
     __tablename__ = "usuarios"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -54,56 +60,68 @@ class Usuario(Base):
     data_nascimento = Column(Date, nullable=False)
     idade_anos = Column(Integer, nullable=False)
     eh_menor_idade = Column(Boolean, nullable=False, default=False)
-    dados_responsavel = Column(JSON, nullable=True) # JSONB no Postgres
+    dados_responsavel = Column(JSONB, nullable=True)
+    genero = Column(String(20), nullable=False, default="nao_informar", server_default="nao_informar")
+    telefone = Column(String(15), nullable=False, default="", server_default="")
     uf = Column(String(2), nullable=False)
     cidade = Column(String(100), nullable=False)
     bairro = Column(String(100), nullable=True)
+    logradouro = Column(String(200), nullable=True)
+    numero = Column(String(20), nullable=True)
     cep = Column(String(8), nullable=False)
     escola_tipo = Column(String(50), nullable=False)
     nome_escola = Column(String(200), nullable=True)
     serie_ano = Column(String(50), nullable=False)
-    role = Column(String(20), nullable=False, default='student')
-    avatar_url = Column(String, nullable=True)
+    role = Column(String(20), nullable=False, default="student", index=True)
+    avatar_url = Column(Text, nullable=True)
     ativo = Column(Boolean, nullable=False, default=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     atualizado_em = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
+    sessoes = relationship("SessaoAtiva", back_populates="usuario", cascade="all, delete-orphan")
+    tokens_recuperacao = relationship("TokenRecuperacaoSenha", back_populates="usuario", cascade="all, delete-orphan")
+
+
 class SessaoAtiva(Base):
+    """Modelo para controle de sessão única por usuário (híbrido PG + Redis)."""
     __tablename__ = "sessoes_ativas"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     usuario_id = Column(UUID(as_uuid=True), ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False, index=True)
-    token_hash = Column(String(255), nullable=False, index=True)
-    ip_address = Column(String(50), nullable=True)
-    user_agent = Column(String, nullable=True)
-    device_fingerprint = Column(String(255), nullable=True)
-    expira_em = Column(DateTime(timezone=True), nullable=False)
-    ultimo_heartbeat = Column(DateTime(timezone=True), nullable=False)
+    session_token = Column(String(255), unique=True, nullable=False, index=True)
+    refresh_token_hash = Column(String(255), nullable=False)  # SHA-256 do refresh token em cookie
+    ip_address = Column(String(45), nullable=False)
+    user_agent = Column(Text, nullable=False)
+    ultimo_heartbeat = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    revogado = Column(Boolean, nullable=False, default=False, index=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
+    usuario = relationship("Usuario", back_populates="sessoes")
+
+
 class TokenRecuperacaoSenha(Base):
+    """Modelo para tokens de redefinição de senha com link mágico."""
     __tablename__ = "tokens_recuperacao_senha"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    usuario_id = Column(UUID(as_uuid=True), ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
-    token_hash_sha256 = Column(String(64), nullable=False, index=True)
+    usuario_id = Column(UUID(as_uuid=True), ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False, index=True)
+    token_hash = Column(String(255), unique=True, nullable=False, index=True)  # SHA-256 do token da URL
     expira_em = Column(DateTime(timezone=True), nullable=False)
-    consumido = Column(Boolean, default=False, nullable=False)
+    utilizado = Column(Boolean, nullable=False, default=False)
     criado_em = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    usuario = relationship("Usuario", back_populates="tokens_recuperacao")
 ```
 
-Gere e aplique a migração:
-
-```powershell
-alembic revision --autogenerate -m "001_auth_tables"
-alembic upgrade head
-```
+Migrações aplicadas:
+- `452e8214a3fc` — 001_auth_tables (criação das 3 tabelas).
+- `f3a9c1d24b57` — 002_onboarding_fields (colunas de onboarding em `usuarios` + índices `idx_usuarios_uf_cidade` e parcial `idx_sessoes_ativas_usuario WHERE revogado = FALSE`).
 
 ---
 
 ## 3.2 Backend: Módulo de Segurança (`app/core/security.py`)
 
-Configuraremos o Argon2id para hash de senhas, por ser mais resistente a ataques de GPU do que bcrypt, e funções para gerenciar JWT via HS256.
+Configuraremos o Argon2id para hash de senhas, por ser mais resistente a ataques de GPU do que bcrypt, e funções para gerenciar JWT via HS256. A implementação real expõe os utilitários `hash_senha()`, `verificar_senha()`, `safe_compare()` e a classe `TokenService` (com chaves separadas para access e refresh tokens, `session_id` no payload e rotação em `/refresh`).
 
 > [!WARNING]
 > Nunca compare tokens ou senhas usando `==` diretamente. Use `secrets.compare_digest` para evitar ataques de temporização (Timing Attacks).
@@ -148,10 +166,17 @@ def safe_compare(val1: str, val2: str) -> bool:
 
 ## 3.3 Backend: Session Manager (`app/modules/auth/session_manager.py`)
 
-Para aplicar a regra de uma única sessão ativa e rate limit de login, usamos Redis.
+Para aplicar a regra de uma única sessão ativa e rate limit de login, usamos uma arquitetura **híbrida**: PostgreSQL como registro auditável de abertura/revogação de sessões e Redis para presença em tempo real (heartbeat) e contadores de rate limit.
 
 > [!TIP]
 > O heartbeat ocorre a cada 30s. O TTL (Time to Live) no Redis deve ser ligeiramente maior (ex: 45s) para tolerar pequenas latências de rede antes de considerar a sessão offline.
+
+A implementação real expõe (métodos de classe estáticos que recebem `db`/`redis` como parâmetros):
+- `obter_tentativas_login` / `incrementar_tentativa_login` / `limpar_tentativas_login` — chave `rate_limit:login:{identificador}:{ip}` (janela de 15 min);
+- `registrar_nova_sessao` — revoga sessões anteriores no PG, cria a nova com `session_token`/`refresh_token_hash` e define `session:{usuario_id}:active` + `heartbeat:{usuario_id}:{session_id}` (TTL 45s) no Redis;
+- `validar_sessao_ativa` — verifica no PG se a sessão existe e não está revogada (dispara 401 `CONCURRENT_SESSION_REVOKED`);
+- `atualizar_heartbeat` — renova o TTL no Redis e o `ultimo_heartbeat` no PG;
+- `revogar_sessao` / `revogar_todas_sessoes_usuario` — logout local e remoto (RN-AUT-015).
 
 ```python
 import redis.asyncio as redis
@@ -213,17 +238,17 @@ class SessionManager:
 
 ## 3.4 Backend: Endpoints de Autenticação
 
-Crie o arquivo `app/api/v1/endpoints/auth.py`.
+Implementados em `backend/app/modules/auth/router.py` (prefixo `/api/v1/auth`), com schemas em `backend/app/modules/auth/schemas.py`. As dependências reutilizáveis de proteção de rotas — `extrair_bearer_token`, `get_current_session` e `get_current_user` — estão em `backend/app/core/deps.py`.
 
 ```python
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.session import get_db
-from app.core import security
+from app.core.database import get_db
+from app.core.deps import get_current_session
 from app.modules.auth.session_manager import SessionManager
-# Imports de schemas e dependências omitidos por brevidade
+# Imports de schemas e utilitários omitidos por brevidade
 
-router = APIRouter()
+router = APIRouter(prefix="/api/v1/auth", tags=["Autenticação & Sessões"])
 
 @router.post("/login")
 async def login(request: Request, response: Response, creds: LoginSchema, db: AsyncSession = Depends(get_db)):
@@ -268,10 +293,17 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
     pass
 
 @router.get("/heartbeat")
-async def heartbeat(current_user=Depends(get_current_user), session_id: str = Depends(get_current_session_id), request: Request = None):
-    session_mgr = SessionManager(request.app.state.redis)
-    await session_mgr.registrar_heartbeat(str(current_user.id), session_id)
-    return {"status": "ok"}
+async def heartbeat(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current: Tuple[Usuario, SessaoAtiva] = Depends(get_current_session)
+):
+    """Pulso de presença: renova o heartbeat (Redis TTL 45s) e o ultimo_heartbeat no PG.
+    Retorna 401 CONCURRENT_SESSION_REVOKED se a sessão foi revogada por login concorrente."""
+    usuario, sessao = current
+    redis = get_redis()
+    await SessionManager.atualizar_heartbeat(db, redis, sessao.id, usuario.id)
+    return HeartbeatResponse(sessao_ativa=True, session_id=sessao.id, servidor_timestamp=datetime.utcnow())
 
 @router.post("/solicitar-link-magico")
 async def solicitar_link_magico(data: MagicLinkSchema, db: AsyncSession = Depends(get_db)):
@@ -289,7 +321,7 @@ async def solicitar_link_magico(data: MagicLinkSchema, db: AsyncSession = Depend
 ```
 
 > [!IMPORTANT]
-> A extração do Bearer header no `get_current_user` deve verificar explicitamente `len(partes) == 2` e `partes[0].lower() == 'bearer'` para evitar index out of bounds.
+> A extração do Bearer header em `app/core/deps.py` (`extrair_bearer_token`) verifica explicitamente `len(partes) == 2` e `partes[0].lower() == 'bearer'` para evitar index out of bounds. O `/refresh` valida ainda o hash SHA-256 do cookie contra `sessoes_ativas.refresh_token_hash`, rejeitando cookies já rotacionados (proteção anti-reuso).
 
 ---
 
@@ -331,7 +363,7 @@ Crie um componente que ouve o evento `session_conflict` e exibe um modal dizendo
 
 ## 3.6 Testes Automatizados
 
-Utilizando `pytest`, `pytest-asyncio` e `httpx`:
+Implementados em `backend/tests/test_auth.py` (com fixtures em `backend/tests/conftest.py`), utilizando `pytest`, `pytest-asyncio` e `httpx`. Suíte atual: 11 testes cobrindo login híbrido, rate limiting, sessão única concorrente, rotação com verificação de hash (anti-reuso), logout local/remoto e o ciclo completo de link mágico.
 
 ```python
 import pytest

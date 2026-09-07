@@ -5,8 +5,8 @@ status: draft
 related:
   - modules/onboarding/business-rules/index.md
   - modules/onboarding/business-rules/proficiencia.md
-last_updated: "2026-09-02"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: buffy
 ---
 
 # 3. Escalabilidade e Arquitetura de Domínio

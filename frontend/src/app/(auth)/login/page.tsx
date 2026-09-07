@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, LogIn, Lock, User, AlertCircle, ShieldAlert, BookOpen } from "lucide-react";
-import { api, setAccessToken } from "@/lib/api";
+import { api, extrairMensagemErro, setAccessToken } from "@/lib/api";
 import { LoginResponse } from "@/types/auth";
 
 function LoginForm() {
@@ -67,7 +67,7 @@ function LoginForm() {
         router.push("/materias");
       }
     } catch (err: any) {
-      setErro(err.data?.detail || "Falha ao realizar login. Verifique suas credenciais.");
+      setErro(extrairMensagemErro(err, "Falha ao realizar login. Verifique suas credenciais."));
     } finally {
       setCarregando(false);
     }
@@ -169,6 +169,18 @@ function LoginForm() {
           </button>
         </div>
       </form>
+
+      <div className="mt-6 pt-5 border-t border-slate-100 dark:border-[#3d2f1f] text-center">
+        <p className="text-xs text-slate-500 dark:text-[#A89F91]">
+          Ainda não tem uma conta?{" "}
+          <Link
+            href="/cadastro"
+            className="font-semibold text-[#E65100] dark:text-[#FFB74D] hover:underline"
+          >
+            Cadastre-se gratuitamente
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

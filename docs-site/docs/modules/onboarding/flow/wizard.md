@@ -5,14 +5,14 @@ status: draft
 related:
   - modules/onboarding/flow/index.md
   - modules/onboarding/flow/fluxo-geral.md
-last_updated: "2026-08-26"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: buffy
 ---
 
 # 2. Fluxo do Wizard de Cadastro
 
 ### 2.1 Etapa 1: Dados Pessoais
-Nesta etapa, coletam-se os dados de identificação civil do aluno. A data de nascimento alimenta a lógica de checagem de maioridade para as etapas seguintes.
+Nesta etapa, coletam-se os dados de identificação civil do aluno (incluindo o gênero, usado nas métricas demográficas do Painel do Professor). A data de nascimento alimenta a lógica de checagem de maioridade para as etapas seguintes.
 
 ```mermaid
 flowchart TD
@@ -31,20 +31,14 @@ flowchart TD
 ---
 
 ### 2.2 Etapa 2: Contato, Credenciais e Responsável Legal
-Coleta as informações de comunicação, segurança de acesso (e-mail, senha e confirmação), localização geográfica por CEP e, condicionalmente para estudantes menores de 18 anos, os dados obrigatórios do responsável civil.
+Coleta as informações de comunicação (telefone/WhatsApp obrigatório), segurança de acesso (e-mail, senha e confirmação) e, condicionalmente para estudantes menores de 18 anos, os dados obrigatórios do responsável civil.
 
 ```mermaid
 flowchart TD
     A["Início: Etapa 2"] --> B["Preenchimento: E-mail, Senha e Confirmação"]
-    B --> C["Preenchimento: Telefone / WhatsApp"]
-    C --> D["Preenchimento do CEP"]
-    D --> E["Consulta Automática à API ViaCEP"]
-    E --> F{"CEP Encontrado?"}
-    F -->|Sim| G["Auto-preenchimento: UF, Cidade, Bairro e Logradouro"]
-    F -->|Não| H["Habilita preenchimento manual dos campos de endereço"]
-    G --> I{"Estudante menor de 18 anos? (Idade da Etapa 1)"}
-    H --> I
-    I -->|Sim| J["Exibição Obrigatória dos Campos do Responsável: \n Nome, CPF, Telefone e E-mail"]
+    B --> C["Preenchimento: Telefone / WhatsApp (obrigatório)"]
+    C --> I{"Estudante menor de 18 anos? (Idade da Etapa 1)"}
+    I -->|Sim| J["Exibição Obrigatória dos Campos do Responsável: \n Nome, CPF, Telefone e E-mail (opcional)"]
     I -->|Não| K["Prossegue diretamente para validação"]
     J --> L["Validação Matemática do CPF do Responsável"]
     L --> M["Validação de Unicidade de E-mail e Força da Senha (RN-AUT-005)"]
@@ -55,20 +49,31 @@ flowchart TD
     P --> B
 ```
 
+> [!NOTE]
+> O endereço (CEP com auto-preenchimento via ViaCEP) foi consolidado na **Etapa 3**, junto dos dados acadêmicos — conforme o escopo canônico da Etapa 4 do plano de implementação.
+
 ---
 
-### 2.3 Etapa 3: Dados Acadêmicos e Escolaridade
-Coleta os dados escolares do estudante com validação dinâmica da série/ano conforme o nível de ensino da matéria selecionada.
+### 2.3 Etapa 3: Acadêmico e Endereço
+Coleta os dados escolares do estudante (com validação dinâmica da série/ano) e o endereço completo via CEP com auto-preenchimento pela API ViaCEP.
 
 ```mermaid
 flowchart TD
-    A["Início: Etapa 3"] --> B["Seleção da Rede de Ensino (Pública / Privada)"]
-    B --> C["Preenchimento do Nome da Instituição de Ensino"]
-    C --> D["Seleção Dinâmica da Série / Ano"]
-    D --> E["Submissão da Validação da Etapa 3"]
-    E --> F{"Formulário Válido?"}
-    F -->|Sim| G["Finalização Atômica do Cadastro → Disparo da Prova CAT (Etapa 4)"]
-    F -->|Não| H["Destaque dos Campos Incorretos"]
-    H --> B
+    A["Início: Etapa 3"] --> B["Preenchimento do CEP"]
+    B --> C["Consulta Automática à API ViaCEP (timeout 4s)"]
+    C --> D{"CEP Encontrado?"}
+    D -->|Sim| E["Auto-preenchimento: UF, Cidade, Bairro e Logradouro"]
+    D -->|Não| F["Habilita preenchimento manual dos campos de endereço"]
+    E --> G["Preenchimento do Número e Seleção da Rede de Ensino (Pública / Privada)"]
+    F --> G
+    G --> H["Preenchimento do Nome da Instituição + Seleção Dinâmica da Série / Ano"]
+    H --> I["Submissão da Validação da Etapa 3"]
+    I --> J{"Formulário Válido?"}
+    J -->|Sim| K["Finalização Atômica do Cadastro → Sessão criada → Dashboard de Matérias"]
+    J -->|Não| L["Destaque dos Campos Incorretos"]
+    L --> B
 ```
+
+> [!IMPORTANT]
+> A prova de proficiência (CAT) **não é disparada no cadastro**. A sessão CAT é criada apenas quando o aluno entra em uma matéria pela primeira vez (motor CAT implementado na Etapa 7 do plano de implementação).
 

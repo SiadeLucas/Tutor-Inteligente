@@ -5,8 +5,8 @@ status: draft
 related:
   - modules/onboarding/business-rules/index.md
   - modules/onboarding/business-rules/escalabilidade.md
-last_updated: "2026-08-26"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: buffy
 ---
 
 # 2. Prova de Proficiência Adaptativa
@@ -15,7 +15,7 @@ updated_by: claude
 
 #### RN-CAT-001: Gatilho de Ativação por Matéria
 - A prova diagnóstica é disparada na primeira vez em que o aluno acessa qualquer matéria curricular.
-- No onboarding inicial, como o foco de partida é Matemática do 2º Grau, a prova de Matemática é apresentada na Etapa 4.
+- O wizard de cadastro tem **3 etapas e não inicializa sessão CAT**: imediatamente após a finalização do cadastro, o aluno é direcionado ao dashboard de matérias e, ao entrar em Matemática pela primeira vez, a prova é apresentada.
 
 #### RN-CAT-002: Opção de Pular e Classificação Padrão
 - O aluno tem autonomia para pular a prova de proficiência caso deseje iniciar diretamente.

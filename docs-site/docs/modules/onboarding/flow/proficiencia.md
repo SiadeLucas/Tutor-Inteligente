@@ -5,18 +5,21 @@ status: draft
 related:
   - modules/onboarding/flow/index.md
   - modules/onboarding/flow/wizard.md
-last_updated: "2026-08-26"
-updated_by: claude
+last_updated: "2026-09-07"
+updated_by: buffy
 ---
 
-# 3. Fluxo da Avaliação de Proficiência
+# 3. Fluxo da Avaliação de Proficiência (Pós-Cadastro)
 
-### 3.1 Etapa 4: Iniciação e Decisão de Execução
+> [!NOTE]
+> A prova de proficiência **não integra o wizard de cadastro (3 etapas)**. Ela é disparada **ao entrar numa matéria pela primeira vez** — imediatamente após o cadastro (com apenas Matemática disponível) ou ao ingressar em novas matérias no futuro. A criação da sessão CAT ocorre neste momento (motor implementado na Etapa 7).
+
+### 3.1 Iniciação e Decisão de Execução
 Apresenta o objetivo pedagógico do teste e permite que o aluno escolha entre fazer o diagnóstico adaptativo imediato ou pular para o nível introdutório.
 
 ```mermaid
 flowchart TD
-    A["Abertura da Etapa 4"] --> B["Apresentação: Benefícios do Diagnóstico Personalizado"]
+    A["Primeiro Acesso a uma Matéria"] --> B["Apresentação: Benefícios do Diagnóstico Personalizado"]
     B --> C{"Opção Escolhida pelo Aluno"}
     C -->|"Fazer Prova Agora"| D["Carregamento do Motor de Questões CAT"]
     C -->|"Pular Diagnóstico"| E["Atribuição do Nível 'Básico' em todas as Áreas"]
