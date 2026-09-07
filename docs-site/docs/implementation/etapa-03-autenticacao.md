@@ -11,7 +11,7 @@ last_updated: "2026-09-06"
 
 > [!NOTE]
 > **Duração Estimada:** 1-2 semanas
-> **Pré-requisito:** Etapa 2 concluída (Infraestrutura AWS rodando)
+> **Pré-requisito:** Etapa 1 concluída (Ambiente Local Docker operacional com PostgreSQL e Redis)
 > **Entregável:** Login funcional no navegador com sessão única entre abas e proteção de rotas.
 
 Nesta etapa, implementaremos o núcleo de segurança da aplicação. O Tutor Inteligente exige uma política estrita de "uma sessão por usuário" (para evitar compartilhamento de contas), que gerenciaremos combinando JWT (para autorização stateless) e Redis (para rastreamento de estado e heartbeats).

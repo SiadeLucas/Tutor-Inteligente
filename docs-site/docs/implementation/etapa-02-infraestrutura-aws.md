@@ -1,17 +1,21 @@
 ---
 title: "Etapa 2: Infraestrutura AWS"
 type: "tutorial"
-status: "in-progress"
-related: ["etapa-01-configuracao-inicial.md"]
+status: "postponed"
+related: ["etapa-01-repositorio.md", "etapa-03-autenticacao.md"]
 last_updated: "2026-09-06"
 ---
-<!-- ai-summary: Tutorial detalhado sobre a configuração da infraestrutura AWS para o Tutor Inteligente, incluindo EC2, RDS, S3, CloudFront, Route 53 e SES. -->
+<!-- ai-summary: Tutorial sobre a configuração da infraestrutura AWS para o Tutor Inteligente. Etapa postergada para consolidação no Deploy Final (Etapa 10). -->
 
-# Etapa 2: Infraestrutura AWS
+# Etapa 2: Infraestrutura AWS (Postergada)
 
-**Duração:** 3-5 dias
-**Pré-requisito:** Etapa 1 concluída (Docker Compose rodando localmente)
-**Entregável:** Aplicação acessível via HTTPS com certificado SSL válido
+> [!NOTE]
+> **Status: Etapa Postergada (Pulada no Desenvolvimento Ativo)**  
+> O provisionamento na nuvem AWS foi postergado para ser executado junto à **Etapa 10 (Deploy Final)**. Como a Etapa 1 entregou todo o ambiente operacional em Docker local (PostgreSQL 16 com pgvector, Redis 7, FastAPI e Next.js 14), o desenvolvimento dos módulos funcionais (Etapas 3 a 9) prossegue diretamente em ambiente local, eliminando dependência de cartão de crédito ou custos prematuros de nuvem.
+
+**Duração estimada original:** 3-5 dias  
+**Pré-requisito:** Etapa 1 concluída (Docker Compose rodando localmente)  
+**Entregável futuro:** Aplicação acessível via HTTPS com certificado SSL válido em produção  
 
 Este guia é um passo a passo extremamente detalhado para provisionar a infraestrutura em nuvem na Amazon Web Services (AWS) para o **Tutor Inteligente**. Ele foi desenhado para quem nunca utilizou a AWS, com explicações sobre cada configuração exigida.
 

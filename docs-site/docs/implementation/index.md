@@ -54,19 +54,22 @@ Roteiro completo e sequencial para a construção da plataforma **Tutor Intelige
 ```mermaid
 graph LR
     E1["✅ Etapa 1\nRepositório\ne Ambiente Local"]
-    E2["☁️ Etapa 2\nInfraestrutura\nAWS"]
-    E3["🔐 Etapa 3\nAutenticação\ne Sessões"]
+    E2["⏸️ Etapa 2\nInfraestrutura AWS\n(Postergada / Nuvem)"]
+    E3["🎯 Etapa 3\nAutenticação\ne Sessões"]
     E4["📋 Etapa 4\nOnboarding\ne Cadastro"]
     E5["📚 Etapa 5\nConteúdo\nDidático"]
     E6["🤖 Etapa 6\nMotor de IA\ne RAG"]
     E7["✏️ Etapa 7\nExercícios\ne Motor CAT"]
     E8["📊 Etapa 8\nProgresso\ne Analytics"]
     E9["💳 Etapa 9\nPagamento\ne Checkout"]
-    E10["👨‍🏫 Etapa 10\nPainel Professor\ne Deploy Final"]
+    E10["👨‍🏫 Etapa 10\nDeploy em Nuvem\n& Painel Professor"]
 
-    E1 --> E2 --> E3 --> E4 --> E5 --> E6 --> E7 --> E8 --> E9 --> E10
+    E1 --> E3 --> E4 --> E5 --> E6 --> E7 --> E8 --> E9 --> E10
+    E2 -.->|Consolidada no Deploy| E10
 
     style E1 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
+    style E2 fill:#334155,stroke:#64748b,stroke-dasharray: 5 5,color:#94a3b8
+    style E3 fill:#1d4ed8,stroke:#3b82f6,stroke-width:2px,color:#fff
 ```
 
 ---
@@ -82,12 +85,13 @@ Criação do repositório GitHub, estrutura de pastas do Monorepo, migração do
 
 ---
 
-### [Etapa 2: Infraestrutura AWS](etapa-02-infraestrutura-aws.md)
-**Duração estimada: 3-5 dias**
+### [Etapa 2: Infraestrutura AWS](etapa-02-infraestrutura-aws.md) — :pause_button: **Postergada / Pulada**
+**Duração estimada original: 3-5 dias** | **Status:** `Postergada para a Etapa 10 (Deploy Final)`
 
-Tutorial passo a passo de criação da conta AWS, provisionamento da instância EC2, RDS PostgreSQL, bucket S3, distribuição CloudFront e configuração do domínio com Route 53. Inclui instalação de Docker na EC2 e primeiro deploy remoto.
+> [!NOTE]
+> **Etapa Pulada no Ciclo de Desenvolvimento:** Para evitar custos desnecessários e dependência de cartão de crédito no início do projeto, o provisionamento de nuvem foi postergado. Todo o desenvolvimento e validação dos módulos (Etapas 3 a 9) ocorrerá de forma 100% autônoma no ambiente Docker local configurado na Etapa 1 (PostgreSQL 16 com pgvector, Redis 7, FastAPI e Next.js 14). O provisionamento em nuvem será realizado de forma consolidada no final, durante a Etapa 10.
 
-**Entregável:** Aplicação acessível via `https://seudominio.com.br` com certificado SSL válido.
+**Entregável futuro:** Aplicação acessível via `https://seudominio.com.br` com certificado SSL válido.
 
 ---
 
@@ -167,22 +171,23 @@ Dashboard de Analytics demográfico com query agregada (zero N+1), dossiê de al
 
 ```mermaid
 graph TD
-    E1["Etapa 1: Repositório"] --> E2["Etapa 2: AWS"]
-    E2 --> E3["Etapa 3: Autenticação"]
+    E1["Etapa 1: Repositório Local"] --> E3["Etapa 3: Autenticação"]
+    E1 -.->|Postergada| E2["Etapa 2: AWS"]
     E3 --> E4["Etapa 4: Onboarding"]
     E3 --> E5["Etapa 5: Conteúdo"]
     E5 --> E6["Etapa 6: IA e RAG"]
     E5 --> E7["Etapa 7: Exercícios"]
     E7 --> E8["Etapa 8: Progresso"]
     E3 --> E9["Etapa 9: Pagamento"]
-    E3 --> E10["Etapa 10: Professor"]
+    E3 --> E10["Etapa 10: Deploy Final & Professor"]
     E8 --> E10
     E9 --> E10
+    E2 -.-> E10
 
-    style E1 fill:#4CAF50,color:#fff
-    style E2 fill:#FF9800,color:#fff
-    style E3 fill:#2196F3,color:#fff
-    style E10 fill:#9C27B0,color:#fff
+    style E1 fill:#15803d,color:#fff
+    style E2 fill:#475569,stroke:#64748b,stroke-dasharray: 5 5,color:#cbd5e1
+    style E3 fill:#1d4ed8,color:#fff
+    style E10 fill:#7e22ce,color:#fff
 ```
 
 > [!NOTE]
