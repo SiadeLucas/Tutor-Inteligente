@@ -101,6 +101,7 @@ export default function EsqueciSenhaPage() {
                   <input
                     type="text"
                     required
+                    autoComplete="email"
                     value={identificador}
                     onChange={(e) => setIdentificador(e.target.value)}
                     placeholder="exemplo@email.com ou 000.000.000-00"

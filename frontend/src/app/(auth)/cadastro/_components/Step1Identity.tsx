@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, ArrowRight, User } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, User } from "lucide-react";
 
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { api, extrairMensagemErro } from "@/lib/api";
-import { apenasDigitos, mascaraCPF } from "@/lib/formatters";
+import { apenasDigitos, mascaraCPF, validarCPF } from "@/lib/formatters";
 import { Genero, ValidacaoEtapaResponse } from "@/types/onboarding";
 
 const inputCls =
@@ -15,6 +15,7 @@ export default function Step1Identity({ onNext }: { onNext: () => void }) {
   const { form, setCampo, calcularIdadeAluno, salvandoRascunho } = useOnboarding();
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const [cpfInvalido, setCpfInvalido] = useState(false);
 
   const idade = calcularIdadeAluno();
 
@@ -107,10 +108,33 @@ export default function Step1Identity({ onNext }: { onNext: () => void }) {
           type="text"
           inputMode="numeric"
           value={form.cpf}
-          onChange={(e) => setCampo("cpf", mascaraCPF(e.target.value))}
+          onChange={(e) => {
+            setCampo("cpf", mascaraCPF(e.target.value));
+            if (cpfInvalido) setCpfInvalido(false);
+          }}
+          onBlur={() => {
+            const digitos = apenasDigitos(form.cpf);
+            setCpfInvalido(digitos.length === 11 && !validarCPF(form.cpf));
+          }}
           placeholder="000.000.000-00"
-          className="w-full px-3.5 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
+          className={`w-full px-3.5 py-2.5 bg-white dark:bg-[#1a1408] border rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 transition-all ${
+            cpfInvalido
+              ? "border-rose-400 focus:ring-rose-400/20 focus:border-rose-500"
+              : "border-slate-300 dark:border-[#3d2f1f] focus:ring-[#F57C00]/20 focus:border-[#F57C00]"
+          }`}
         />
+        {cpfInvalido && (
+          <p className="mt-1 text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3 shrink-0" />
+            Dígitos verificadores do CPF inválidos. Confira os números digitados.
+          </p>
+        )}
+        {!cpfInvalido && apenasDigitos(form.cpf).length === 11 && validarCPF(form.cpf) && (
+          <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3 shrink-0" />
+            CPF válido.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

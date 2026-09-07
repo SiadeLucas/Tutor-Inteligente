@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Eye, EyeOff, LogIn, Lock, User, AlertCircle, ShieldAlert, BookOpen } from "lucide-react";
+import { Eye, EyeOff, LogIn, Lock, User, AlertCircle, ShieldAlert, BookOpen, ArrowBigUpDash } from "lucide-react";
 import { api, extrairMensagemErro, setAccessToken } from "@/lib/api";
 import { LoginResponse } from "@/types/auth";
 
@@ -14,6 +14,7 @@ function LoginForm() {
   const [identificador, setIdentificador] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [capsLockAtivo, setCapsLockAtivo] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -137,19 +138,30 @@ function LoginForm() {
             <input
               type={mostrarSenha ? "text" : "password"}
               required
+              autoComplete="current-password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
+              onKeyUp={(e) => setCapsLockAtivo(e.getModifierState("CapsLock"))}
+              onBlur={() => setCapsLockAtivo(false)}
               placeholder="Digite sua senha"
               className="w-full pl-10 pr-11 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
             />
             <button
               type="button"
               onClick={() => setMostrarSenha(!mostrarSenha)}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+              aria-pressed={mostrarSenha}
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
             >
               {mostrarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
+          {capsLockAtivo && (
+            <p className="mt-1 text-[11px] font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
+              <ArrowBigUpDash className="w-3.5 h-3.5" />
+              Caps Lock está ativado.
+            </p>
+          )}
         </div>
 
         <div className="pt-2">

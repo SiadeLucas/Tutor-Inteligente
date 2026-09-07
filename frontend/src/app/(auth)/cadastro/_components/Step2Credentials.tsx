@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, ArrowLeft, ArrowRight, Check, Lock, Mail, Phone, ShieldCheck, X } from "lucide-react";
+import { AlertCircle, ArrowBigUpDash, ArrowLeft, ArrowRight, Check, Eye, EyeOff, Lock, Mail, Phone, ShieldCheck, X } from "lucide-react";
 
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { api, extrairMensagemErro } from "@/lib/api";
 import { apenasDigitos, forcaSenha, mascaraCPF, mascaraTelefone } from "@/lib/formatters";
+import { requisitosSenha } from "@/lib/formatters";
 import { ValidacaoEtapaResponse } from "@/types/onboarding";
 
 const inputCls =
@@ -18,6 +19,9 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
   const { form, setCampo, setResponsavel, ehMenorIdade, salvandoRascunho } = useOnboarding();
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false);
+  const [capsLockAtivo, setCapsLockAtivo] = useState(false);
 
   const menor = ehMenorIdade();
   const forca = forcaSenha(form.senha);
@@ -117,12 +121,26 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
               <Lock className="w-4 h-4" />
             </div>
             <input
-              type="password"
+              type={mostrarSenha ? "text" : "password"}
+              autoComplete="new-password"
               value={form.senha}
               onChange={(e) => setCampo("senha", e.target.value)}
+              onKeyUp={(e) => setCapsLockAtivo(e.getModifierState("CapsLock"))}
+              onBlur={() => setCapsLockAtivo(false)}
               placeholder="Mínimo 8 caracteres"
-              className={inputCls}
+              className={`${inputCls} ${form.senha ? "pr-11" : ""}`}
             />
+            {form.senha.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setMostrarSenha(!mostrarSenha)}
+                aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+                aria-pressed={mostrarSenha}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                {mostrarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            )}
           </div>
         </div>
         <div>
@@ -152,19 +170,33 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
               </span>
             )}
           </div>
-          <input
-            type="password"
-            value={form.confirmacao_senha}
-            onChange={(e) => setCampo("confirmacao_senha", e.target.value)}
-            placeholder="Repita a senha"
-            className={`w-full px-3.5 py-2.5 bg-white dark:bg-[#1a1408] border rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 transition-all ${
+          <div className="relative">
+            <input
+              type={mostrarConfirmacao ? "text" : "password"}
+              autoComplete="new-password"
+              value={form.confirmacao_senha}
+              onChange={(e) => setCampo("confirmacao_senha", e.target.value)}
+              placeholder="Repita a senha"
+              className={`w-full px-3.5 py-2.5 ${form.confirmacao_senha ? "pr-11" : ""} bg-white dark:bg-[#1a1408] border rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 transition-all ${
               form.confirmacao_senha.length > 0
                 ? form.senha === form.confirmacao_senha
                   ? "border-emerald-500 focus:ring-emerald-500/20 focus:border-emerald-500"
                   : "border-rose-400 focus:ring-rose-400/20 focus:border-rose-500"
                 : "border-slate-300 dark:border-[#3d2f1f] focus:ring-[#F57C00]/20 focus:border-[#F57C00]"
             }`}
-          />
+            />
+            {form.confirmacao_senha.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setMostrarConfirmacao(!mostrarConfirmacao)}
+                aria-label={mostrarConfirmacao ? "Ocultar confirmação da senha" : "Mostrar confirmação da senha"}
+                aria-pressed={mostrarConfirmacao}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                {mostrarConfirmacao ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -184,6 +216,40 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
           {ROTULOS_FORCA[forca]}
         </span>
       </div>
+
+      {/* Checklist de requisitos de senha em tempo real */}
+      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+        {requisitosSenha(form.senha).map((req) => (
+          <li
+            key={req.rotulo}
+            className={`flex items-center gap-1.5 text-[11px] ${
+              form.senha.length === 0
+                ? "text-slate-400 dark:text-slate-500"
+                : req.cumprido
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-slate-500 dark:text-[#A89F91]"
+            }`}
+          >
+            {req.cumprido ? (
+              <Check className="w-3 h-3 shrink-0 text-emerald-500" />
+            ) : (
+              <span className="w-3 h-3 shrink-0 rounded-full border border-current opacity-40" />
+            )}
+            <span>
+              {req.rotulo}
+              {req.obrigatorio && <span className="ml-1 text-[10px] font-semibold">(obrigatório)</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      {/* Aviso de Caps Lock ativo */}
+      {capsLockAtivo && (
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-amber-700 dark:text-amber-400">
+          <ArrowBigUpDash className="w-3.5 h-3.5" />
+          <span>Caps Lock está ativado.</span>
+        </div>
+      )}
 
       <div>
         <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">

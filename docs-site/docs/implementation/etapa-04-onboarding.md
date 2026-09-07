@@ -17,7 +17,7 @@ Este documento detalha a implementação do fluxo de onboarding para o Tutor Int
 **Entregável:** Assistente de cadastro (wizard) de 3 etapas funcional com rascunhos no Redis e persistência final no PostgreSQL. [x] Concluído!
 
 > [!NOTE]
-> **Status da implementação (2026-09-07):** backend completo (15 testes de integração em `backend/tests/test_onboarding.py`, suíte total 39/39 aprovada no container `ti-backend`), frontend wizard em `(auth)/cadastro` com auto-save, recuperação de rascunho, máscaras, força e correspondência de senha em tempo real, validação de limites de idade (6 a 120 anos), bloco condicional do responsável e auto-fill ViaCEP.
+> **Status da implementação (2026-09-07):** backend completo (15 testes de integração em `backend/tests/test_onboarding.py`, suíte total 39/39 aprovada no container `ti-backend`), frontend wizard em `(auth)/cadastro` com auto-save, recuperação de rascunho, máscaras, força, requisitos e correspondência de senha em tempo real, botão mostrar/ocultar senha com `autoComplete` semântico, aviso de Caps Lock, validação inline dos dígitos verificadores do CPF e validação de limites de idade (6 a 120 anos), bloco condicional do responsável e auto-fill ViaCEP.
 
 > [!NOTE]
 > O onboarding é o primeiro contato real do aluno com a plataforma. A taxa de conversão depende de um fluxo sem fricções. O uso do Redis para salvar rascunhos garante que o usuário possa retomar o cadastro caso a página seja recarregada ou a internet caia.
@@ -254,8 +254,13 @@ export default function CadastroPage() {
 1. **Auto-save no Redis**: a cada field change (com debounce), chama `/salvar-rascunho` com o header `X-Draft-Session-ID`.
 2. **Recuperação de Rascunho**: no mount da página (`useEffect` vazio), busca `/rascunho` usando o ID armazenado no localStorage.
 3. **Indicador de Força de Senha**: no Step 2, validar as regras de segurança em tempo real.
-4. **Auto-fill de CEP**: ao digitar 8 dígitos no Step 3, acionar `/cep/{cep}` e popular `cidade`, `uf`, `bairro` e `logradouro` (campos permanecem editáveis).
-5. **Bloco condicional do responsável**: exibido no Step 2 quando a idade calculada no Step 1 for < 18.
+4. **Verificação instantânea de correspondência de senha**: no Step 2, o rótulo "Senhas coincidem / Não coincidem" (com borda verde/vermelha no campo) aparece assim que o usuário digita a confirmação — sem esperar o submit.
+5. **Botão mostrar/ocultar senha (eye toggle)**: presente em todos os campos de senha do sistema (login, cadastro Step 2 — campos senha e confirmação, e redefinir-senha). Ícones `Eye`/`EyeOff` no lado direito do campo, com `aria-label` e `aria-pressed` para acessibilidade; o botão só é exibido quando o campo tem conteúdo. Complementado por `autoComplete` correto (`new-password` no cadastro/redefinição, `current-password` no login) para integrar com gerenciadores de senha do navegador.
+6. **Checklist de requisitos de senha**: exibido em tempo real no Step 2 abaixo do indicador de força (`requisitosSenha()` em `src/lib/formatters.ts`). Apenas "Mínimo 8 caracteres" é obrigatório (regra do backend: `senha.min_length=8`); maiúscula/minúscula, número e símbolo são recomendações que elevam o indicador de força. Itens cumpridos ficam verdes com ícone de check.
+7. **Aviso de Caps Lock**: exibido nos campos de senha do login, redefinir-senha e cadastro (Step 2) quando `getModifierState("CapsLock")` detecta a tecla ativa; some ao digitar ou desfocar o campo.
+8. **Validação inline de CPF (Step 1)**: ao sair do campo (blur) com 11 dígitos, os dígitos verificadores são conferidos localmente via `validarCPF()` em `src/lib/formatters.ts` (espelho fiel do `CPFValidator` do backend, Módulo 11, incluindo rejeição de sequências repetidas). Feedback visual imediato: borda vermelha + mensagem de erro, ou confirmação verde "CPF válido". A validação definitiva continua no backend via `/validar-etapa-1`.
+9. **Auto-fill de CEP**: ao digitar 8 dígitos no Step 3, acionar `/cep/{cep}` e popular `cidade`, `uf`, `bairro` e `logradouro` (campos permanecem editáveis; em falha do ViaCEP, aviso inline libera digitação manual — RN-ONB-006).
+10. **Bloco condicional do responsável**: exibido no Step 2 quando a idade calculada no Step 1 for < 18.
 
 ---
 
@@ -296,6 +301,6 @@ Verifique os itens abaixo antes de considerar a Etapa 4 concluída:
 - [x] O refresh token é entregue exclusivamente em cookie HTTP-Only (nunca no corpo da resposta).
 - [x] Nenhuma tabela da Etapa 7 (CAT) é criada ou referenciada nesta etapa.
 - [x] O Frontend exibe uma Progress Bar indicativa das 3 etapas, em `(auth)/cadastro`.
-- [x] Inputs possuem máscara (CPF, CEP, Telefone) bloqueando letras (`src/lib/formatters.ts`).
+- [x] Inputs possuem máscara (CPF, CEP, Telefone) bloqueando letras (`src/lib/formatters.ts`), que também expõe `validarCPF` (Módulo 11, espelho do backend) e `requisitosSenha` (checklist em tempo real).
 - [x] Auto-save funcional no frontend (não gera loop infinito de requests; debounce 1000ms só após recuperação do rascunho).
 - [x] Mobile responsive: o wizard não quebra em telas de 320px (ex: iPhone SE). (Verificado por revisão de código: layout fluido com `w-full`, paddings responsivos `p-4 sm:p-6`, grids que colapsam para coluna única `grid-cols-1 sm:grid-cols-2`, sem larguras fixas ou overflow horizontal.)

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock, Eye, EyeOff, AlertCircle, ShieldCheck, ArrowRight } from "lucide-react";
+import { Lock, Eye, EyeOff, AlertCircle, ShieldCheck, ArrowRight, ArrowBigUpDash } from "lucide-react";
 import { api } from "@/lib/api";
 import { VerificarTokenResponse } from "@/types/auth";
 
@@ -20,6 +20,7 @@ function RedefinirSenhaForm() {
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmacaoSenha, setConfirmacaoSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [capsLockAtivo, setCapsLockAtivo] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [erroForm, setErroForm] = useState<string | null>(null);
 
@@ -137,19 +138,30 @@ function RedefinirSenhaForm() {
                 type={mostrarSenha ? "text" : "password"}
                 required
                 minLength={8}
+                autoComplete="new-password"
                 value={novaSenha}
                 onChange={(e) => setNovaSenha(e.target.value)}
+                onKeyUp={(e) => setCapsLockAtivo(e.getModifierState("CapsLock"))}
+                onBlur={() => setCapsLockAtivo(false)}
                 placeholder="Mínimo 8 caracteres"
                 className="w-full pl-10 pr-11 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
               />
               <button
                 type="button"
                 onClick={() => setMostrarSenha(!mostrarSenha)}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+                aria-pressed={mostrarSenha}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
               >
                 {mostrarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            {capsLockAtivo && (
+              <p className="mt-1 text-[11px] font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                <ArrowBigUpDash className="w-3.5 h-3.5" />
+                Caps Lock está ativado.
+              </p>
+            )}
           </div>
 
           <div>
@@ -164,6 +176,7 @@ function RedefinirSenhaForm() {
                 type={mostrarSenha ? "text" : "password"}
                 required
                 minLength={8}
+                autoComplete="new-password"
                 value={confirmacaoSenha}
                 onChange={(e) => setConfirmacaoSenha(e.target.value)}
                 placeholder="Repita a nova senha idêntica"

@@ -46,6 +46,47 @@ export function calcularIdade(dataNascimentoISO: string): number | null {
   return hoje.getFullYear() - nasc.getFullYear() - (jaFezAniversario ? 0 : 1);
 }
 
+/** Checklist de requisitos de senha exibida em tempo real no cadastro. */
+export interface RequisitoSenha {
+  rotulo: string;
+  cumprido: boolean;
+  obrigatorio: boolean;
+}
+
+/**
+ * Espelho das regras de força da senha. Apenas "Mínimo 8 caracteres" é
+ * obrigatório (regra do backend: `senha.min_length=8`); os demais itens
+ * são recomendações que elevam o indicador de força.
+ */
+export function requisitosSenha(senha: string): RequisitoSenha[] {
+  return [
+    { rotulo: "Mínimo 8 caracteres", cumprido: senha.length >= 8, obrigatorio: true },
+    { rotulo: "Letra maiúscula e minúscula", cumprido: /[a-z]/.test(senha) && /[A-Z]/.test(senha), obrigatorio: false },
+    { rotulo: "Ao menos um número", cumprido: /\d/.test(senha), obrigatorio: false },
+    { rotulo: "Ao menos um símbolo", cumprido: /[^A-Za-z0-9]/.test(senha), obrigatorio: false },
+  ];
+}
+
+/**
+ * Validação dos dígitos verificadores do CPF (Módulo 11).
+ * Espelho fiel do backend: backend/app/core/validators.py (CPFValidator.validar).
+ */
+export function validarCPF(valor: string): boolean {
+  const d = apenasDigitos(valor);
+  if (d.length !== 11) return false;
+  if (d === d[0].repeat(11)) return false; // sequências repetidas (ex: 111.111.111-11)
+
+  const soma1 = d.slice(0, 9).split("").reduce((acc, dig, i) => acc + Number(dig) * (10 - i), 0);
+  const resto1 = (soma1 * 10) % 11;
+  const dv1 = resto1 === 10 ? 0 : resto1;
+  if (Number(d[9]) !== dv1) return false;
+
+  const soma2 = d.slice(0, 10).split("").reduce((acc, dig, i) => acc + Number(dig) * (11 - i), 0);
+  const resto2 = (soma2 * 10) % 11;
+  const dv2 = resto2 === 10 ? 0 : resto2;
+  return Number(d[10]) === dv2;
+}
+
 /** Indicador de força da senha (0 a 4). */
 export function forcaSenha(senha: string): number {
   if (!senha) return 0;
