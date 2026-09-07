@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ConcurrentSessionModal } from "@/components/session/ConcurrentSessionModal";
 
 export const metadata: Metadata = {
   title: "Tutor Inteligente — Plataforma EAD de Matemática",
@@ -13,7 +14,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        {children}
+        <ConcurrentSessionModal />
+      </body>
     </html>
   );
 }

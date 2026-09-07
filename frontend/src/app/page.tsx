@@ -30,6 +30,15 @@ export default function Home() {
             <span className="font-mono text-rose-400">Redis 7 Alpine</span>
           </div>
         </div>
+
+        <div className="mt-8 pt-6 border-t border-slate-800">
+          <a
+            href="/login"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm shadow-lg shadow-indigo-600/30 transition-all"
+          >
+            Acessar Área de Login &rarr;
+          </a>
+        </div>
       </div>
     </main>
   );
