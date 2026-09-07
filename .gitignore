@@ -1,25 +1,48 @@
-# MkDocs build output
-site/
+# ==============================================================================
+# Tutor Inteligente — .gitignore
+# ==============================================================================
 
-# Python
+# --- Segredos (NUNCA comitar) ---
+.env
+*.pem
+*.key
+
+# --- Python ---
 __pycache__/
 *.py[cod]
 *$py.class
 *.egg-info/
 .eggs/
 *.egg
-
-# Virtual environments
+dist/
+build/
 .venv/
 venv/
 ENV/
+.pytest_cache/
+.mypy_cache/
 
-# IDE
+# --- Node.js / Next.js ---
+node_modules/
+.next/
+out/
+.turbo/
+
+# --- Docker ---
+postgres_data/
+redis_data/
+
+# --- IDE ---
+.vscode/settings.json
 .idea/
-.vscode/
 *.swp
 *.swo
 
-# OS
+# --- OS ---
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# --- MkDocs (site gerado) ---
+site/
+docs-site/site/

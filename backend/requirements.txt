@@ -1,0 +1,43 @@
+# ==============================================================================
+# Tutor Inteligente — Dependências Python
+# ==============================================================================
+
+# --- Framework Web ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic[email]>=2.9.0
+pydantic-settings>=2.5.0
+python-multipart>=0.0.9
+
+# --- Banco de Dados (PostgreSQL Assíncrono) ---
+sqlalchemy[asyncio]>=2.0.35
+asyncpg>=0.30.0
+alembic>=1.13.0
+pgvector>=0.3.0
+
+# --- Redis (Cache e Sessões Voláteis) ---
+redis[hiredis]>=5.1.0
+
+# --- Segurança e Criptografia ---
+python-jose[cryptography]>=3.3.0
+passlib[argon2]>=1.7.4
+argon2-cffi>=23.1.0
+
+# --- Álgebra Simbólica e Motor Psicométrico ---
+sympy>=1.13.0
+numpy>=1.26.0,<2.0.0
+scipy>=1.13.0,<1.15.0
+
+# --- Inteligência Artificial e RAG ---
+google-generativeai>=0.7.2,<0.9.0
+langchain>=0.3.0,<0.4.0
+langchain-google-genai>=2.0.0,<3.0.0
+
+# --- HTTP e Utilitários ---
+httpx>=0.27.0
+boto3>=1.35.0
+reportlab>=4.2.0
+
+# --- Testes ---
+pytest>=8.3.0
+pytest-asyncio>=0.24.0

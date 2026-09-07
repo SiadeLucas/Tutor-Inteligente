@@ -53,7 +53,7 @@ Roteiro completo e sequencial para a construção da plataforma **Tutor Intelige
 
 ```mermaid
 graph LR
-    E1["🗂️ Etapa 1\nRepositório\ne Ambiente Local"]
+    E1["✅ Etapa 1\nRepositório\ne Ambiente Local"]
     E2["☁️ Etapa 2\nInfraestrutura\nAWS"]
     E3["🔐 Etapa 3\nAutenticação\ne Sessões"]
     E4["📋 Etapa 4\nOnboarding\ne Cadastro"]
@@ -65,18 +65,20 @@ graph LR
     E10["👨‍🏫 Etapa 10\nPainel Professor\ne Deploy Final"]
 
     E1 --> E2 --> E3 --> E4 --> E5 --> E6 --> E7 --> E8 --> E9 --> E10
+
+    style E1 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
 ```
 
 ---
 
 ## Visão Geral das 10 Etapas
 
-### [Etapa 1: Repositório e Ambiente Local](etapa-01-repositorio.md)
-**Duração estimada: 2-3 dias**
+### [Etapa 1: Repositório e Ambiente Local](etapa-01-repositorio.md) — :white_check_mark: **Concluída**
+**Duração estimada: 2-3 dias** | **Status:** `Concluída`
 
-Criação do repositório GitHub, estrutura de pastas do Monorepo, configuração do Docker Compose local, arquivo `.env`, e primeiro `docker compose up` funcional com os 4 containers saudáveis.
+Criação do repositório GitHub, estrutura de pastas do Monorepo, migração dos docs para `docs-site/`, configuração do Docker Compose local, arquivo `.env`, e `docker compose up` funcional com os 4 containers saudáveis.
 
-**Entregável:** `docker compose ps` mostrando 4 containers `healthy` no terminal local.
+**Entregável:** `docker compose ps` mostrando 4 containers `healthy` no terminal local. [x] Concluído!
 
 ---
 

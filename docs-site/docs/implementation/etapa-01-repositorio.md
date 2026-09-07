@@ -1,7 +1,7 @@
 ---
 title: "Etapa 1: Repositório e Ambiente Local"
 type: implementation
-status: pending
+status: complete
 related:
   - implementation/index.md
   - systems/folder-structure.md
@@ -266,7 +266,7 @@ argon2-cffi==23.1.0
 
 # --- Álgebra Simbólica e Motor Psicométrico ---
 sympy==1.13.0
-numpy==2.1.0
+numpy==1.26.4
 scipy==1.14.0
 
 # --- Inteligência Artificial e RAG ---
@@ -632,17 +632,17 @@ git push origin main
 
 Antes de avançar para a Etapa 2, confirme que todos os itens abaixo estão OK:
 
-- [ ] Repositório GitHub criado e acessível
-- [ ] `git clone` funciona no computador local
-- [ ] Estrutura de pastas do Monorepo criada (backend/, frontend/, infra/, docs/)
-- [ ] Arquivo `.env` criado com variáveis preenchidas (não comitado no Git)
-- [ ] `docker compose up --build -d` executa sem erros
-- [ ] `docker compose ps` mostra 4 containers com status `Up`
-- [ ] Container `ti-database` reporta `healthy`
-- [ ] Container `ti-redis` reporta `healthy`
-- [ ] `curl http://localhost:8000/health` retorna `{"status": "healthy"}`
-- [ ] Swagger acessível em `http://localhost:8000/docs`
-- [ ] Primeiro commit e push realizados com sucesso no GitHub
+- [x] Repositório GitHub criado e acessível
+- [x] `git clone` funciona no computador local
+- [x] Estrutura de pastas do Monorepo criada (backend/, frontend/, infra/, docs-site/)
+- [x] Arquivo `.env` criado com variáveis preenchidas (não comitado no Git)
+- [x] `docker compose up --build -d` executa sem erros
+- [x] `docker compose ps` mostra 4 containers com status `Up`
+- [x] Container `ti-database` reporta `healthy`
+- [x] Container `ti-redis` reporta `healthy`
+- [x] `curl http://localhost:8000/health` retorna `{"status": "healthy"}`
+- [x] Swagger acessível em `http://localhost:8000/docs`
+- [x] Primeiro commit e push realizados com sucesso no GitHub
 
 > [!TIP]
 > Se algum container não subir, use `docker compose logs ti-backend` (ou o nome do container com problema) para ver os logs de erro.

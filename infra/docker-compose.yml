@@ -1,0 +1,99 @@
+# ==============================================================================
+# Tutor Inteligente — Orquestração Docker Compose
+# ==============================================================================
+services:
+  # ---------- Banco de Dados (PostgreSQL 16 + pgvector) ----------
+  ti-database:
+    image: pgvector/pgvector:pg16
+    container_name: ti-database
+    restart: always
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_DB: ${DB_NAME:-tutor_inteligente}
+      POSTGRES_USER: ${DB_USER:-tutor_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-senhalocal123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - ti-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tutor_admin} -d ${DB_NAME:-tutor_inteligente}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---------- Cache e Sessões Voláteis (Redis 7) ----------
+  ti-redis:
+    image: redis:7-alpine
+    container_name: ti-redis
+    restart: always
+    env_file:
+      - ../.env
+    command: ["sh", "-c", "redis-server --appendonly yes --requirepass $${REDIS_PASSWORD:-redislocal123}"]
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - ti-network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD:-redislocal123}\" ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---------- Backend API (FastAPI + Python 3.11) ----------
+  ti-backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: ti-backend
+    restart: always
+    env_file:
+      - ../.env
+    depends_on:
+      ti-database:
+        condition: service_healthy
+      ti-redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    networks:
+      - ti-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---------- Frontend Web (Next.js 14 + TypeScript) ----------
+  ti-frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: ti-frontend
+    restart: always
+    env_file:
+      - ../.env
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    depends_on:
+      - ti-backend
+    ports:
+      - "3000:3000"
+    networks:
+      - ti-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  ti-network:
+    driver: bridge
