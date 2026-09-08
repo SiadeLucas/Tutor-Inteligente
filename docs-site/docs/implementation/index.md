@@ -57,7 +57,7 @@ graph LR
     E2["⏸️ Etapa 2\nInfraestrutura AWS\n(Postergada / Nuvem)"]
     E3["✅ Etapa 3\nAutenticação\ne Sessões"]
     E4["✅ Etapa 4\nOnboarding\ne Cadastro"]
-    E5["📚 Etapa 5\nConteúdo\nDidático"]
+    E5["✅ Etapa 5\nConteúdo\nDidático"]
     E6["🤖 Etapa 6\nMotor de IA\ne RAG"]
     E7["✏️ Etapa 7\nExercícios\ne Motor CAT"]
     E8["📊 Etapa 8\nProgresso\ne Analytics"]
@@ -71,6 +71,7 @@ graph LR
     style E2 fill:#334155,stroke:#64748b,stroke-dasharray: 5 5,color:#94a3b8
     style E3 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E4 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
+    style E5 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
 ```
 
 ---
@@ -114,12 +115,12 @@ Wizard de 3 etapas (Identificação → Credenciais/Contato → Acadêmico/Ender
 
 ---
 
-### [Etapa 5: Conteúdo Didático](etapa-05-conteudo.md)
-**Duração estimada: 1-2 semanas**
+### [Etapa 5: Conteúdo Didático](etapa-05-conteudo.md) — :white_check_mark: **Concluída**
+**Duração estimada: 1-2 semanas** | **Status:** `Concluída`
 
-Tabelas `disciplinas`, `volumes_didaticos`, `capitulos`, `aulas` e `documentos_vetoriais_rag`. Backend para servir conteúdo estruturado em 4 blocos KaTeX. Frontend com Skill Tree visual dos 11 volumes, tela de aula split-screen 65%/35%, cronômetro de estudo ativo e conclusão de aula com trava de 60%.
+Tabelas `disciplinas`, `volumes_didaticos`, `capitulos`, `aulas`, `documentos_vetoriais_rag` (pgvector + índice HNSW), `heatmap_dominio` (Tabela 15) e `horas_estudo_diarias` (Tabela 17) — todas em uma única migração consolidada `003_content_tables`. Backend FastAPI com autenticação obrigatória em todas as rotas, navegação em árvore (`/skill-tree`, `/volumes`, `/capitulos`) com heatmap de domínio real por usuário (RN-PRG-012), aulas estruturadas em 4 blocos com fórmulas em KaTeX, bateria de fixação server-side (gabarito protegido, correção anti-trapaça) e trava de 60% de aproveitamento persistindo progresso (RN-CNT-010). Acervo de 11 volumes da coleção Gelson Iezzi baixado e auditado com 100% de legibilidade OCR em `backend/data/ebooks/`. Frontend Next.js 14 com Skill Tree interativa agrupada nas 4 Grandes Áreas com progresso real, tela de aula split-screen (65%/35%) com abas pedagógicas, chat socrático contextual com citações RAG, cronômetro de estudo ativo enviado ao servidor.
 
-**Entregável:** Navegação pela Skill Tree e visualização de uma aula completa em 4 blocos no navegador.
+**Entregável:** Navegação pela Skill Tree e visualização de uma aula completa em 4 blocos no navegador. [x] Concluído!
 
 ---
 

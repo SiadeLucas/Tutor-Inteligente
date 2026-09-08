@@ -1,9 +1,11 @@
 ---
 title: "Etapa 5: Conteúdo Didático"
 type: "Implementation Guide"
-status: "Planned"
+status: "Completed"
+<!-- Consolidação pós-revisão: migração 003 unificada (heatmap_dominio + horas_estudo_diarias incluídas), auth obrigatória, fixação server-side e heatmap real integrados. -->
 related: ["etapa-03-autenticacao.md", "etapa-06-agente.md"]
-last_updated: "2026-09-06"
+last_updated: "2026-09-07"
+updated_by: "antigravity"
 ---
 
 <!-- ai-summary
@@ -116,9 +118,14 @@ Você deve implementar tanto rotas de navegação de estrutura (para alimentar a
 
 ### Rotas Interativas da Aula
 - `GET /api/v1/conteudo/aulas/{capitulo_id}` - Recupera a aula (os 4 blocos) pertinente àquele capítulo.
-- `POST /api/v1/conteudo/aulas/{capitulo_id}/concluir` - Valida se o usuário tem mínimo de 60% de acerto nos exercícios fixados e marca a aula/capítulo como completo.
+- `GET /api/v1/conteudo/aulas/{capitulo_id}/fixacao` - Serve a bateria de fixação **sem expor o gabarito** (correção server-side, anti-trapaça).
+- `POST /api/v1/conteudo/aulas/{capitulo_id}/fixacao` - Corrige as respostas no servidor (RN-CNT-010), persiste o `heatmap_dominio` (RN-PRG-012) e consolida o tempo líquido ativo em `horas_estudo_diarias` (RN-PRG-003).
+- `POST /api/v1/conteudo/aulas/{capitulo_id}/concluir` - Rota legada de conclusão manual com trava de 60%; persiste `aula_concluida` no heatmap.
 - `POST /api/v1/conteudo/aulas/{capitulo_id}/chat` - **(Placeholder)** Ponto de entrada do tutor socrático (Etapa 6). Retorna dummy data por enquanto.
 - `POST /api/v1/conteudo/aulas/{capitulo_id}/pista` - **(Placeholder)** Dica rápida contextual.
+
+> [!IMPORTANT]
+> **Todos os endpoints de conteúdo exigem autenticação** (`get_current_user` da Etapa 3). O status do heatmap na Skill Tree é real e por usuário — não há mais status mockado.
 
 ---
 
@@ -152,7 +159,7 @@ python backend/scripts/seed_content.py
 
 ## 6. Frontend: Árvore de Habilidades (Skill Tree)
 
-Em `frontend/src/app/(dashboard)/matematica/page.tsx` (ou rota similar estruturada), implemente a visualização da árvore de conteúdo.
+Em `frontend/src/app/(student)/materias/page.tsx`, implemente a visualização da árvore de conteúdo.
 
 ### Componentes Principais
 1. **Grid de Áreas:** Organize os 11 volumes visivelmente por grandes áreas (Álgebra, Geometria, Aplicada).
@@ -169,7 +176,7 @@ Ao clicar em um nó de capítulo, o usuário é direcionado para a rota da aula 
 
 ## 7. Frontend: Tela de Aula Split-Screen
 
-Em `frontend/src/app/aula/[capitulo_id]/page.tsx`, crie uma experiência de aula imersiva com tela dividida.
+Em `frontend/src/app/(student)/aula/[id]/page.tsx`, crie uma experiência de aula imersiva com tela dividida.
 
 ### Layout Split-Screen
 - **Painel Esquerdo (65%):** Visualização de conteúdo principal.
@@ -193,12 +200,12 @@ Implemente um componente de abas (Tabs) para navegar entre:
 
 ## 8. Critérios de Aceitação
 
-- [ ] A migração Alembic para todas as tabelas de conteúdo é executada sem erros no Windows.
-- [ ] A extensão `pgvector` é habilitada corretamente pela migração.
-- [ ] O script de seed popula o banco com 1 disciplina, 11 volumes categorizados e ao menos 3 aulas de exemplo com marcações KaTeX.
-- [ ] O endpoint de `/capitulos/{volume_id}` retorna a estrutura com dados de progresso (status da árvore).
-- [ ] A interface da Skill Tree no Frontend agrupa os 11 volumes por grandes áreas (ex: Álgebra).
-- [ ] A coloração dos nós dos capítulos muda adequadamente com base nos dados mockados de desempenho.
-- [ ] A página de aula divide a tela (65/35) em telas grandes.
-- [ ] Equações em sintaxe KaTeX são perfeitamente renderizadas no conteúdo dos blocos de aula.
-- [ ] O botão "Concluir Aula" faz um POST bem-sucedido para `/aulas/{id}/concluir`.
+- [x] A migração Alembic para todas as tabelas de conteúdo é executada sem erros no Windows.
+- [x] A extensão `pgvector` é habilitada corretamente pela migração.
+- [x] O script de seed popula o banco com 1 disciplina, 11 volumes categorizados e ao menos 3 aulas de exemplo com marcações KaTeX (11 volumes, 63 capítulos e 4 aulas completas com KaTeX).
+- [x] O endpoint de `/capitulos/{volume_id}` retorna a estrutura com dados de progresso (status da árvore).
+- [x] A interface da Skill Tree no Frontend agrupa os 11 volumes por grandes áreas (ex: Álgebra).
+- [x] A coloração dos nós dos capítulos muda adequadamente com base nos dados mockados de desempenho.
+- [x] A página de aula divide a tela (65/35) em telas grandes.
+- [x] Equações em sintaxe KaTeX são perfeitamente renderizadas no conteúdo dos blocos de aula.
+- [x] O botão "Concluir Aula" faz um POST bem-sucedido para `/aulas/{id}/concluir`.
