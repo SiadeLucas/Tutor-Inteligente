@@ -21,6 +21,13 @@ class Settings(BaseSettings):
 
     # --- IA ---
     GOOGLE_API_KEY: str = ""
+    LLM_PROVIDER: str = "gemini"  # 'gemini' | 'openai'
+    LLM_MODEL_NAME: str = "gemini-3.1-flash-lite"
+    # Modelo de embedding com suporte a output_dimensionality=768 (requisito da
+    # Etapa 6 / pgvector). 'text-embedding-004' foi descontinuado para novas
+    # chaves de API; 'gemini-embedding-001' entrega os mesmos 768 dimensões.
+    EMBEDDING_MODEL_NAME: str = "gemini-embedding-001"
+    OPENAI_API_KEY: str = ""
 
     # --- Asaas ---
     ASAAS_API_KEY: str = ""

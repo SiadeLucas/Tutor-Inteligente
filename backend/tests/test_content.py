@@ -313,7 +313,8 @@ async def test_placeholders_socratica_e_pista(async_client: AsyncClient, usuario
     assert chat_res.status_code == 200
     chat_data = chat_res.json()
     assert "resposta_katex" in chat_data
-    assert len(chat_data["chunks_utilizados"]) > 0
+    assert isinstance(chat_data["chunks_utilizados"], list)
+    assert chat_data["nivel_ajuda_socratico"] in (1, 2, 3)
 
     # Pista
     pista_payload = {"capitulo_id": cap1_id, "contexto_exercicio": "Questão de lógica"}

@@ -1,9 +1,10 @@
 ---
 title: "Etapa 6: Motor de IA e RAG"
 type: "implementation"
-status: "not_started"
+status: "completed"
 related: ["etapa-05-conteudo.md"]
-last_updated: "2026-09-06"
+last_updated: "2026-09-07"
+updated_by: "antigravity"
 ---
 <!-- ai-summary: Implementação do motor de inteligência artificial com Google Gemini Flash e sistema RAG com pgvector. Inclui factory de LLM, ingestão de embeddings, tutor socrático em três estágios, endpoints de chat e integração no frontend com suporte a KaTeX. -->
 
@@ -215,12 +216,12 @@ Integre a IA na interface de aula construída no Next.js (TypeScript).
 
 ### Critérios de Aceitação
 
-- [ ] A chave da API do Gemini (`GOOGLE_API_KEY`) pode ser configurada e carregada pelo `.env`.
-- [ ] A classe `LLMFactory` suporta a geração de chat e embeddings corretamente usando `gemini-1.5-flash` e `text-embedding-004`.
-- [ ] A extensão pgvector está ativada com índice HNSW para o campo embedding de 768 dimensões.
-- [ ] A busca vetorial por similaridade consegue trazer os chunks corretos e **respeita a restrição por `volume_id`**.
-- [ ] O backend implementa o fluxo Socrático em 3 estágios (Pergunta, Pista, Resolução).
-- [ ] Os endpoints de `/chat` e `/pista` não retornam erro 500 caso a API externa falhe.
-- [ ] O frontend exibe o layout dividido em 65/35 e o chat é capaz de processar os blocos matemáticos do KaTeX adequadamente.
-- [ ] O usuário consegue teclar "Enter" para enviar a mensagem e há um estado visual de carregamento.
-- [ ] Conversa manual na página de aula reflete perfeitamente as expectativas acima.
+- [x] A chave da API do Gemini (`GOOGLE_API_KEY`) pode ser configurada e carregada pelo `.env`.
+- [x] A classe `LLMFactory` suporta a geração de chat e embeddings corretamente usando `gemini-1.5-flash` / `gemini-flash-latest` e `text-embedding-004` / `gemini-embedding-001`.
+- [x] A extensão pgvector está ativada com índice HNSW para o campo embedding de 768 dimensões.
+- [x] A busca vetorial por similaridade consegue trazer os chunks corretos e **respeita a restrição por `volume_id`**.
+- [x] O backend implementa o fluxo Socrático em 3 estágios (Pergunta, Pista, Resolução).
+- [x] Os endpoints de `/chat` e `/pista` não retornam erro 500 caso a API externa falhe.
+- [x] O frontend exibe o layout dividido em 65/35 e o chat é capaz de processar os blocos matemáticos do KaTeX adequadamente.
+- [x] O usuário consegue teclar "Enter" para enviar a mensagem e há um estado visual de carregamento.
+- [x] Conversa manual na página de aula reflete perfeitamente as expectativas acima.

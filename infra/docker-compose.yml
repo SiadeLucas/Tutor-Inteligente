@@ -59,6 +59,8 @@ services:
         condition: service_healthy
       ti-redis:
         condition: service_healthy
+    volumes:
+      - ../backend:/app
     ports:
       - "8000:8000"
     networks:

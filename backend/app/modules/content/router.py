@@ -20,11 +20,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, func, update
 from sqlalchemy.orm import selectinload
 
+import logging
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.redis import get_redis
 from app.models.content import Disciplina, VolumeDidatico, Capitulo, Aula
 from app.models.progress import HeatmapDominio, HorasEstudoDiarias
 from app.models.user import Usuario
+from app.ai.llm_factory import LLMFactory
+from app.ai.rag_engine import RAGEngine
+from app.ai.prompts.socratic import SYSTEM_PROMPT_SOCRATICO
+from app.ai.socratic_state import SocraticStateManager
+
+logger = logging.getLogger("app.modules.content.router")
 from app.schemas.content import (
     DisciplinaResponse,
     VolumeResponse,
@@ -528,10 +536,13 @@ async def concluir_aula(
 
 
 # ============================================================================
-# 3. Placeholders Socráticos (Preparação para Etapa 6)
+# 3. Interação com Tutor Socrático e Motor RAG (Etapa 6)
 # ============================================================================
 
-@router.post("/aulas/{capitulo_id}/chat", response_model=ChatAulaResponse, summary="Chat do Tutor Socrático (Placeholder Etapa 5/6)")
+MAX_MENSAGENS_CHAT_CAPITULO = 30
+
+
+@router.post("/aulas/{capitulo_id}/chat", response_model=ChatAulaResponse, summary="Conversar com o Tutor Socrático da Coleção Iezzi")
 async def chat_socratico(
     capitulo_id: UUID,
     payload: ChatAulaRequest,
@@ -539,51 +550,223 @@ async def chat_socratico(
     usuario: Usuario = Depends(get_current_user),
 ):
     """
-    Ponto de entrada do tutor socrático. Na Etapa 5 retorna resposta guiada com KaTeX.
-    Na Etapa 6 será conectado diretamente ao Gemini Flash + RAG pgvector.
+    Processa a dúvida do estudante na aula com mediação socrática em KaTeX:
+    1. Aplica Rate Limiting pedagógico (máx 30 mensagens por sessão/capítulo via Redis).
+    2. Localiza o capítulo e o respectivo VolumeDidatico (particionamento do agente Iezzi).
+    3. Executa busca vetorial (RAG) no pgvector sobre a coleção Iezzi filtrada por volume_id.
+    4. Determina o estágio socrático adequado (1: Reflexão, 2: Pista, 3: Passo Guiado).
+    5. Invoca a LLMFactory com fallback resiliente para falhas de rede/cota.
     """
-    cap_res = await db.execute(select(Capitulo).where(Capitulo.id == capitulo_id))
-    capitulo = cap_res.scalar_one_or_none()
-    titulo = capitulo.titulo if capitulo else "Matemática"
+    # 1. Rate limiting pedagógico via Redis (30 mensagens / capítulo / dia)
+    try:
+        redis_client = get_redis()
+        rate_key = f"ratelimit:chat:{usuario.id}:{capitulo_id}"
+        total_mensagens = await redis_client.incr(rate_key)
+        if total_mensagens == 1:
+            await redis_client.expire(rate_key, 86400)
 
-    trecho = payload.trecho_selecionado or ""
-    if trecho:
-        resposta = (
-            f"Analisando a expressão matemática selecionada ${trecho}$ no contexto de **{titulo}**:\n\n"
-            f"Lembre-se da definição formal da coleção Iezzi. O que acontece com os valores do domínio "
-            f"quando aplicamos a restrição algébrica correspondente?"
+        if total_mensagens > MAX_MENSAGENS_CHAT_CAPITULO:
+            return ChatAulaResponse(
+                resposta_katex=(
+                    "Você atingiu o limite pedagógico de 30 mensagens de mentoria para este capítulo! "
+                    "Para consolidar seu aprendizado, recomendo testar suas habilidades práticas na "
+                    "**Aba 4 (Fixação)**. Lá você poderá colocar a teoria em prática e avançar na sua trilha!"
+                ),
+                chunks_utilizados=[],
+                nivel_ajuda_socratico=2,
+            )
+    except Exception as e:
+        logger.warning(f"Erro ao verificar rate limiting no Redis (prosseguindo sem bloqueio): {e}")
+
+    # 2. Busca capítulo e volume didático
+    stmt = (
+        select(Capitulo)
+        .options(selectinload(Capitulo.volume))
+        .where(Capitulo.id == capitulo_id)
+    )
+    res = await db.execute(stmt)
+    capitulo = res.scalar_one_or_none()
+    if not capitulo:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Capítulo não encontrado.")
+
+    volume = capitulo.volume
+    if not volume:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Volume associado não encontrado.")
+
+    # 3. Busca trechos no RAG particionados estritamente pelo volume_id
+    query_busca = payload.mensagem
+    if payload.trecho_selecionado:
+        query_busca = f"Expressão selecionada: {payload.trecho_selecionado}. Dúvida: {payload.mensagem}"
+
+    chunks = await RAGEngine.buscar_trechos_relevantes(
+        db=db,
+        volume_id=volume.id,
+        query_aluno=query_busca,
+        limite_chunks=3,
+        threshold_similaridade=0.40,
+    )
+
+    if chunks:
+        trechos_formatados = "\n\n".join(
+            [f"Página {c.pagina or 's/n'} ({c.teorema_ou_topico or 'Teorema'}):\n{c.trecho}" for c in chunks]
         )
     else:
-        resposta = (
-            f"Olá! Estou acompanhando seu estudo em **{titulo}**.\n\n"
-            f"Para responder sua dúvida sobre *\"{payload.mensagem}\"*, considere primeiro a relação fundamental:\n"
-            f"$$f(x) \\in \\mathbb{{R}} \\iff D(f) \\neq \\emptyset$$\n"
-            f"Qual etapa da resolução você já tentou desenvolver?"
+        trechos_formatados = (
+            f"Volume {volume.numero_volume}: {volume.titulo}. "
+            f"Capítulo {capitulo.numero_capitulo}: {capitulo.titulo}."
         )
 
-    return ChatAulaResponse(
-        resposta_katex=resposta,
-        chunks_utilizados=[
-            ChunkRAGResponse(
-                trecho="Definição de conjunto, pertinência e relações em Fundamentos de Matemática Elementar Vol. 1",
-                pagina=15,
-                teorema_ou_topico=titulo,
-                score_similaridade=0.88,
+    # 4. Determina o estágio socrático via Máquina de Estados (SocraticStateManager).
+    # O estado (estágio + último tópico) é persistido no Redis por (usuário, capítulo):
+    # sobrevive a refresh/reconexões do frontend, permite o reset pedagógico por
+    # troca de tópico e nunca regride quando o histórico chega curto ao backend.
+    chave_estagio = f"socratico:{usuario.id}:{capitulo_id}"
+    estagio_atual = 0
+    ultimo_topico = None
+    redis_estagio = None
+    try:
+        redis_estagio = get_redis()
+        estado_raw = await redis_estagio.get(chave_estagio)
+        if estado_raw:
+            partes_estado = estado_raw.split("|", 1)
+            estagio_atual = int(partes_estado[0])
+            ultimo_topico = partes_estado[1] if len(partes_estado) > 1 and partes_estado[1] else None
+    except Exception as e:
+        logger.warning(f"Erro ao carregar estado socrático no Redis (iniciando do zero): {e}")
+
+    estagio_ajuda = SocraticStateManager.determinar_proximo_estagio(
+        estagio_atual=estagio_atual,
+        topico_atual=payload.trecho_selecionado,
+        ultimo_topico_registrado=ultimo_topico,
+        mensagem_aluno=payload.mensagem,
+    )
+
+    if redis_estagio is not None:
+        try:
+            await redis_estagio.set(
+                chave_estagio,
+                f"{estagio_ajuda}|{payload.trecho_selecionado or ''}",
+                ex=86400,
             )
-        ],
-        nivel_ajuda_socratico=1,
+        except Exception as e:
+            logger.warning(f"Erro ao persistir estado socrático no Redis: {e}")
+
+    # 5. Constrói a instrução de sistema rigorosa do Iezzi
+    system_instruction = SYSTEM_PROMPT_SOCRATICO.format(
+        numero_volume=volume.numero_volume,
+        titulo_volume=volume.titulo,
+        trechos_rag=trechos_formatados,
+        estagio_ajuda=estagio_ajuda,
+    )
+
+    # 6. Chama a LLMFactory com tolerância a falhas (fallback resiliente sem erro 500)
+    historico_dicts = [
+        {"papel": m.papel, "conteudo": m.conteudo}
+        for m in payload.historico_recente
+    ]
+
+    try:
+        provedor_llm = LLMFactory.obter_provedor()
+        resposta_texto = await provedor_llm.gerar_resposta(
+            prompt_usuario=payload.mensagem,
+            system_instruction=system_instruction,
+            historico_dialogo=historico_dicts,
+            temperatura=0.2,
+        )
+    except Exception as err:
+        logger.warning(f"Fallback no chat socrático devido a erro na API de IA: {err}")
+        # Resposta pedagógica de fallback conforme especificação da Etapa 6
+        if payload.trecho_selecionado:
+            resposta_texto = (
+                f"Estou organizando minhas anotações sobre a expressão selecionada ${payload.trecho_selecionado}$.\n\n"
+                f"Enquanto isso, observe o que acontece com as restrições de domínio quando aplicamos a definição "
+                f"formal do capítulo **{capitulo.titulo}**. Qual o primeiro passo que você já tentou?"
+            )
+        else:
+            resposta_texto = (
+                f"Neste momento estou organizando meus cadernos de anotações da coleção Iezzi.\n\n"
+                f"Para sua dúvida sobre \"{payload.mensagem}\" em **{capitulo.titulo}**, revise os conceitos e teoremas "
+                f"apresentados no **Bloco 1 (Teoria)**. Se precisar, reformule sua pergunta com uma fórmula específica!"
+            )
+
+    return ChatAulaResponse(
+        resposta_katex=resposta_texto,
+        chunks_utilizados=chunks,
+        nivel_ajuda_socratico=estagio_ajuda,
     )
 
 
-@router.post("/aulas/{capitulo_id}/pista", response_model=SolicitarPistaResponse, summary="Solicitação de Pista Cirúrgica (Placeholder Etapa 5/6)")
+@router.post("/aulas/{capitulo_id}/pista", response_model=SolicitarPistaResponse, summary="Solicitação de Pista Cirúrgica (Estágio 2)")
 async def obter_pista(
     capitulo_id: UUID,
     payload: SolicitarPistaRequest,
     db: AsyncSession = Depends(get_db),
     usuario: Usuario = Depends(get_current_user),
 ):
-    """Retorna uma pista contextual matemática para o exercício atual."""
+    """
+    RN-CNT-012: Fornece pista contextual de Estágio 2 apontando a propriedade matemática
+    do Iezzi aplicável sem entregar a resposta final.
+    """
+    stmt = (
+        select(Capitulo)
+        .options(selectinload(Capitulo.volume))
+        .where(Capitulo.id == capitulo_id)
+    )
+    res = await db.execute(stmt)
+    capitulo = res.scalar_one_or_none()
+
+    num_cap = capitulo.numero_capitulo if capitulo else 1
+
+    # RN-CNT-012: a pista é um atalho direto ao Estágio 2 — sincroniza a FSM
+    # socrática persistida para que o chat subsequente já parta do nível 2.
+    if capitulo:
+        try:
+            redis_pista = get_redis()
+            await redis_pista.set(
+                f"socratico:{usuario.id}:{capitulo_id}",
+                "2|",
+                ex=86400,
+            )
+        except Exception as e:
+            logger.warning(f"Erro ao sincronizar estágio socrático após pista: {e}")
+
+    # Pistas cirúrgicas canônicas por assunto do Volume 1
+    pistas_por_cap = {
+        1: (
+            r"Lembre-se da equivalência lógica fundamental: $\sim (p \to q) \equiv p \land \sim q$.",
+            "Atenção: a negação de uma condicional NÃO é outra condicional, mas sim uma conjunção!",
+        ),
+        2: (
+            r"Aplique as Leis de De Morgan: $\overline{A \cup B} = \overline{A} \cap \overline{B}$ e $\overline{A \cap B} = \overline{A} \cup \overline{B}$.",
+            r"Cuidado ao diferenciar pertinência ($\in$) entre elemento e conjunto de inclusão ($\subset$) entre dois conjuntos.",
+        ),
+        3: (
+            r"Para ser função, todo elemento do domínio deve ter uma e apenas uma imagem: $(\forall x \in A)(\exists! y \in B)$.",
+            "No plano cartesiano, utilize o teste da reta vertical para conferir se há múltiplos valores de $y$.",
+        ),
+        4: (
+            r"Imponha as duas restrições fundamentais: denominadores não-nulos ($h(x) \neq 0$) e radicandos de raízes pares não-negativos ($g(x) \ge 0$).",
+            "Lembre-se de fazer a interseção das restrições para obter o domínio final $D(f)$.",
+        ),
+        5: (
+            r"A taxa de variação é constante: $a = \frac{\Delta y}{\Delta x}$. A raiz ocorre quando $f(x) = 0 \iff x = -\frac{b}{a}$.",
+            "Atenção ao sinal do coeficiente angular $a$: se $a < 0$, a função é estritamente decrescente.",
+        ),
+        6: (
+            r"O vértice da parábola fornece o ponto extremo: $x_v = -\frac{b}{2a}$ e $y_v = -\frac{\Delta}{4a}$.",
+            "Atenção ao sinal de $a$: se $a > 0$, o vértice é ponto de MÍNIMO; se $a < 0$, é ponto de MÁXIMO.",
+        ),
+    }
+
+    pista_katex, dica = pistas_por_cap.get(
+        num_cap,
+        (
+            r"Verifique a definição formal no Bloco 1 e isole a incógnita passo a passo.",
+            "Atenção aos sinais ao transpor termos entre os membros da equação.",
+        ),
+    )
+
     return SolicitarPistaResponse(
-        pista_socratica_katex=r"Verifique se o discriminante $\Delta = b^2 - 4ac$ é não-negativo para garantir raízes reais!",
-        dica_pegadinha="Atenção ao sinal negativo antes do termo independente e ao parêntese na substituição.",
+        pista_socratica_katex=pista_katex,
+        dica_pegadinha=dica,
     )

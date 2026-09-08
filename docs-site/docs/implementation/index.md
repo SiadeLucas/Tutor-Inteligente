@@ -58,7 +58,7 @@ graph LR
     E3["✅ Etapa 3\nAutenticação\ne Sessões"]
     E4["✅ Etapa 4\nOnboarding\ne Cadastro"]
     E5["✅ Etapa 5\nConteúdo\nDidático"]
-    E6["🤖 Etapa 6\nMotor de IA\ne RAG"]
+    E6["✅ Etapa 6\nMotor de IA\ne RAG"]
     E7["✏️ Etapa 7\nExercícios\ne Motor CAT"]
     E8["📊 Etapa 8\nProgresso\ne Analytics"]
     E9["💳 Etapa 9\nPagamento\ne Checkout"]
@@ -72,6 +72,7 @@ graph LR
     style E3 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E4 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E5 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
+    style E6 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
 ```
 
 ---
@@ -124,12 +125,12 @@ Tabelas `disciplinas`, `volumes_didaticos`, `capitulos`, `aulas`, `documentos_ve
 
 ---
 
-### [Etapa 6: Motor de IA e RAG](etapa-06-ia-rag.md)
-**Duração estimada: 1-2 semanas**
+### [Etapa 6: Motor de IA e RAG](etapa-06-ia-rag.md) — :white_check_mark: **Concluída**
+**Duração estimada: 1-2 semanas** | **Status:** `Concluída`
 
-Integração com Gemini Flash via `LLMFactory`, configuração do pgvector para busca semântica HNSW, implementação do Tutor Socrático em 3 estágios de ajuda, ingestão de embeddings dos volumes do Iezzi e chat em tempo real na tela de aula.
+Integração com Gemini Flash via `LLMFactory`, configuração do pgvector para busca semântica HNSW, implementação do Tutor Socrático em 3 estágios de ajuda, ingestão de embeddings dos volumes do Iezzi e chat em tempo real na tela de aula com suporte a KaTeX e FSM.
 
-**Entregável:** Chat socrático funcional na tela de aula com respostas contextuais baseadas no volume do Iezzi.
+**Entregável:** Chat socrático funcional na tela de aula com respostas contextuais baseadas no volume do Iezzi. [x] Concluído!
 
 ---
 
