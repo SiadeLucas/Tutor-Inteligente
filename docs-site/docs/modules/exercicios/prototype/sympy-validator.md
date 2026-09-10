@@ -4,8 +4,8 @@ type: module
 status: draft
 related:
   - modules/exercicios/prototype/index.md
-last_updated: "2026-09-02"
-updated_by: claude
+last_updated: "2026-09-09"
+updated_by: buffy
 ---
 
 # 3. Validador Simbólico Determinístico com SymPy
@@ -29,9 +29,12 @@ class SympyMathValidator:
     
     TOLERANCIA_NUMERICA = 0.01  # Critério acordado de ±0.01
 
-    # Palavras e padrões proibidos para mitigar injeção de código arbitrário
+    # Palavras e padrões proibidos para mitigar injeção de código arbitrário.
+    # 'os' e 'sys' usam delimitadores de palavra (\b): como substring simples eles
+    # bloqueiam funções matemáticas legítimas (cos, cosh, arccos...).
+    # '__' permanece sem delimitador para neutralizar dunders (ex: __import__).
     PADROES_PROIBIDOS = re.compile(
-        r"(__|import|exec|eval|open|os|sys|subprocess|shutil|globals|locals|builtins|compile|getattr|setattr)",
+        r"(__|import|exec|eval|open|\bos\b|\bsys\b|subprocess|shutil|globals|locals|builtins|compile|getattr|setattr)",
         re.IGNORECASE
     )
 

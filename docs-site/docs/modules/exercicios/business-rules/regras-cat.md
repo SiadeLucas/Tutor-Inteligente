@@ -4,8 +4,8 @@ type: module
 status: draft
 related:
   - modules/exercicios/business-rules/index.md
-last_updated: "2026-08-28"
-updated_by: claude
+last_updated: "2026-09-09"
+updated_by: buffy
 ---
 
 # 1. Parametrização do Motor Adaptativo (CAT) e TRI
@@ -48,6 +48,7 @@ Ao finalizar o CAT, o $\theta$ consolidado é convertido para a escala qualitati
 
 #### RN-EXE-006: Granularidade por Área/Volume
 - A pontuação de proficiência do CAT é calculada e persistida **de forma independente para cada uma das 4 Grandes Áreas** e seus respectivos volumes da coleção Iezzi.
+- **Implementação (Etapa 7):** taxonomia canônica `algebra_funcoes | geometria | algebra_linear | aplicada` (Tabela 07). Durante a prova, a seleção MFI é direcionada à área menos coberta até que todas tenham ≥ 2 itens respondidos (detalhes em `flow/motor-cat.md`, seção 1.3).
 
 #### RN-EXE-006.1: Prova Oculta com Feedback Apenas no Encerramento (Blind Adaptive Testing)
 - **Zero Feedback Durante o Teste**: O estudante não visualiza se acertou ou errou cada item e não tem acesso às oscilações intermediárias do $\theta$ durante a realização da prova CAT.

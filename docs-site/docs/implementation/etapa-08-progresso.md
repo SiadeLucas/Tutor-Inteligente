@@ -3,7 +3,8 @@ title: "Etapa 8: Progresso e Analytics"
 type: "implementation"
 status: "planned"
 related: ["etapa-07-exercicios.md"]
-last_updated: "2026-09-06"
+last_updated: "2026-09-10"
+updated_by: buffy
 ---
 <!-- ai-summary: Implementação do dashboard de progresso, heatmap de domínio, histórico theta, gerador de PDF vetorial com ReportLab e controle de horas de estudo. -->
 
@@ -59,8 +60,8 @@ class HistoricoTheta(Base):
     disciplina_id = Column(UUID(as_uuid=True), ForeignKey("disciplinas.id", ondelete="CASCADE"), nullable=False)
     volume_id = Column(UUID(as_uuid=True), ForeignKey("volumes_didaticos.id", ondelete="SET NULL"), nullable=True)
     grande_area = Column(String, nullable=False) # 'algebra_funcoes' | 'geometria' | 'algebra_linear' | 'aplicada'
-    theta_estimado = Column(Numeric(5, 3), nullable=False) # -3.000 a +3.000
-    erro_padrao_se = Column(Numeric(5, 3), nullable=False)
+    theta_estimado = Column(Numeric(6, 3), nullable=False) # Escala contínua -3.000 a +3.000 (Tabela 16)
+    erro_padrao_se = Column(Numeric(6, 3), nullable=False)
     origem_ajuste = Column(String, nullable=False) # 'onboarding_cat' | 'marco_cat' | 'micro_ajuste_exercicio'
     registrado_em = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -69,12 +70,13 @@ class HorasEstudoDiarias(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     usuario_id = Column(UUID(as_uuid=True), ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
-    data = Column(Date, nullable=False, default=date.today)
-    minutos_ativos = Column(Integer, nullable=False, default=0)
-    ultima_atualizacao = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    data_registro = Column(Date, nullable=False, default=date.today)
+    segundos_ativos = Column(Integer, nullable=False, default=0)  # Tempo líquido ativo (RN-PRG-003)
+    aulas_concluidas = Column(Integer, nullable=False, default=0)
+    exercicios_submetidos = Column(Integer, nullable=False, default=0)
 
     __table_args__ = (
-        UniqueConstraint("usuario_id", "data", name="uq_horas_usuario_data"),
+        UniqueConstraint("usuario_id", "data_registro", name="uk_horas_usuario_data"),
     )
 ```
 
@@ -82,12 +84,16 @@ Gere a migração executando no Windows PowerShell:
 
 ```powershell
 cd backend
-alembic revision --autogenerate -m "004_progress_tables"
+alembic revision --autogenerate -m "005_progress_tables"
 alembic upgrade head
 ```
 
 > [!WARNING]
-> Verifique se o módulo `app.models.progress` foi importado no arquivo `backend/app/db/base.py` antes de rodar o comando `--autogenerate`.
+> **Numeração correta: `005_progress_tables`** (a revisão `004` já foi consumida pela migração
+> `004_exercise_tables` da Etapa 7 — revision `de042328f643`). Não é preciso editar o registro
+> de modelos manualmente: o `backend/alembic/env.py` já importa `app.models`, e o novo modelo
+> `HistoricoTheta` deve ser registrado no array de import/export de `backend/app/models/__init__.py`
+> (`HeatmapDominio` e `HorasEstudoDiarias` já estão lá desde a Etapa 5).
 
 ---
 
@@ -98,7 +104,7 @@ alembic upgrade head
 Crie uma rotina para micro-ajustar a proficiência após exercícios.
 
 ```python
-# backend/app/services/theta_updater.py
+# backend/app/modules/progress/theta_updater.py
 from decimal import Decimal
 from typing import Literal
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -112,11 +118,11 @@ async def atualizar_heatmap(
     Atualiza o domínio no formato upsert, reclassificando a cor sem gerar N+1.
     """
     # Lógica de upsert e recálculo da taxa ponderada seria aqui.
-    # Fórmula:
-    # Vermelho: < 40%
-    # Amarelo: 40% a 79%
-    # Verde: >= 80% (com aula_concluida = True)
-    # Cinza: 0 tentativas
+    # Fórmula canônica (RN-PRG-012 / Tabela 15):
+    # Cinza: menos de 3 itens respondidos
+    # Vermelho: < 50% de taxa ponderada
+    # Amarelo: 50% a 74%
+    # Verde: >= 75%
     pass
 
 async def micro_ajuste_theta(
@@ -124,7 +130,7 @@ async def micro_ajuste_theta(
     grande_area: str, acerto: bool, dificuldade: float, theta_atual: float
 ):
     """
-    Aplica micro-ajuste estocástico após baterias.
+    Aplica micro-ajuste estocástico após baterias (RN-PRG-006).
     """
     # Ajuste simples baseado na diferença (theta - dificuldade)
     pass
@@ -135,7 +141,7 @@ async def micro_ajuste_theta(
 Responsável por listar os pontos críticos (top 3):
 
 ```python
-# backend/app/services/heatmap_service.py
+# backend/app/modules/progress/heatmap_service.py
 from sqlalchemy import select, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.progress import HeatmapDominio
@@ -162,10 +168,10 @@ async def get_top_criticos(db: AsyncSession, usuario_id: str, limit: int = 3):
 Para gerar relatórios institucionais com qualidade vetorial, usaremos o `reportlab`.
 
 > [!TIP]
-> Não esqueça de instalar a dependência: `pip install reportlab`. Adicione ao `requirements.txt`.
+> A dependência `reportlab>=4.2.0` **já está instalada** (backend/requirements.txt desde a etapa inicial do projeto).
 
 ```python
-# backend/app/services/pdf_generator.py
+# backend/app/modules/progress/pdf_generator.py
 import io
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -203,18 +209,19 @@ async def gerar_boletim_pdf(usuario_dados: dict, estatisticas: dict) -> io.Bytes
 
 ## 8.4. Backend: Endpoints de Progresso
 
-No arquivo `backend/app/api/v1/endpoints/progresso.py`:
+No arquivo `backend/app/modules/progress/router.py` (convenção modular do projeto e protótipo em
+`modules/progresso/prototype/endpoints.md`):
 
 ```python
-# backend/app/api/v1/endpoints/progresso.py
+# backend/app/modules/progress/router.py
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import insert
 
-from app.api import deps
+from app.core import deps  # deps reais do projeto: get_db/get_current_user em app/core/deps.py e app/core/database.py
 from app.models.progress import HorasEstudoDiarias
-from app.services import pdf_generator
+from app.modules.progress import pdf_generator
 
 router = APIRouter()
 
@@ -244,14 +251,16 @@ async def download_boletim(db: AsyncSession = Depends(deps.get_db), current_user
     )
 
 @router.post("/tempo-estudo")
-async def registrar_tempo(minutos: int, db: AsyncSession = Depends(deps.get_db), current_user = Depends(deps.get_current_user)):
+async def registrar_tempo(segundos: int, db: AsyncSession = Depends(deps.get_db), current_user = Depends(deps.get_current_user)):
+    # Tabela 17: tempo líquido em SEGUNDOS com pausa automática em inatividade > 3 min (RN-PRG-003)
     stmt = insert(HorasEstudoDiarias).values(
         usuario_id=current_user.id,
-        minutos_ativos=minutos
+        data_registro=date.today(),
+        segundos_ativos=segundos
     )
     stmt = stmt.on_conflict_do_update(
-        index_elements=['usuario_id', 'data'],
-        set_=dict(minutos_ativos=HorasEstudoDiarias.minutos_ativos + minutos)
+        index_elements=['usuario_id', 'data_registro'],
+        set_=dict(segundos_ativos=HorasEstudoDiarias.segundos_ativos + segundos)
     )
     await db.execute(stmt)
     await db.commit()
@@ -300,18 +309,20 @@ export function useStudyTimer() {
 ### Gráficos com Recharts
 
 Crie o arquivo `frontend/src/app/(student)/progresso/page.tsx` para agrupar os componentes:
-- **`RadarChart`**: Plote os 4 eixos (`Álgebra e Funções`, `Geometria`, `Álgebra Linear`, `Matemática Aplicada`).
+- **`RadarChart`**: Plote os 4 eixos canônicos (slugs canônicos do projeto: `algebra_funcoes`, `geometria`, `algebra_linear`, `aplicada`; exibição: `Álgebra e Funções`, `Geometria e Trigonometria`, `Álgebra Linear e Sequências`, `Matemática Aplicada e Estatística` — mesmos slugs gravados pelo CAT em `scores_grandes_areas` e `historico_theta.grande_area`). O componente `frontend/src/components/exercises/CatRadarChart.tsx` (Etapa 7) já segue esta taxonomia e pode ser estendido com a camada comparativa de entrada vs. atual.
 - **`HeatmapMatrix`**: Um grid iterando pelos capítulos. Cada quadrado recebe uma classe Tailwind baseada na cor (ex: `bg-red-500`, `bg-green-500`).
 - **`TimelineTheta`**: Gráfico de linha mostrando a evolução do `theta_estimado`.
+- **Cronômetro**: a coleta ativa de tempo já está implementada (Etapa 5: `useHeartbeat` + persistência em `horas_estudo_diarias.segundos_ativos` via fixação); o `useStudyTimer` desta etapa deve apenas reutilizar/centralizar essa lógica, sem duplicar gravação.
 
 ---
 
 ## 8.6. Critérios de Aceitação
 
-- [ ] Modelos `HeatmapDominio`, `HistoricoTheta` e `HorasEstudoDiarias` criados e migrados com Alembic sem erros.
-- [ ] A cor do heatmap transita corretamente pelas 4 fases (cinza, vermelho, amarelo, verde) baseada na fórmula de taxa ponderada.
-- [ ] O endpoint `POST /api/v1/progresso/tempo-estudo` utiliza UPSERT (`ON CONFLICT DO UPDATE`) para somar minutos do dia.
+- [ ] Modelos `HeatmapDominio`, `HistoricoTheta` e `HorasEstudoDiarias` criados e migrados com Alembic sem erros (migração `005_progress_tables`; `HeatmapDominio` e `HorasEstudoDiarias` já existem desde a Etapa 5 — a migração adiciona apenas `historico_theta`).
+- [ ] A cor do heatmap transita corretamente pelas 4 fases (cinza, vermelho, amarelo, verde) com os limiares canônicos: cinza (<3 itens), vermelho (<50%), amarelo (50–74%), verde (≥75%) — RN-PRG-012/Tabela 15.
+- [ ] O endpoint `POST /api/v1/progresso/tempo-estudo` utiliza UPSERT (`ON CONFLICT DO UPDATE`) para somar **segundos** do dia (Tabela 17).
 - [ ] O Boletim PDF é gerado corretamente utilizando vetores e faz streaming para o navegador via rota `GET`.
-- [ ] A página `/progresso` exibe corretamente os três gráficos (`RadarChart`, heatmap e timeline) sem erros de hidratação.
-- [ ] O hook `useStudyTimer` no frontend pausa após 3 minutos cravados de ausência de mouse/teclado.
+- [ ] A página `/progresso` exibe corretamente os três gráficos (`RadarChart`, heatmap e timeline) sem erros de hidratação, com os 4 eixos canônicos.
+- [ ] O hook `useStudyTimer` no frontend pausa após 3 minutos cravados de ausência de mouse/teclado, reutilizando a persistência existente de `segundos_ativos`.
+- [ ] Os marcos do CAT da Etapa 7 são registrados em `historico_theta` com `origem_ajuste='onboarding_cat'` (um registro por Grande Área, alimentando o Radar comparativo).
 - [ ] Testes de API desenvolvidos com `pytest-asyncio` confirmam atualização de minutos e status do heatmap.

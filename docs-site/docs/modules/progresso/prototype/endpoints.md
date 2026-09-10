@@ -4,8 +4,8 @@ type: module
 status: draft
 related:
   - modules/progresso/prototype/index.md
-last_updated: "2026-09-03"
-updated_by: claude
+last_updated: "2026-09-10"
+updated_by: buffy
 ---
 
 # 5. Endpoints da API FastAPI
@@ -24,7 +24,7 @@ from sqlalchemy import select, and_, func
 
 from app.core.database import get_db
 from app.modules.auth.dependencies import get_current_user
-from app.models.progress import HistoricoTheta, HeatmapDominio, HorasEstudoDiaria
+from app.models.progress import HistoricoTheta, HeatmapDominio, HorasEstudoDiarias
 from app.models.content import Capitulo, VolumeDidatico
 from app.modules.progress.schemas import (
     ProgressoGeralResponse,
@@ -75,8 +75,8 @@ async def obter_progresso_geral(
         nivel = "Avançado"
 
     # 2. Soma de horas ativas líquidas
-    stmt_horas = select(func.sum(HorasEstudoDiaria.segundos_ativos)).where(
-        HorasEstudoDiaria.usuario_id == current_user.id
+    stmt_horas = select(func.sum(HorasEstudoDiarias.segundos_ativos)).where(
+        HorasEstudoDiarias.usuario_id == current_user.id
     )
     res_horas = await db.execute(stmt_horas)
     segundos_totais = res_horas.scalar() or 0
@@ -96,11 +96,14 @@ async def obter_progresso_geral(
     completude_real = round((caps_concluidos / total_caps) * 100.0, 1)
 
     # 4. Dados para os 4 eixos do Gráfico Radar (consultando a última calibragem por área)
+    # Slugs CANÔNICOS da taxonomia do projeto (data-architecture.md, Tabela 07, seed de
+    # conteúdo e scores_grandes_areas gravado pelo CAT da Etapa 7). Os rótulos de exibição
+    # podem ser mais descritivos, mas o slug persistido é sempre o canônico.
     areas_mapeadas = [
         ("algebra_funcoes", "Álgebra e Funções"),
-        ("geometria_trigonometria", "Geometria e Trigonometria"),
-        ("algebra_linear_sequencias", "Álgebra Linear e Sequências"),
-        ("estatistica_aplicada", "Matemática Aplicada e Estatística"),
+        ("geometria", "Geometria e Trigonometria"),
+        ("algebra_linear", "Álgebra Linear e Sequências"),
+        ("aplicada", "Matemática Aplicada e Estatística"),
     ]
     
     radar_areas = []

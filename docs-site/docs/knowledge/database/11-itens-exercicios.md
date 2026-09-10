@@ -6,8 +6,8 @@ related:
   - knowledge/database/index.md
   - modules/exercicios/business-rules/regras-cat.md
   - modules/exercicios/business-rules/regras-validacao.md
-last_updated: "2026-09-03"
-updated_by: claude
+last_updated: "2026-09-09"
+updated_by: antigravity
 ---
 
 # Tabela 11: `itens_exercicios`
@@ -23,11 +23,13 @@ CREATE TABLE itens_exercicios (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     capitulo_id UUID NOT NULL REFERENCES capitulos(id) ON DELETE CASCADE,
     tipo_origem VARCHAR(30) NOT NULL DEFAULT 'iezzi_original', -- 'iezzi_original' | 'gemea_ia'
-    item_matriz_id UUID REFERENCES itens_exercicios(id),       -- Aponta para o item matriz se for gêmea
+    tipo_item VARCHAR(30) NOT NULL DEFAULT 'multiple_choice',  -- 'multiple_choice' | 'numeric_input'
+    item_matriz_id UUID REFERENCES itens_exercicios(id) ON DELETE SET NULL, -- Aponta para o item matriz se for gêmea
     enunciado_katex TEXT NOT NULL,                             -- Enunciado formatado em KaTeX
-    alternativas JSONB NOT NULL,                               -- [{"letra": "A", "texto": "...", "correta": false}, ...]
-    resposta_correta VARCHAR(5) NOT NULL,                      -- 'A' | 'B' | 'C' | 'D' | 'E'
+    alternativas JSONB NOT NULL DEFAULT '[]',                  -- [{"letra": "A", "texto": "...", "correta": false}, ...]
+    resposta_correta VARCHAR(50) NOT NULL,                     -- 'A' | 'B' | ... ou expressão matemática/valor
     resolucao_passo_a_passo TEXT NOT NULL,                     -- Resolução em etapas lógicas KaTeX
+
     parametro_a DECIMAL(6, 3) NOT NULL DEFAULT 1.000,          -- Discriminação da TRI (típico: 0.5 a 2.5)
     parametro_b DECIMAL(6, 3) NOT NULL DEFAULT 0.000,          -- Dificuldade da TRI (escala -3.0 a +3.0)
     parametro_c DECIMAL(6, 3) NOT NULL DEFAULT 0.200,          -- Acerto casual (20% para 5 alternativas)

@@ -14,7 +14,11 @@ import {
   Compass,
   Grid,
   TrendingUp,
+  PenLine,
+  Inbox,
+  ClipboardList,
 } from "lucide-react";
+import { ItemCaixaReforco } from "@/types/exercise";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { GlobalHeader } from "@/components/header/GlobalHeader";
 import { api, extrairMensagemErro } from "@/lib/api";
@@ -36,6 +40,28 @@ export default function MateriasPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedArea, setSelectedArea] = useState<string>("todas");
   const [expandedVolumes, setExpandedVolumes] = useState<Record<string, boolean>>({});
+  const [reforcoPendentes, setReforcoPendentes] = useState(0);
+  const [catPendente, setCatPendente] = useState(false);
+
+  // Pendências da Caixa de Reforço e pendência da prova diagnóstica CAT (etapa-04:
+  // a prova é disparada no primeiro acesso a uma matéria)
+  useEffect(() => {
+    async function loadPendencias() {
+      try {
+        const caixa: ItemCaixaReforco[] = await api.get("/api/v1/exercicios/caixa-reforco");
+        setReforcoPendentes(caixa.length);
+      } catch {
+        setReforcoPendentes(0);
+      }
+      try {
+        const historico = await api.get("/api/v1/exercicios/cat/historico");
+        setCatPendente(historico.length === 0);
+      } catch {
+        setCatPendente(false);
+      }
+    }
+    loadPendencias();
+  }, []);
 
   useEffect(() => {
     async function loadSkillTree() {
@@ -168,6 +194,55 @@ export default function MateriasPage() {
           </div>
         )}
 
+        {/* Chamada: Prova Diagnóstica CAT pendente (primeiro acesso a uma matéria) */}
+        {!loading && catPendente && (
+          <Link
+            href="/onboarding/cat"
+            className="mb-5 flex items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-[#FFF3E0] to-[#FFE8CC] dark:from-[#2b1f10] dark:to-[#33230e] border border-[#FFB74D]/40 hover:border-[#F57C00] transition-all group shadow-sm"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-[#F57C00] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                <ClipboardList className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                  Prova Diagnóstica pendente
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-[#A89F91] mt-0.5">
+                  Calibre sua trilha: o motor adaptativo mapeia seu nível em 12 a 20 questões.
+                </p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#F57C00] hover:bg-[#E65100] text-white text-xs font-bold transition-colors flex-shrink-0">
+              Iniciar
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </Link>
+        )}
+
+        {/* Acesso rápido: Caixa de Reforço */}
+        {!loading && reforcoPendentes > 0 && (
+          <Link
+            href="/reforco"
+            className="mb-5 flex items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-[#261d11] border border-slate-200/90 dark:border-[#3d2f1f] hover:border-[#F57C00] dark:hover:border-[#FFB74D] transition-all group shadow-xs"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+                <Inbox className="w-4.5 h-4.5" />
+              </div>
+              <div>
+                <span className="font-semibold text-slate-900 dark:text-white text-sm">
+                  Caixa de Reforço
+                </span>
+                <span className="text-xs text-slate-500 dark:text-[#A89F91] ml-2">
+                  {reforcoPendentes === 1 ? "1 item aguardando revisão" : `${reforcoPendentes} itens aguardando revisão`}
+                </span>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#F57C00] transition-colors" />
+          </Link>
+        )}
+
         {/* Lista de Volumes e Capítulos (Accordion) */}
         {!loading && !error && (
           <div className="space-y-5">
@@ -225,20 +300,19 @@ export default function MateriasPage() {
                           const travado = !cap.desbloqueado;
 
                           return (
-                            <Link
+                            <div
                               key={cap.id}
-                              href={`/aula/${cap.id}`}
                               className={`group p-4 rounded-xl bg-white dark:bg-[#261d11] border ${
                                 travado
                                   ? "border-slate-200/60 dark:border-[#2e2315] opacity-70"
                                   : "border-slate-200/80 dark:border-[#3d2f1f] hover:border-[#F57C00] dark:hover:border-[#FFB74D] hover:shadow-sm"
                               } transition-all flex items-start justify-between`}
                             >
-                              <div className="flex items-start gap-3">
+                              <Link href={`/aula/${cap.id}`} className="flex items-start gap-3 group flex-1 min-w-0">
                                 <div
                                   className={`w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${statusColor.bg} border ${statusColor.border}`}
                                 />
-                                <div>
+                                <div className="min-w-0">
                                   <div className="text-xs font-semibold text-slate-400 dark:text-slate-500">
                                     Capítulo {cap.numero_capitulo}
                                   </div>
@@ -253,12 +327,27 @@ export default function MateriasPage() {
                                     )}
                                   </div>
                                 </div>
-                              </div>
+                              </Link>
 
-                              <div className="text-slate-300 dark:text-slate-600 group-hover:text-[#F57C00] transition-colors mt-1">
-                                <PlayCircle className="w-5 h-5" />
+                              <div className="flex items-center gap-2 mt-1 pl-3 flex-shrink-0">
+                                <Link
+                                  href={`/exercicios/${cap.id}`}
+                                  title="Exercícios do capítulo"
+                                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                                    travado
+                                      ? "bg-slate-100 dark:bg-[#1a1408] text-slate-400 pointer-events-none"
+                                      : "bg-[#FFF3E0] dark:bg-[#2b1f10] text-[#E65100] dark:text-[#FFB74D] hover:bg-[#F57C00] hover:text-white"
+                                  }`}
+                                >
+                                  <PenLine className="w-4 h-4" />
+                                </Link>
+                                <Link href={`/aula/${cap.id}`} title="Abrir aula">
+                                  <span className="text-slate-300 dark:text-slate-600 group-hover:text-[#F57C00] transition-colors">
+                                    <PlayCircle className="w-5 h-5" />
+                                  </span>
+                                </Link>
                               </div>
-                            </Link>
+                            </div>
                           );
                         })}
                       </div>

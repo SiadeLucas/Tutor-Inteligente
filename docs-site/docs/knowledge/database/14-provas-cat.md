@@ -6,8 +6,8 @@ related:
   - knowledge/database/index.md
   - modules/exercicios/business-rules/regras-cat.md
   - modules/onboarding/business-rules/proficiencia.md
-last_updated: "2026-09-03"
-updated_by: claude
+last_updated: "2026-09-09"
+updated_by: antigravity
 ---
 
 # Tabela 14: `provas_cat`
@@ -26,12 +26,14 @@ CREATE TABLE provas_cat (
     tipo_prova VARCHAR(30) NOT NULL,                           -- 'onboarding_diagnostico' | 'marco_periodico'
     theta_geral DECIMAL(6, 3) NOT NULL,                        -- Theta convergido ao final do teste
     erro_padrao_se DECIMAL(6, 3) NOT NULL,                     -- Erro padrão (meta: < 0.30)
-    scores_grandes_areas JSONB NOT NULL,                       -- {"algebra_funcoes": 0.45, "geometria": -0.20, ...}
-    total_itens_aplicados INT NOT NULL,                        -- Limite entre 12 e 20 itens
-    itens_respondidos_ids UUID[] NOT NULL DEFAULT '{}',
+    scores_grandes_areas JSONB NOT NULL DEFAULT '{}',          -- {"algebra_funcoes": 0.45, "geometria": -0.20, ...}
+    total_itens_aplicados INT NOT NULL DEFAULT 0,              -- Limite entre 12 e 20 itens
+    itens_respondidos_ids JSONB NOT NULL DEFAULT '[]',         -- Lista de IDs dos itens aplicados
+    respostas_detalhadas JSONB NOT NULL DEFAULT '[]',          -- Histórico completo para estimativa EAP Bayesiana
     iniciado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     finalizado_em TIMESTAMPTZ
 );
+
 
 CREATE INDEX idx_provas_cat_usuario_disciplina 
 ON provas_cat(usuario_id, disciplina_id);

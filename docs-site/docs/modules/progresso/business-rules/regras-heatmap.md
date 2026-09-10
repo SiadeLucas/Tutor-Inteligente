@@ -4,8 +4,8 @@ type: module
 status: draft
 related:
   - modules/progresso/business-rules/index.md
-last_updated: "2026-09-02"
-updated_by: claude
+last_updated: "2026-09-10"
+updated_by: buffy
 ---
 
 # 3. Parametrização do Heatmap de Domínio e Gráfico Radar
@@ -29,11 +29,11 @@ O Heatmap exibe todos os capítulos da coleção didática da disciplina ativa, 
 
 #### RN-PRG-013: Gráfico Radar Multiaxial Dinâmico
 - O Gráfico Radar constrói seus eixos dinamicamente com base nas macro-áreas da disciplina selecionada no Header:
-  - **Configuração Ativa no Lançamento (Matemática do 2º Grau)**: 4 eixos canônicos:
-    1. *Álgebra e Funções*
-    2. *Geometria e Trigonometria*
-    3. *Álgebra Linear e Sequências*
-    4. *Matemática Aplicada e Estatística*
+  - **Configuração Ativa no Lançamento (Matemática do 2º Grau)**: 4 eixos canônicos (slugs canônicos do projeto, em conformidade com `knowledge/data-architecture.md`, Tabela 07 e com o `scores_grandes_areas` gravado pelo CAT da Etapa 7):
+    1. `algebra_funcoes` — *Álgebra e Funções*
+    2. `geometria` — *Geometria e Trigonometria*
+    3. `algebra_linear` — *Álgebra Linear e Sequências*
+    4. `aplicada` — *Matemática Aplicada e Estatística*
   - **Expansões Futuras**: Carrega os eixos cadastrados na tabela `disciplinas` (ex: em Física: *Mecânica*, *Termologia*, *Óptica*, *Eletromagnetismo*).
 - Exibe sobreposição de duas camadas: Polígono Cinza pontilhado (Diagnóstico de Entrada) e Polígono Laranja preenchido (Nível Atual).
 

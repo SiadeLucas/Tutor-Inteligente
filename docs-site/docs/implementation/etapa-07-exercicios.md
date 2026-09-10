@@ -1,10 +1,11 @@
 ---
 title: "Etapa 7: Exercícios e Motor CAT"
 type: implementation_plan
-status: pending
+status: completed
 related:
   - etapa-05-estrutura-conteudo
-last_updated: 2026-09-06
+last_updated: "2026-09-09"
+updated_by: buffy
 ---
 
 <!-- ai-summary
@@ -20,6 +21,13 @@ lógica de segunda chance e questões gêmeas, bem como interfaces KaTeX no Fron
 > **Duração Estimada:** 1-2 semanas
 > **Pré-requisito:** Etapa 5 concluída (Estrutura de conteúdo funcionando)
 > **Entregável:** Resolução de exercícios com 2ª chance, Caixa de Reforço funcional e Teste Adaptativo CAT rodando.
+
+> [!NOTE]
+> **Adoção realizada na implementação (desvio documentado):** o MVP de fixação server-side da Etapa 5
+> (`/api/v1/conteudo/aulas/{capitulo_id}/fixacao`) foi promovido a motor de gravação das tentativas
+> (RN-CNT-010 + Tabela 12). O módulo desta etapa fornece a bateria TRI (`GET /api/v1/exercicios/capitulo/{capitulo_id}`),
+> a submissão com 2ª chance, Caixa de Reforço, Questões Gêmeas e Prova CAT. Os endpoints e tabelas
+> da etapa permanecem como definidos abaixo.
 
 Nesta etapa, implementaremos o núcleo de avaliação do **Tutor Inteligente**. O foco será não apenas exibir exercícios de múltipla escolha e numéricos (renderizados usando KaTeX), mas validá-los de forma inteligente usando SymPy, permitindo geração de questões gêmeas, e aplicando a Teoria da Resposta ao Item (TRI) no Teste Adaptativo Computadorizado (CAT).
 
@@ -105,10 +113,12 @@ class ProvaCAT(Base):
 
 ### Migração Alembic
 
-Crie a migração (verifique se está na pasta `backend`):
+Crie a migração (verifique se está na pasta `backend`). A migração consolidada final desta etapa é
+`004_exercise_tables` (revision `de042328f643`, down_revision `0df7b4f4b350`), pois a numeração `003`
+foi consumida pela migração de conteúdo da Etapa 5:
 
 ```powershell
-alembic revision --autogenerate -m "003_exercise_tables"
+alembic revision --autogenerate -m "004_exercise_tables"
 alembic upgrade head
 ```
 
@@ -229,13 +239,14 @@ O ambiente de prova CAT é diferente do ambiente de fixação.
 
 ## 7.8 Critérios de Aceitação
 
-- [ ] Modelos de banco de dados (`itens_exercicios`, `tentativas_exercicios`, `caixa_reforco`, `provas_cat`) foram criados e a migração Alembic foi aplicada no PostgreSQL.
-- [ ] O Motor CAT calcula o $\theta$ iterativamente usando o estimador EAP de forma precisa (validar com testes unitários).
-- [ ] A função Fisher Information escolhe os itens corretos em relação ao $\theta$ do aluno.
-- [ ] O teste CAT para automaticamente quando $N \ge 12$ e $SE \le 0.30$, ou $N = 20$.
-- [ ] A validação SymPy foi testada usando Timeout e Sandbox seguros e avalia corretamente expressões algebricamente equivalentes com tolerância.
-- [ ] Submissão no modo normal (fixação) aplica a regra de 2ª chance, gerando 1.0, 0.5 e 0.0 pontos respectivamente.
-- [ ] No caso de falha completa (0.0), o item é colocado na `caixa_reforco`.
-- [ ] Todos os 6 endpoints listados foram implementados e testados.
-- [ ] O frontend exibe `ExerciseCard` com renderização robusta usando KaTeX.
-- [ ] A página da Prova CAT renderiza uma interface limpa, sem feedbacks, com envio de tempo e finaliza exibindo um gráfico Radar.
+- [x] Modelos de banco de dados (`itens_exercicios`, `tentativas_exercicios`, `caixa_reforco`, `provas_cat`) foram criados e a migração Alembic foi aplicada no PostgreSQL.
+- [x] O Motor CAT calcula o $\theta$ iterativamente usando o estimador EAP de forma precisa (validar com testes unitários).
+- [x] A função Fisher Information escolhe os itens corretos em relação ao $\theta$ do aluno.
+- [x] O teste CAT para automaticamente quando $N \ge 12$ e $SE \le 0.30$, ou $N = 20$.
+- [x] A validação SymPy foi testada usando Timeout e Sandbox seguros e avalia corretamente expressões algebricamente equivalentes com tolerância.
+- [x] Submissão no modo normal (fixação) aplica a regra de 2ª chance, gerando 1.0, 0.5 e 0.0 pontos respectivamente. O número da tentativa é contado no servidor (anti-fraude).
+- [x] No caso de falha completa (0.0), o item é colocado na `caixa_reforco` e é marcado como `superado` quando o aluno acerta a Questão Gêmea equivalente (RN-EXE-008.1).
+- [x] Todos os 6 endpoints listados foram implementados e testados. Durante a prova CAT, a submissão é cega para o cliente e a régua acerto/erro é autoritativa no servidor (RN-EXE-010); correção server-side integrada com a bateria server-side da Etapa 5.
+- [x] O frontend exibe `ExerciseCard` com renderização robusta usando KaTeX.
+- [x] A página da Prova CAT renderiza uma interface limpa, sem feedbacks, com envio de tempo e finaliza exibindo um gráfico Radar.
+

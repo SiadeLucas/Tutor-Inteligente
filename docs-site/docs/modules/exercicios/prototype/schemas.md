@@ -4,13 +4,18 @@ type: module
 status: draft
 related:
   - modules/exercicios/prototype/index.md
-last_updated: "2026-09-02"
-updated_by: claude
+last_updated: "2026-09-09"
+updated_by: buffy
 ---
 
 # 1. Schemas e DTOs (Pydantic v2 & TypeScript)
 
 Especificação dos contratos de dados tipados para tráfego entre o frontend (Next.js) e o backend (FastAPI).
+
+> [!NOTE]
+> `CatStatusResponse` documenta o contrato implementado (submissão cega RN-EXE-006.1/RN-EXE-010):
+> durante a prova o cliente recebe apenas o indicador ordinal e o próximo item; `theta`, `SE`,
+> `classificacao` e `scores_grandes_areas` só são revelados com `finalizado=true` (Dossiê Diagnóstico).
 
 ---
 
@@ -102,13 +107,24 @@ class SubmeterCatRequest(BaseModel):
 
 
 class CatStatusResponse(BaseModel):
+    """Contrato da submissão cega CAT (RN-EXE-006.1 / RN-EXE-010).
+
+    Durante a prova, NÃO expose theta/SE intermediários ao cliente (submissão cega):
+    os campos de resultado só são preenchidos quando `finalizado=True`. Em jogo,
+    a resposta traz apenas o indicador ordinal de progresso e o próximo item.
+    """
     sessao_id: UUID
-    item_atual_numero: int
-    theta_estimado_atual: float
-    erro_padrao_se: float
-    proximo_item: Optional[ItemExercicioResponse] = None
     finalizado: bool = False
+    indicador_progresso: str
+    proximo_item: Optional[ItemExercicioResponse] = None
+    # --- Campos revelados SOMENTE no encerramento (finalizado=True) ---
+    theta_final: Optional[float] = None
+    erro_padrao: Optional[float] = None
+    classificacao: Optional[str] = None          # 'Básico' | 'Intermediário' | 'Avançado' (RN-EXE-005)
+    total_questoes_respondidas: Optional[int] = None
     scores_grandes_areas: Optional[Dict[str, float]] = None
+    redirecionar_url: Optional[str] = None       # ex: '/materias' (Skill Tree)
+    mensagem: Optional[str] = None
 ```
 
 ---
@@ -142,5 +158,21 @@ export interface SubmissaoResult {
   pista_socratica_ia?: string;
   resolucao_completa_katex?: string;
   pode_gerar_gemea: boolean;
+  resposta_correta?: string | null;
+}
+
+export interface CatStatusResponse {
+  sessao_id: string;
+  finalizado: boolean;
+  indicador_progresso: string;
+  proximo_item?: ItemExercicio | null;
+  // Revelados somente quando finalizado=true (submissão cega)
+  theta_final?: number | null;
+  erro_padrao?: number | null;
+  classificacao?: string | null;
+  total_questoes_respondidas?: number | null;
+  scores_grandes_areas?: Record<string, number> | null;
+  redirecionar_url?: string | null;
+  mensagem?: string | null;
 }
 ```

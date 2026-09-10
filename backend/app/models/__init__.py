@@ -1,6 +1,7 @@
 from app.models.user import Usuario, SessaoAtiva, TokenRecuperacaoSenha
 from app.models.content import Disciplina, VolumeDidatico, Capitulo, Aula, DocumentoVetorialRAG
 from app.models.progress import HeatmapDominio, HorasEstudoDiarias
+from app.models.exercise import ItemExercicio, TentativaExercicio, CaixaReforco, ProvaCat
 
 __all__ = [
     "Usuario",
@@ -13,4 +14,9 @@ __all__ = [
     "DocumentoVetorialRAG",
     "HeatmapDominio",
     "HorasEstudoDiarias",
+    "ItemExercicio",
+    "TentativaExercicio",
+    "CaixaReforco",
+    "ProvaCat",
 ]
+

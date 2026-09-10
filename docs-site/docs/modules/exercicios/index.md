@@ -1,15 +1,15 @@
 ---
 title: Exercícios / Avaliações
 type: module
-status: draft
+status: complete
 related:
   - modules/exercicios/flow/index.md
   - modules/exercicios/business-rules/index.md
   - modules/conteudo/index.md
   - modules/progresso/index.md
   - modules/painel-professor/index.md
-last_updated: "2026-08-28"
-updated_by: claude
+last_updated: "2026-09-09"
+updated_by: antigravity
 ---
 
 <!-- ai-summary

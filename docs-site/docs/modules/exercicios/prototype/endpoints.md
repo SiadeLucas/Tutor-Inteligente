@@ -4,8 +4,8 @@ type: module
 status: draft
 related:
   - modules/exercicios/prototype/index.md
-last_updated: "2026-09-02"
-updated_by: claude
+last_updated: "2026-09-09"
+updated_by: buffy
 ---
 
 # 4. Endpoints da API FastAPI
@@ -259,6 +259,25 @@ async def submeter_resposta_cat(
             },
             "redirecionar_url": "/app/skill-tree"
         }
+
+
+# ============================================================================
+# 3.1 Histórico de Provas CAT Finalizadas (suporte ao disparo da etapa-04
+#     e comparativo entrada vs. atual preparado para a Etapa 8)
+# ============================================================================
+
+@router.get("/cat/historico")
+async def historico_provas_cat(
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Retorna as provas CAT finalizadas do estudante (mais recente primeiro), com
+    theta_geral, erro_padrao_se, classificacao, total_itens_aplicados e
+    scores_grandes_areas. Usado pelo frontend para verificar a pendência da
+    prova diagnóstica de onboarding no primeiro acesso a uma matéria.
+    """
+    ...
 
 
 # ============================================================================

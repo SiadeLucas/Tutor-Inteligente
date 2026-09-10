@@ -6,7 +6,7 @@ related:
   - systems/index.md
   - systems/folder-structure.md
   - knowledge/data-architecture.md
-last_updated: "2026-09-07"
+last_updated: "2026-09-09"
 updated_by: antigravity
 ---
 
@@ -59,8 +59,8 @@ graph LR
     E4["✅ Etapa 4\nOnboarding\ne Cadastro"]
     E5["✅ Etapa 5\nConteúdo\nDidático"]
     E6["✅ Etapa 6\nMotor de IA\ne RAG"]
-    E7["✏️ Etapa 7\nExercícios\ne Motor CAT"]
-    E8["📊 Etapa 8\nProgresso\ne Analytics"]
+    E7["✅ Etapa 7\nExercícios\ne Motor CAT"]
+    E8["✏️ Etapa 8\nProgresso\ne Analytics"]
     E9["💳 Etapa 9\nPagamento\ne Checkout"]
     E10["👨‍🏫 Etapa 10\nDeploy em Nuvem\n& Painel Professor"]
 
@@ -73,6 +73,7 @@ graph LR
     style E4 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E5 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E6 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
+    style E7 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
 ```
 
 ---
@@ -134,12 +135,13 @@ Integração com Gemini Flash via `LLMFactory`, configuração do pgvector para 
 
 ---
 
-### [Etapa 7: Exercícios e Motor CAT](etapa-07-exercicios.md)
-**Duração estimada: 1-2 semanas**
+### [Etapa 7: Exercícios e Motor CAT](etapa-07-exercicios.md) — :white_check_mark: **Concluída**
+**Duração estimada: 1-2 semanas** | **Status:** `Concluída`
 
-Tabelas `itens_exercicios`, `tentativas_exercicios`, `caixa_reforco` e `provas_cat`. Backend com bateria de fixação, lógica de 2ª chance (1.0 vs 0.5), validação SymPy com sandbox segura, Caixa de Reforço, Questões Gêmeas por mutação paramétrica e Prova Adaptativa CAT com TRI 3PL + EAP. Frontend com interface KaTeX de exercícios, feedback visual e Prova Diagnóstica.
+Tabelas `itens_exercicios`, `tentativas_exercicios`, `caixa_reforco` e `provas_cat` criadas via migração `004_exercise_tables`. Backend com bateria de fixação, lógica de 2ª chance (1.0 vs 0.5 vs 0.0), validação SymPy com sandbox segura e timeout de 5s, Caixa de Reforço, Questões Gêmeas paramétricas com distratores estruturados e Prova Adaptativa CAT com TRI 3PL + EAP Bayesiano e seleção MFI. Frontend Next.js 14 com `ExerciseCard` com KaTeX, feedback visual de tentativas e dicas socráticas, página de prova diagnóstica CAT com submissão cega e polígono de proficiência em Gráfico Radar com Recharts, e dashboard de revisão espaçada da Caixa de Reforço.
 
-**Entregável:** Resolução de exercícios com 2ª chance, Caixa de Reforço e Prova CAT adaptativa funcionais.
+**Entregável:** Resolução de exercícios com 2ª chance, Caixa de Reforço e Prova CAT adaptativa funcionais. [x] Concluído!
+
 
 ---
 
