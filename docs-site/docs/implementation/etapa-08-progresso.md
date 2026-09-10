@@ -1,7 +1,7 @@
 ---
 title: "Etapa 8: Progresso e Analytics"
 type: "implementation"
-status: "planned"
+status: "completed"
 related: ["etapa-07-exercicios.md"]
 last_updated: "2026-09-10"
 updated_by: buffy
@@ -275,6 +275,13 @@ async def registrar_tempo(segundos: int, db: AsyncSession = Depends(deps.get_db)
 
 Responsável por cronometrar a atividade e pausar após inatividade.
 
+> [!NOTE]
+> O esqueleto abaixo é apenas o ponto de partida do tutorial. A implementação final
+> (`frontend/src/hooks/useStudyTimer.ts`) expõe a API completa `{ seconds, minutes,
+> formattedTime, isActive, pause, resume, reset, flushSync }`, sincroniza lotes de 30s com
+> `keepalive` + flush em `pagehide`/`beforeunload`/unmount e é a única fonte de gravação de
+> `segundos_ativos` — ver seção 8.7.
+
 ```typescript
 // frontend/src/hooks/useStudyTimer.ts
 import { useEffect, useRef, useState } from 'react';
@@ -312,17 +319,74 @@ Crie o arquivo `frontend/src/app/(student)/progresso/page.tsx` para agrupar os c
 - **`RadarChart`**: Plote os 4 eixos canônicos (slugs canônicos do projeto: `algebra_funcoes`, `geometria`, `algebra_linear`, `aplicada`; exibição: `Álgebra e Funções`, `Geometria e Trigonometria`, `Álgebra Linear e Sequências`, `Matemática Aplicada e Estatística` — mesmos slugs gravados pelo CAT em `scores_grandes_areas` e `historico_theta.grande_area`). O componente `frontend/src/components/exercises/CatRadarChart.tsx` (Etapa 7) já segue esta taxonomia e pode ser estendido com a camada comparativa de entrada vs. atual.
 - **`HeatmapMatrix`**: Um grid iterando pelos capítulos. Cada quadrado recebe uma classe Tailwind baseada na cor (ex: `bg-red-500`, `bg-green-500`).
 - **`TimelineTheta`**: Gráfico de linha mostrando a evolução do `theta_estimado`.
-- **Cronômetro**: a coleta ativa de tempo já está implementada (Etapa 5: `useHeartbeat` + persistência em `horas_estudo_diarias.segundos_ativos` via fixação); o `useStudyTimer` desta etapa deve apenas reutilizar/centralizar essa lógica, sem duplicar gravação.
+- **Cronômetro**: o `useStudyTimer` é o **escritor exclusivo** de `horas_estudo_diarias.segundos_ativos`, via auto-sync a cada 30s (UPSERT em `POST /api/v1/progresso/tempo-estudo`, com `keepalive` e flush em `pagehide`/`beforeunload`/unmount). Nenhum outro endpoint grava tempo — a submissão de fixação NÃO envia nem soma segundos (ver 8.7).
 
 ---
 
 ## 8.6. Critérios de Aceitação
 
-- [ ] Modelos `HeatmapDominio`, `HistoricoTheta` e `HorasEstudoDiarias` criados e migrados com Alembic sem erros (migração `005_progress_tables`; `HeatmapDominio` e `HorasEstudoDiarias` já existem desde a Etapa 5 — a migração adiciona apenas `historico_theta`).
-- [ ] A cor do heatmap transita corretamente pelas 4 fases (cinza, vermelho, amarelo, verde) com os limiares canônicos: cinza (<3 itens), vermelho (<50%), amarelo (50–74%), verde (≥75%) — RN-PRG-012/Tabela 15.
-- [ ] O endpoint `POST /api/v1/progresso/tempo-estudo` utiliza UPSERT (`ON CONFLICT DO UPDATE`) para somar **segundos** do dia (Tabela 17).
-- [ ] O Boletim PDF é gerado corretamente utilizando vetores e faz streaming para o navegador via rota `GET`.
-- [ ] A página `/progresso` exibe corretamente os três gráficos (`RadarChart`, heatmap e timeline) sem erros de hidratação, com os 4 eixos canônicos.
-- [ ] O hook `useStudyTimer` no frontend pausa após 3 minutos cravados de ausência de mouse/teclado, reutilizando a persistência existente de `segundos_ativos`.
-- [ ] Os marcos do CAT da Etapa 7 são registrados em `historico_theta` com `origem_ajuste='onboarding_cat'` (um registro por Grande Área, alimentando o Radar comparativo).
-- [ ] Testes de API desenvolvidos com `pytest-asyncio` confirmam atualização de minutos e status do heatmap.
+- [x] Modelos `HeatmapDominio`, `HistoricoTheta` e `HorasEstudoDiarias` criados e migrados com Alembic sem erros (migração `005_progress_tables`; `HeatmapDominio` e `HorasEstudoDiarias` já existem desde a Etapa 5 — a migração adiciona apenas `historico_theta`).
+- [x] A cor do heatmap transita corretamente pelas 4 fases (cinza, vermelho, amarelo, verde) com os limiares canônicos: cinza (<3 itens), vermelho (<50%), amarelo (50–74%), verde (≥75%) — RN-PRG-012/Tabela 15.
+- [x] O endpoint `POST /api/v1/progresso/tempo-estudo` utiliza UPSERT (`ON CONFLICT DO UPDATE`) para somar **segundos** do dia (Tabela 17).
+- [x] O Boletim PDF é gerado corretamente utilizando vetores e faz streaming para o navegador via rota `GET`.
+- [x] A página `/progresso` exibe corretamente os três gráficos (`RadarChart`, heatmap e timeline) sem erros de hidratação, com os 4 eixos canônicos.
+- [x] O hook `useStudyTimer` no frontend pausa após 3 minutos cravados de ausência de mouse/teclado/scroll (ou aba oculta) e é o único escritor de `segundos_ativos`.
+- [x] Os marcos do CAT da Etapa 7 são registrados em `historico_theta` com `origem_ajuste='onboarding_cat'` (theta global com `grande_area='geral'` + um registro por Grande Área, alimentando o Radar comparativo).
+- [x] Testes de API desenvolvidos com `pytest-asyncio` confirmam atualização de **segundos** e status do heatmap.
+
+---
+
+## 8.7. Estado Real da Implementação (Auditoria Pós-Etapa)
+
+Verificação completa do código entregue contra esta especificação e as regras de negócio
+(`modules/progresso/business-rules/`, `knowledge/database/`). Divergências encontradas e
+corrigidas nesta auditoria — o comportamento descrito abaixo é a **verdade absoluta do sistema**:
+
+### RN-PRG-003 — Escritor único do tempo líquido ativo
+
+- **Contrato:** o `frontend/src/hooks/useStudyTimer.ts` acumula segundos apenas com o usuário
+  ativo (mouse/teclado/scroll; pausa automática após 180s cravados de inatividade ou aba
+  oculta) e sincroniza lotes via `POST /api/v1/progresso/tempo-estudo` (UPSERT
+  `ON CONFLICT ON CONSTRAINT uk_horas_usuario_data` somando segundos, Tabela 17).
+- **Legado desativado:** `POST /api/v1/conteudo/aulas/{capitulo_id}/fixacao` **ignora** o campo
+  `segundos_estudo` do payload (aceito apenas por compatibilidade, marcado `deprecated` em
+  `SubmeterFixacaoRequest`) e grava somente os counters pedagógicos do dia
+  (`exercicios_submetidos`, `aulas_concluidas`). Isso elimina a contagem dupla que existia
+  entre a persistência da Etapa 5 (via fixação) e o auto-sync da Etapa 8.
+- `reset()` do hook zera apenas o cronômetro exibido; o buffer de segundos não sincronizados
+  continua drenando para o servidor nos ciclos seguintes (nenhum tempo estudado é perdido).
+
+### RN-PRG-005 — Streak (sequência de dias ativos)
+
+- Dia ativo = `aulas_concluidas > 0` **OU** `exercicios_submetidos > 0` (OU-lógico, texto
+  literal da regra).
+- A sequência ancora exclusivamente em **hoje ou ontem**; lacunas interrompem a contagem.
+  Se o último dia ativo for anterior a ontem, streak = 0.
+
+### Tabela 16 — valor canônico adicional `grande_area='geral'`
+
+Além dos 4 slugs canônicos (`algebra_funcoes`, `geometria`, `algebra_linear`, `aplicada`), a
+coluna `grande_area` armazena o agregado **`'geral'`** (theta global da prova CAT). Fontes:
+migração `e5f617a89b02` (backfill de `provas_cat`), `ExercisesService._registrar_historico_cat`
+e o fallback de leitura em `GET /progresso/geral`.
+
+### Performance — agregações sem N+1
+
+- `GET /progresso/volumes`: 2 queries agrupadas (`GROUP BY volume_id`) para totais e
+  concluídos, independentemente do número de volumes (eram ~23 queries para os 11 volumes).
+- `GET /progresso/geral`: scores do Radar em lote com `DISTINCT ON (grande_area)` (2 queries
+  no total — era 1 por área × entrada/atual) e timeline implementada como subquery dos 30
+  registros mais recentes reordenados em asc (um `LIMIT` direto em ordem crescente
+  congelaria o gráfico nos registros antigos após o 31º theta).
+- `GET /progresso/top-criticos`: contagem da Caixa de Reforço em 1 query agrupada (era 1 por
+  capítulo crítico).
+
+### Ciclo fechado (Etapa 7 → Etapa 8)
+
+Toda submissão de exercício (1ª tentativa 1.0, 2ª com dica 0.5, erro duplo 0.0) invoca
+`ThetaUpdaterService.processar_micro_ajuste_exercicio` (`RN-PRG-006`, 3PL com amortecimento
+`1/sqrt(N+10)`, clamp ±3.000), que registra em `historico_theta` (`origem_ajuste='micro_ajuste_exercicio'`),
+recalcula o nó do `heatmap_dominio` (RN-PRG-012) e incrementa `exercicios_submetidos` do dia.
+Acerto de Questão Gêmea ainda marca o item matriz como `superado` na Caixa de Reforço
+(RN-EXE-008.1). A reversão de 50% do decremento na superação (RN-PRG-006, item iv) ainda
+**não** está implementada — o marcação `superado` não gera ajuste de theta.

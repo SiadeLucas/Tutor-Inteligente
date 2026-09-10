@@ -5,13 +5,21 @@ status: complete
 related:
   - knowledge/database/index.md
   - modules/progresso/business-rules/regras-calibragem.md
-last_updated: "2026-09-03"
-updated_by: claude
+last_updated: "2026-09-10"
+updated_by: buffy
 ---
 
 # Tabela 16: `historico_theta`
 
 Série temporal contínua da evolução psicométrica do estudante ($\theta$) ao longo de toda a sua jornada, isolada por disciplina e volume.
+
+> [!IMPORTANT]
+> **Valores canônicos de `grande_area`:** os 4 slugs das Grandes Áreas
+> (`algebra_funcoes`, `geometria`, `algebra_linear`, `aplicada`) **mais** o agregado
+> **`'geral'`** (theta global da prova CAT). O valor `'geral'` é gravado pela migração
+> `005_progress_tables` (backfill de `provas_cat` concluídas), por
+> `ExercisesService._registrar_historico_cat` e consumido como fonte primária de leitura
+> do theta geral em `GET /api/v1/progresso/geral`.
 
 ---
 
@@ -46,4 +54,5 @@ ON historico_theta(usuario_id, disciplina_id, registrado_em);
 | `volume_id` | UUID | Sim | Volume associado (se micro-ajuste de aula) | Nullable |
 | `theta_estimado` | DECIMAL(6,3) | Não | Valor de proficiência estimado | Escala de -3.0 a +3.0 |
 | `erro_padrao_se` | DECIMAL(6,3) | Não | Erro padrão da estimativa Bayesiana | Confiabilidade |
-| `origem_ajuste` | VARCHAR(40) | Não | Fonte do ajuste no theta | RN-PRG-006 |
+| `grande_area` | VARCHAR(50) | Não | Macro-área do registro | 4 slugs canônicos + agregado `'geral'` |
+| `origem_ajuste` | VARCHAR(40) | Não | Fonte do ajuste no theta (`onboarding_cat` \| `marco_cat` \| `micro_ajuste_exercicio`) | RN-PRG-006 |

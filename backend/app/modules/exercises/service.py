@@ -117,6 +117,9 @@ class ExercisesService:
                 )
                 await db.execute(stmt_superar)
 
+            # Atualiza micro-ajuste psicométrico e Heatmap de Domínio (RN-PRG-006 / RN-PRG-020)
+            await cls._atualizar_progresso_exercicio(db, current_user, item, pontuacao)
+
             await db.commit()
 
             return SubmissaoExercicioResponse(
@@ -144,6 +147,10 @@ class ExercisesService:
                     tempo_resposta_segundos=payload.tempo_resposta_segundos,
                 )
                 db.add(tentativa)
+
+                # Atualiza métricas parciais de tentativa no heatmap
+                await cls._atualizar_progresso_exercicio(db, current_user, item, 0.0)
+
                 await db.commit()
 
                 pista = await cls._obter_pista_socratica(item, resposta_limpa)
@@ -192,6 +199,9 @@ class ExercisesService:
                         status="pendente",
                     )
                     db.add(novo_reforco)
+
+                # Atualiza micro-ajuste com pontuação 0.0 e Heatmap (RN-PRG-006 / RN-PRG-020)
+                await cls._atualizar_progresso_exercicio(db, current_user, item, 0.0)
 
                 await db.commit()
 
@@ -509,6 +519,7 @@ class ExercisesService:
             prova.finalizado_em = func.now()
             scores_radar = cls.cat_engine.calcular_scores_grandes_areas(historico_eap, float(prova.theta_geral))
             prova.scores_grandes_areas = scores_radar
+            await cls._registrar_historico_cat(db, prova, scores_radar)
             await db.commit()
 
             classificacao = (
@@ -562,6 +573,7 @@ class ExercisesService:
                 prova.finalizado_em = func.now()
                 scores_radar = cls.cat_engine.calcular_scores_grandes_areas(historico_eap, float(prova.theta_geral))
                 prova.scores_grandes_areas = scores_radar
+                await cls._registrar_historico_cat(db, prova, scores_radar)
                 await db.commit()
 
                 return CatStatusResponse(
@@ -731,3 +743,115 @@ class ExercisesService:
             }
             for cr, it in registros
         ]
+
+    @classmethod
+    async def _atualizar_progresso_exercicio(
+        cls,
+        db: AsyncSession,
+        current_user: Usuario,
+        item: ItemExercicio,
+        pontuacao: float,
+    ):
+        """Atualiza o micro-ajuste estocástico do Theta e o Heatmap (RN-PRG-006 / RN-PRG-020)."""
+        try:
+            from app.modules.progress.theta_updater import ThetaUpdaterService
+            from app.models.progress import HorasEstudoDiarias
+            from sqlalchemy.dialects.postgresql import insert as pg_insert
+            from datetime import date
+
+            # 1. Busca volume_id e disciplina_id do capítulo
+            stmt_cap = (
+                select(Capitulo.volume_id, VolumeDidatico.disciplina_id)
+                .join(VolumeDidatico, Capitulo.volume_id == VolumeDidatico.id)
+                .where(Capitulo.id == item.capitulo_id)
+            )
+            res_cap = await db.execute(stmt_cap)
+            row_cap = res_cap.first()
+            vol_id = row_cap[0] if row_cap else None
+            disc_id = row_cap[1] if row_cap else None
+
+            if not disc_id:
+                stmt_disc = select(Disciplina.id).limit(1)
+                disc_id = (await db.execute(stmt_disc)).scalar_one_or_none()
+
+            # 2. Total de questões já respondidas pelo aluno
+            stmt_cnt = select(func.count(TentativaExercicio.id)).where(
+                TentativaExercicio.usuario_id == current_user.id
+            )
+            total_respondidas = (await db.execute(stmt_cnt)).scalar() or 0
+
+            # 3. Micro-ajuste estocástico e Heatmap
+            if disc_id:
+                await ThetaUpdaterService.processar_micro_ajuste_exercicio(
+                    db=db,
+                    usuario_id=current_user.id,
+                    disciplina_id=disc_id,
+                    volume_id=vol_id,
+                    capitulo_id=item.capitulo_id,
+                    item=item,
+                    pontuacao_ponderada=pontuacao,
+                    total_questoes_respondidas_aluno=total_respondidas,
+                )
+
+            # 4. Incrementa contador diário de exercícios submetidos (Tabela 17)
+            hoje = date.today()
+            stmt_horas = (
+                pg_insert(HorasEstudoDiarias)
+                .values(
+                    id=uuid.uuid4(),
+                    usuario_id=current_user.id,
+                    data_registro=hoje,
+                    segundos_ativos=0,
+                    aulas_concluidas=0,
+                    exercicios_submetidos=1,
+                )
+                .on_conflict_do_update(
+                    constraint="uk_horas_usuario_data",
+                    set_={"exercicios_submetidos": HorasEstudoDiarias.exercicios_submetidos + 1},
+                )
+            )
+            await db.execute(stmt_horas)
+        except Exception:
+            # Não interrompe a resolução do exercício em caso de erro secundário
+            pass
+
+    @classmethod
+    async def _registrar_historico_cat(
+        cls,
+        db: AsyncSession,
+        prova: ProvaCat,
+        scores_radar: Dict[str, float],
+    ):
+        """Registra os marcos do CAT em historico_theta (Critério de Aceitação 7 da Etapa 8)."""
+        from app.models.progress import HistoricoTheta
+
+        origem = "onboarding_cat" if prova.tipo_prova == "onboarding_diagnostico" else "marco_cat"
+
+        # 1. Registro do Theta Geral
+        reg_geral = HistoricoTheta(
+            id=uuid.uuid4(),
+            usuario_id=prova.usuario_id,
+            disciplina_id=prova.disciplina_id,
+            volume_id=None,
+            grande_area="geral",
+            theta_estimado=float(prova.theta_geral),
+            erro_padrao_se=float(prova.erro_padrao_se),
+            origem_ajuste=origem,
+        )
+        db.add(reg_geral)
+
+        # 2. Registros por Grande Área para o Radar Comparativo
+        if scores_radar:
+            for area_slug, score_val in scores_radar.items():
+                reg_area = HistoricoTheta(
+                    id=uuid.uuid4(),
+                    usuario_id=prova.usuario_id,
+                    disciplina_id=prova.disciplina_id,
+                    volume_id=None,
+                    grande_area=area_slug,
+                    theta_estimado=float(score_val),
+                    erro_padrao_se=float(prova.erro_padrao_se),
+                    origem_ajuste=origem,
+                )
+                db.add(reg_area)
+

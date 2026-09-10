@@ -138,12 +138,13 @@ frontend/
 │   ├── components/               # Componentes reutilizáveis
 │   │   ├── ui/                   # Botões, modais, inputs com máscara, toasts
 │   │   ├── math/                 # KaTeXRenderer (fórmulas inline e display) e KaTeXEditor
-│   │   ├── charts/               # RadarChart (Recharts), HeatmapMatrix, TimelineTheta
-│   │   ├── header/               # DisciplineSwitcher (Seletor Global de Matéria)
+│   │   ├── progress/             # ProgressRadarChart, TimelineTheta, HeatmapMatrix, TopCriticosHub (Etapa 8)
+│   │   ├── exercises/            # ExerciseCard com 2ª chance e CatRadarChart (Etapa 7)
+│   │   ├── header/               # GlobalHeader com DisciplineSwitcher (Seletor Global de Matéria)
 │   │   └── session/              # ConcurrentSessionModal (aviso de desconexão e rascunho)
 │   ├── hooks/                    # Custom React Hooks
 │   │   ├── useHeartbeat.ts       # Pulso de presença a cada 30s + detecção de conflito de sessão
-│   │   ├── useStudyTimer.ts      # Cronômetro de tempo líquido ativo com pausa em inatividade (Etapa 5)
+│   │   ├── useStudyTimer.ts      # Cronômetro de tempo líquido ativo; escritor exclusivo de segundos_ativos (Etapa 8)
 │   │   └── useSocraticChat.ts    # Hook de conversação fluida com o Agente de IA da aula (Etapa 6)
 │   ├── lib/                      # Utilitários e instâncias globais
 │   │   ├── api.ts                # Cliente Axios/Fetch com interceptors de erro e refresh

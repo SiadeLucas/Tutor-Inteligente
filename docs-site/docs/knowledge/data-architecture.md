@@ -579,7 +579,7 @@ CREATE TABLE historico_theta (
     usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
     disciplina_id UUID NOT NULL REFERENCES disciplinas(id) ON DELETE CASCADE,
     volume_id UUID REFERENCES volumes_didaticos(id) ON DELETE SET NULL,
-    grande_area VARCHAR(50) NOT NULL,
+    grande_area VARCHAR(50) NOT NULL,                          -- 4 slugs canônicos + 'geral' (theta global da prova CAT)
     theta_estimado DECIMAL(6, 3) NOT NULL,                     -- Escala contínua de -3.000 a +3.000
     erro_padrao_se DECIMAL(6, 3) NOT NULL,
     origem_ajuste VARCHAR(40) NOT NULL,                        -- 'onboarding_cat' | 'marco_cat' | 'micro_ajuste_exercicio'

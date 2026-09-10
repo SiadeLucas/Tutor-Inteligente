@@ -119,7 +119,7 @@ Você deve implementar tanto rotas de navegação de estrutura (para alimentar a
 ### Rotas Interativas da Aula
 - `GET /api/v1/conteudo/aulas/{capitulo_id}` - Recupera a aula (os 4 blocos) pertinente àquele capítulo.
 - `GET /api/v1/conteudo/aulas/{capitulo_id}/fixacao` - Serve a bateria de fixação **sem expor o gabarito** (correção server-side, anti-trapaça).
-- `POST /api/v1/conteudo/aulas/{capitulo_id}/fixacao` - Corrige as respostas no servidor (RN-CNT-010), persiste o `heatmap_dominio` (RN-PRG-012) e consolida o tempo líquido ativo em `horas_estudo_diarias` (RN-PRG-003).
+- `POST /api/v1/conteudo/aulas/{capitulo_id}/fixacao` - Corrige as respostas no servidor (RN-CNT-010) e persiste o `heatmap_dominio` (RN-PRG-012) + counters do dia (`exercicios_submetidos`, `aulas_concluidas`). **Não** grava tempo: `segundos_ativos` tem escritor exclusivo (auto-sync do `useStudyTimer` via `POST /api/v1/progresso/tempo-estudo`, contrato da Etapa 8 — o campo legado `segundos_estudo` é aceito mas ignorado).
 - `POST /api/v1/conteudo/aulas/{capitulo_id}/concluir` - Rota legada de conclusão manual com trava de 60%; persiste `aula_concluida` no heatmap.
 - `POST /api/v1/conteudo/aulas/{capitulo_id}/chat` - **(Placeholder)** Ponto de entrada do tutor socrático (Etapa 6). Retorna dummy data por enquanto.
 - `POST /api/v1/conteudo/aulas/{capitulo_id}/pista` - **(Placeholder)** Dica rápida contextual.
@@ -193,7 +193,7 @@ Implemente um componente de abas (Tabs) para navegar entre:
 > Você precisará de uma biblioteca React para renderizar as equações matemáticas das strings markdown retornadas pelo back-end. Recomenda-se o uso de `react-katex` ou `rehype-katex` integrado com um renderizador markdown (como `react-markdown`).
 
 ### Painel Direito e Lógica Auxiliar
-- **useStudyTimer Hook:** Crie um hook customizado React (`frontend/src/hooks/useStudyTimer.ts`) para registrar os minutos ativos estudados na sessão.
+- **useStudyTimer Hook:** Hook customizado React (`frontend/src/hooks/useStudyTimer.ts`) que cronometra o tempo líquido ativo da sessão (pausa após 3 min de inatividade) e persiste via `POST /api/v1/progresso/tempo-estudo`. Desde a Etapa 8 é o **único escritor** de `segundos_ativos` (ver etapa-08, seção 8.7).
 - **Botão de Conclusão:** Ficará localizado ao final da aba "Fixação", sendo ativado apenas quando o usuário simular/submeter um acerto de 60%+ na avaliação.
 
 ---

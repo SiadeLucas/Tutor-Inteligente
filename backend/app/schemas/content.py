@@ -219,7 +219,12 @@ class BateriaFixacaoResponse(BaseModel):
 class SubmeterFixacaoRequest(BaseModel):
     """Respostas do aluno: { numero_da_questao: indice_da_alternativa }"""
     respostas: Dict[int, int] = Field(..., min_length=1)
-    segundos_estudo: int = Field(default=0, ge=0, description="Tempo líquido ativo registrado pelo useStudyTimer")
+    segundos_estudo: int = Field(
+        default=0,
+        ge=0,
+        deprecated=True,
+        description="[LEGADO/IGNORADO] Tempo ativo agora é persistido exclusivamente pelo auto-sync do useStudyTimer via POST /api/v1/progresso/tempo-estudo (RN-PRG-003). Mantido apenas para compatibilidade de clientes antigos.",
+    )
 
 
 class SubmeterFixacaoResponse(BaseModel):

@@ -194,7 +194,9 @@ async def test_fixacao_server_side_fluxo_completo(
     assert hm.status_cor == "verde"
     assert float(hm.taxa_acertos_ponderada) == 100.0
 
-    # 4. Horas de estudo consolidadas (RN-PRG-003)
+    # 4. Horas de estudo (RN-PRG-003, arquitetura Etapa 8): segundos_ativos NÃO é
+    # gravado pela fixação (escritor exclusivo = useStudyTimer via /tempo-estudo).
+    # O campo segundos_estudo do payload é aceito mas IGNORADO (sem contagem dupla).
     hs = (
         await db_session.execute(
             select(HorasEstudoDiarias).where(
@@ -203,7 +205,7 @@ async def test_fixacao_server_side_fluxo_completo(
         )
     ).scalar_one_or_none()
     assert hs is not None
-    assert hs.segundos_ativos == 1200
+    assert hs.segundos_ativos == 0
     assert hs.exercicios_submetidos == 3
     assert hs.aulas_concluidas == 1
 

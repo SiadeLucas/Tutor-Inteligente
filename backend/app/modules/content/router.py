@@ -402,6 +402,11 @@ async def submeter_fixacao(
         db.add(heatmap)
 
     # --- Persistência: horas_estudo_diarias (Tabela 17) ---
+    # RN-PRG-003 (arquitetura Etapa 8): segundos_ativos é gravado EXCLUSIVAMENTE
+    # pelo hook useStudyTimer via POST /api/v1/progresso/tempo-estudo (UPSERT).
+    # Este endpoint registra apenas os counters pedagógicos do dia (exercícios
+    # submetidos e aulas concluídas). O campo legado payload.segundos_estudo é
+    # aceito por compatibilidade mas IGNORADO, eliminando a contagem dupla.
     hoje = date.today()
     hs_res = await db.execute(
         select(HorasEstudoDiarias).where(
@@ -412,20 +417,18 @@ async def submeter_fixacao(
         )
     )
     horas_dia = hs_res.scalar_one_or_none()
-    if horas_dia:
-        horas_dia.segundos_ativos += payload.segundos_estudo
-        horas_dia.exercicios_submetidos += total_respondidas
-        if concluida and not (heatmap.aula_concluida and percentual < 60.0):
-            horas_dia.aulas_concluidas += 1
-    else:
+    if horas_dia is None:
         horas_dia = HorasEstudoDiarias(
             usuario_id=usuario.id,
             data_registro=hoje,
-            segundos_ativos=payload.segundos_estudo,
-            exercicios_submetidos=total_respondidas,
-            aulas_concluidas=1 if concluida else 0,
+            segundos_ativos=0,
+            aulas_concluidas=0,
+            exercicios_submetidos=0,
         )
         db.add(horas_dia)
+    horas_dia.exercicios_submetidos += total_respondidas
+    if concluida and not (heatmap.aula_concluida and percentual < 60.0):
+        horas_dia.aulas_concluidas += 1
 
     # --- Próximo capítulo da sequência ---
     next_cap_res = await db.execute(

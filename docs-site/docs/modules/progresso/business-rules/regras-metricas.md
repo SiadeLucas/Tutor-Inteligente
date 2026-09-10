@@ -32,6 +32,7 @@ $$\text{Precisão 1ª Tentativa} (\%) = \left( \frac{\text{Questões acertadas n
 #### RN-PRG-003: Contabilização de Horas Líquidas de Estudo
 - O cronômetro de estudo contabiliza apenas tempo ativo em telas de aula, teoria ou resolução de exercícios.
 - Inatividade (sem cliques, digitação ou scroll por mais de 3 minutos) pausa automaticamente o contador de tempo líquido.
+- **Escritor exclusivo (arquitetura Etapa 8):** o hook `useStudyTimer` é a única fonte de gravação de `horas_estudo_diarias.segundos_ativos`, via UPSERT em `POST /api/v1/progresso/tempo-estudo`. A submissão da bateria de fixação e a submissão de exercícios gravam apenas counters pedagógicos (`exercicios_submetidos`, `aulas_concluidas`) — **nunca** segundos — evitando contagem dupla.
 
 #### RN-PRG-004: Índice de Fluência e Velocidade
 - Calcula o tempo médio em segundos gasto por questão em cada volume da coleção Iezzi.

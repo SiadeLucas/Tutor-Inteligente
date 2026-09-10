@@ -175,7 +175,7 @@ async def test_submissao_segunda_chance_e_erro_duplo(
     assert res_cr.status_code == 200
     cr_itens = res_cr.json()
     assert len(cr_itens) > 0
-    assert any(i["item_id"] == str(item.id) for i in cr_itens)
+    assert any(i["item_id"] == str(item2.id) for i in cr_itens)
 
 
 @pytest.mark.asyncio

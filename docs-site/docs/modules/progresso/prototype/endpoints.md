@@ -233,7 +233,9 @@ async def registrar_tempo_estudo(
 ):
     """
     RN-PRG-003: Recebe blocos incrementais de tempo líquido de estudo ativo
-    enviados periodicamente pelo cronômetro inteligente da tela de aula.
+    enviados periodicamente pelo cronômetro inteligente (useStudyTimer).
+    Este endpoint é o ESCRITOR EXCLUSIVO de segundos_ativos (Tabela 17); a
+    fixação e a submissão de exercícios NÃO gravam tempo (sem contagem dupla).
     """
     hoje = date.today()
 

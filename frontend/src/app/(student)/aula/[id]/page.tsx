@@ -210,7 +210,9 @@ export default function AulaPage() {
         `/api/v1/conteudo/aulas/${capituloId}/fixacao`,
         {
           respostas: respostas,
-          segundos_estudo: timer.seconds,
+          // RN-PRG-003: o tempo líquido ativo é persistido EXCLUSIVAMENTE pelo
+          // auto-sync do useStudyTimer (POST /progresso/tempo-estudo). Nunca
+          // enviar segundos aqui: causaria contagem dupla na Tabela 17.
         }
       );
       setResultadoFixacao(data);

@@ -6,7 +6,7 @@ related:
   - systems/index.md
   - systems/folder-structure.md
   - knowledge/data-architecture.md
-last_updated: "2026-09-09"
+last_updated: "2026-09-10"
 updated_by: antigravity
 ---
 
@@ -60,7 +60,7 @@ graph LR
     E5["✅ Etapa 5\nConteúdo\nDidático"]
     E6["✅ Etapa 6\nMotor de IA\ne RAG"]
     E7["✅ Etapa 7\nExercícios\ne Motor CAT"]
-    E8["✏️ Etapa 8\nProgresso\ne Analytics"]
+    E8["✅ Etapa 8\nProgresso\ne Analytics"]
     E9["💳 Etapa 9\nPagamento\ne Checkout"]
     E10["👨‍🏫 Etapa 10\nDeploy em Nuvem\n& Painel Professor"]
 
@@ -74,6 +74,7 @@ graph LR
     style E5 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E6 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E7 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
+    style E8 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
 ```
 
 ---
@@ -145,12 +146,13 @@ Tabelas `itens_exercicios`, `tentativas_exercicios`, `caixa_reforco` e `provas_c
 
 ---
 
-### [Etapa 8: Progresso e Analytics](etapa-08-progresso.md)
-**Duração estimada: 1 semana**
+### [Etapa 8: Progresso e Analytics](etapa-08-progresso.md) — :white_check_mark: **Concluída**
+**Duração estimada: 1 semana** | **Status:** `Concluída`
 
-Tabelas `heatmap_dominio`, `historico_theta` e `horas_estudo_diarias`. Backend com micro-ajuste estocástico do theta, métricas tridimensionais, Hub de Ação Top 3 e geração de Boletim PDF com ReportLab. Frontend com Heatmap visual, Gráfico Radar comparativo (entrada CAT vs atual), Timeline de Theta e botão de download do PDF.
+Tabelas `heatmap_dominio`, `historico_theta` e `horas_estudo_diarias` com migração `005_progress_tables`. Backend com micro-ajuste estocástico do theta (TRI 3PL), métricas tridimensionais, Hub de Ação Top 3 e geração de Boletim PDF vetorial com ReportLab. Frontend com Heatmap visual dos 11 volumes, Gráfico Radar comparativo (entrada CAT vs atual), Timeline de Theta com linha de meta (+1.0) e download do PDF institucional.
 
-**Entregável:** Dashboard de progresso completo com gráficos interativos e download de Boletim PDF.
+**Entregável:** Dashboard de progresso completo com gráficos interativos e download de Boletim PDF. [x] Concluído!
+
 
 ---
 

@@ -1,6 +1,7 @@
 """
-Modelos ORM para Progresso do Estudante: Heatmap de Domínio (Tabela 15) e
-Horas de Estudo Diárias (Tabela 17), conforme docs-site/docs/knowledge/database/.
+Modelos ORM para Progresso do Estudante: Heatmap de Domínio (Tabela 15),
+Histórico de Theta TRI (Tabela 16) e Horas de Estudo Diárias (Tabela 17),
+conforme docs-site/docs/knowledge/database/.
 """
 import uuid
 from sqlalchemy import (
@@ -47,6 +48,32 @@ class HeatmapDominio(Base):
     capitulo = relationship("Capitulo")
 
 
+class HistoricoTheta(Base):
+    """Tabela 16: historico_theta - Série temporal psicométrica contínua (theta TRI)."""
+    __tablename__ = "historico_theta"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    usuario_id = Column(UUID(as_uuid=True), ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False, index=True)
+    disciplina_id = Column(UUID(as_uuid=True), ForeignKey("disciplinas.id", ondelete="CASCADE"), nullable=False, index=True)
+    volume_id = Column(UUID(as_uuid=True), ForeignKey("volumes_didaticos.id", ondelete="SET NULL"), nullable=True, index=True)
+    # grande_area: os 4 slugs canônicos ('algebra_funcoes' | 'geometria' |
+    # 'algebra_linear' | 'aplicada') OU o agregado 'geral' (theta global da prova CAT).
+    grande_area = Column(String(50), nullable=False)
+    theta_estimado = Column(Numeric(6, 3), nullable=False)  # Escala contínua de -3.000 a +3.000
+    erro_padrao_se = Column(Numeric(6, 3), nullable=False)
+    origem_ajuste = Column(String(40), nullable=False)  # 'onboarding_cat' | 'marco_cat' | 'micro_ajuste_exercicio'
+    registrado_em = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index("idx_historico_theta_usuario_disciplina", "usuario_id", "disciplina_id", "registrado_em"),
+    )
+
+    # Relacionamentos
+    usuario = relationship("Usuario")
+    disciplina = relationship("Disciplina")
+    volume = relationship("VolumeDidatico")
+
+
 class HorasEstudoDiarias(Base):
     """Tabela 17: horas_estudo_diarias - Tempo líquido ativo por dia (RN-PRG-003)."""
     __tablename__ = "horas_estudo_diarias"
@@ -65,3 +92,4 @@ class HorasEstudoDiarias(Base):
 
     # Relacionamentos
     usuario = relationship("Usuario")
+
