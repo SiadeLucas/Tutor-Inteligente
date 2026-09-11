@@ -12,8 +12,30 @@ from sqlalchemy import select
 from app.core.config import settings
 from app.ai.llm_factory import LLMFactory, GeminiLLMService, OpenAILLMService, BaseLLMService
 from app.ai.socratic_state import SocraticStateManager
+from decimal import Decimal
+from datetime import datetime, timedelta, timezone
+import pytest_asyncio
 from app.ai.rag_engine import RAGEngine
 from app.models.content import VolumeDidatico, Capitulo, DocumentoVetorialRAG
+from app.models.payment import MatriculaPagamento
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def matricular_usuario_teste(usuario_teste, db_session):
+    """Concede Passe Global para usuario_teste para permitir testes do tutor socrático."""
+    mat = MatriculaPagamento(
+        usuario_id=usuario_teste["id"],
+        tipo_produto="passe_global",
+        referencia_produto_id=None,
+        data_inicio=datetime.now(timezone.utc),
+        data_expiracao=datetime.now(timezone.utc) + timedelta(days=365),
+        status="active",
+        valor_pago=Decimal("199.00"),
+        metodo_pagamento="pix",
+        transacao_gateway_id="fixture_passe_global_rag",
+    )
+    db_session.add(mat)
+    await db_session.commit()
 
 
 async def autenticar(async_client: AsyncClient, usuario_teste: dict) -> dict:

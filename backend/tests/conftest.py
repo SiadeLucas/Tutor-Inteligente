@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import hash_senha
 from app.models.user import Usuario, SessaoAtiva, TokenRecuperacaoSenha
+from app.models.payment import MatriculaPagamento, TransacaoFinanceira
 
 # Engine de teste com NullPool para evitar conflito de event loops entre testes assíncronos
 test_engine = create_async_engine(
@@ -80,6 +81,10 @@ async def usuario_teste(db_session):
     stmt_busca = select(Usuario).where(Usuario.email == email_teste)
     existente = (await db_session.execute(stmt_busca)).scalar_one_or_none()
     if existente:
+        await db_session.execute(delete(TransacaoFinanceira).where(TransacaoFinanceira.usuario_id == existente.id))
+        await db_session.execute(delete(MatriculaPagamento).where(MatriculaPagamento.usuario_id == existente.id))
+        await db_session.execute(delete(SessaoAtiva).where(SessaoAtiva.usuario_id == existente.id))
+        await db_session.execute(delete(TokenRecuperacaoSenha).where(TokenRecuperacaoSenha.usuario_id == existente.id))
         await db_session.delete(existente)
         await db_session.commit()
 
@@ -115,6 +120,8 @@ async def usuario_teste(db_session):
     }
 
     # Limpeza pós-teste
+    await db_session.execute(delete(TransacaoFinanceira).where(TransacaoFinanceira.usuario_id == usuario.id))
+    await db_session.execute(delete(MatriculaPagamento).where(MatriculaPagamento.usuario_id == usuario.id))
     await db_session.execute(delete(SessaoAtiva).where(SessaoAtiva.usuario_id == usuario.id))
     await db_session.execute(delete(TokenRecuperacaoSenha).where(TokenRecuperacaoSenha.usuario_id == usuario.id))
     await db_session.execute(delete(Usuario).where(Usuario.id == usuario.id))

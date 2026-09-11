@@ -1,9 +1,10 @@
 ---
 title: "Etapa 9: Pagamento e Checkout"
 type: implementation_step
-status: pending
+status: completed
 related: ["etapa-03-autenticacao"]
-last_updated: 2026-09-06
+last_updated: "2026-09-11"
+updated_by: antigravity
 ---
 
 <!-- ai-summary
@@ -219,13 +220,13 @@ No frontend Next.js 14, devemos oferecer uma experiência fluida para compras in
 
 ### Critérios de Aceitação
 
-- [ ] A conexão com o Asaas (Sandbox) está validada, emitindo PIX e Cartão de crédito corretamente.
-- [ ] As tabelas `matriculas_pagamentos` e `transacoes_financeiras` foram criadas através de migração Alembic.
-- [ ] Quando um usuário compra capítulos avulsos e depois escolhe o volume completo, o valor das compras passadas é abatido integralmente (100%).
-- [ ] Se o abatimento cobrir todo o preço do volume (R$0,00 a pagar), a matrícula no volume é feita instantaneamente sem ir ao gateway Asaas.
-- [ ] O Webhook do Asaas é protegido contra falhas de timing usando `secrets.compare_digest`.
-- [ ] O Webhook do Asaas possui mecanismo de idempotência, não ativando duas vezes o mesmo pagamento.
-- [ ] O endpoint de polling (`GET /status/{cobranca_id}`) verifica o IDOR (não permite ver status de cobranças de outros usuários).
-- [ ] O modal de Checkout no Frontend exibe QR code PIX em SVG ou Base64 e possui o botão de copiar a chave PIX.
-- [ ] A tela PIX faz polling automático e libera o conteúdo magicamente quando pago no app de banco.
-- [ ] Após a compra bem-sucedida, o usuário ganha 365 dias de acesso ao produto especificado.
+- [x] A conexão com o Asaas (Sandbox) está validada, emitindo PIX e Cartão de crédito corretamente.
+- [x] As tabelas `matriculas_pagamentos` e `transacoes_financeiras` foram criadas através de migração Alembic.
+- [x] Quando um usuário compra capítulos avulsos e depois escolhe o volume completo, o valor das compras passadas é abatido integralmente (100%).
+- [x] Se o abatimento cobrir todo o preço do volume (R$0,00 a pagar), a matrícula no volume é feita instantaneamente sem ir ao gateway Asaas.
+- [x] O Webhook do Asaas é protegido contra falhas de timing usando `secrets.compare_digest`.
+- [x] O Webhook do Asaas possui mecanismo de idempotência, não ativando duas vezes o mesmo pagamento.
+- [x] O endpoint de polling (`GET /status/{cobranca_id}`) verifica o IDOR (não permite ver status de cobranças de outros usuários).
+- [x] O modal de Checkout no Frontend exibe QR code PIX em SVG ou Base64 e possui o botão de copiar a chave PIX.
+- [x] A tela PIX faz polling automático e libera o conteúdo magicamente quando pago no app de banco.
+- [x] Após a compra bem-sucedida, o usuário ganha 365 dias de acesso ao produto especificado.

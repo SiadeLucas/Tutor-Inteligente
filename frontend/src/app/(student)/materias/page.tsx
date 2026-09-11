@@ -35,8 +35,10 @@ import {
 } from "lucide-react";
 import { ItemCaixaReforco } from "@/types/exercise";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
-import { api, extrairMensagemErro } from "@/lib/api";
 import { VolumeComCapitulos, SkillTreeNode } from "@/types/content";
+import { CheckoutModal } from "@/components/payment/CheckoutModal";
+import { TipoProduto } from "@/types/payment";
+import { api, extrairMensagemErro } from "@/lib/api";
 
 const GRANDES_AREAS = [
   { key: "todas", label: "Todas as Áreas", icon: Layers },
@@ -71,6 +73,66 @@ export default function MateriasPage() {
   const [reforcoPendentes, setReforcoPendentes] = useState(0);
   const [catPendente, setCatPendente] = useState(false);
 
+  // Modal de Checkout In-App (Etapa 9)
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutData, setCheckoutData] = useState<{
+    tipoProduto: TipoProduto;
+    referenciaId?: string;
+    titulo: string;
+    preco: number;
+  }>({
+    tipoProduto: "capitulo_50min",
+    titulo: "",
+    preco: 9.90,
+  });
+
+  const abrirCheckoutCapitulo = (cap: SkillTreeNode) => {
+    setCheckoutData({
+      tipoProduto: "capitulo_50min",
+      referenciaId: cap.id,
+      titulo: `Capítulo ${cap.numero_capitulo}: ${cap.titulo}`,
+      preco: 9.90,
+    });
+    setCheckoutOpen(true);
+  };
+
+  const abrirCheckoutVolume = (vol: VolumeComCapitulos) => {
+    setCheckoutData({
+      tipoProduto: "volume_iezzi",
+      referenciaId: vol.id,
+      titulo: `Volume ${vol.numero_volume}: ${vol.titulo}`,
+      preco: 49.90,
+    });
+    setCheckoutOpen(true);
+  };
+
+  const abrirCheckoutPasseGlobal = () => {
+    setCheckoutData({
+      tipoProduto: "passe_global",
+      referenciaId: undefined,
+      titulo: "Passe Global Ilimitado (11 Volumes + Tutoria IA)",
+      preco: 199.00,
+    });
+    setCheckoutOpen(true);
+  };
+
+  const loadSkillTree = async () => {
+    try {
+      setLoading(true);
+      const data: VolumeComCapitulos[] = await api.get(
+        "/api/v1/conteudo/skill-tree?disciplina_slug=matematica"
+      );
+      setVolumes(data);
+      if (data.length > 0 && Object.keys(expandedVolumes).length === 0) {
+        setExpandedVolumes({ [data[0].id]: true });
+      }
+    } catch (err: any) {
+      setError(extrairMensagemErro(err, "Não foi possível carregar a árvore de conteúdos."));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     async function loadPendencias() {
       try {
@@ -90,22 +152,6 @@ export default function MateriasPage() {
   }, []);
 
   useEffect(() => {
-    async function loadSkillTree() {
-      try {
-        setLoading(true);
-        const data: VolumeComCapitulos[] = await api.get(
-          "/api/v1/conteudo/skill-tree?disciplina_slug=matematica"
-        );
-        setVolumes(data);
-        if (data.length > 0) {
-          setExpandedVolumes({ [data[0].id]: true });
-        }
-      } catch (err: any) {
-        setError(extrairMensagemErro(err, "Não foi possível carregar a árvore de conteúdos."));
-      } finally {
-        setLoading(false);
-      }
-    }
     loadSkillTree();
   }, []);
 
@@ -250,6 +296,36 @@ export default function MateriasPage() {
           </div>
         )}
 
+        {/* ── Banner Promocional Passe Global (se houver conteúdos bloqueados) ── */}
+        {!loading && !error && volumes.some((v) => (v.capitulos || []).some((c) => !c.desbloqueado)) && (
+          <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-subject-500/10 to-emerald-500/10 border border-subject-200/60 dark:border-subject-800/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-subject-500 text-white flex items-center justify-center font-black shrink-0 shadow-sm">
+                <Sparkles className="w-5 h-5 text-amber-200" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  Passe Global Ilimitado
+                  <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 bg-subject-100 dark:bg-subject-wash text-subject-700 dark:text-subject-300 rounded">
+                    11 Volumes
+                  </span>
+                </h3>
+                <p className="text-xs text-ink-muted mt-0.5">
+                  Acesso irrestrito a todos os 11 volumes didáticos, exercícios e ao Tutor IA Especialista por 12 meses.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={abrirCheckoutPasseGlobal}
+              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-subject-500 hover:bg-subject-600 text-white font-bold text-xs shadow-sm transition-all shrink-0 cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>Desbloquear Tudo por R$ 199,00</span>
+            </button>
+          </div>
+        )}
+
         {/* ── Lista de Volumes: mastery strip + linhas ──────────────────── */}
         {!loading && !error && (
           <div className="space-y-3">
@@ -291,10 +367,26 @@ export default function MateriasPage() {
                           </p>
                         </div>
                       </div>
-                      <ChevronDown
-                        className={`w-4 h-4 text-ink-faint flex-shrink-0 transition-transform ${isExpanded ? "" : "-rotate-90"}`}
-                        aria-hidden="true"
-                      />
+                      <div className="flex items-center gap-3">
+                        {caps.some((c) => !c.desbloqueado) && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              abrirCheckoutVolume(vol);
+                            }}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-subject-600 dark:text-subject-400 bg-subject-50 dark:bg-subject-wash px-2 sm:px-2.5 py-1 rounded-lg border border-subject-200/60 dark:border-subject-wash-strong hover:bg-subject-500 hover:text-white transition-colors cursor-pointer"
+                          >
+                            <Lock className="w-3 h-3" />
+                            <span className="hidden sm:inline">Comprar Volume (R$ 49,90)</span>
+                            <span className="sm:hidden">Volume R$ 49,90</span>
+                          </button>
+                        )}
+                        <ChevronDown
+                          className={`w-4 h-4 text-ink-faint flex-shrink-0 transition-transform ${isExpanded ? "" : "-rotate-90"}`}
+                          aria-hidden="true"
+                        />
+                      </div>
                     </div>
 
                     {/* Mastery strip: uma célula por capítulo (RN-PRG-012) */}
@@ -340,6 +432,41 @@ export default function MateriasPage() {
                                   </div>
                                   <Clock className="w-4 h-4 text-ink-faint flex-shrink-0" aria-hidden="true" />
                                 </>
+                              ) : !cap.desbloqueado ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => abrirCheckoutCapitulo(cap)}
+                                    className="flex-1 min-w-0 text-left group/row"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[11px] font-semibold text-ink-faint tabular-nums">
+                                        Cap. {cap.numero_capitulo}
+                                      </span>
+                                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-200/50 dark:border-amber-800/40">
+                                        <Lock className="w-3 h-3" /> Bloqueado
+                                      </span>
+                                    </div>
+                                    <p className="text-sm font-semibold text-ink-muted group-hover/row:text-subject-600 dark:group-hover/row:text-subject-400 transition-colors truncate mt-0.5">
+                                      {cap.titulo}
+                                    </p>
+                                  </button>
+
+                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                    <span className="hidden sm:flex items-center gap-1 text-[11px] text-ink-faint tabular-nums mr-1">
+                                      <Clock className="w-3 h-3" aria-hidden="true" />
+                                      {cap.tempo_estimado_min}min
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => abrirCheckoutCapitulo(cap)}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-subject-50 dark:bg-subject-wash text-subject-700 dark:text-subject-300 hover:bg-subject-500 hover:text-white text-xs font-semibold border border-subject-200/60 dark:border-subject-wash-strong transition-all cursor-pointer"
+                                    >
+                                      <Lock className="w-3.5 h-3.5" />
+                                      <span>Desbloquear R$ 9,90</span>
+                                    </button>
+                                  </div>
+                                </>
                               ) : (
                                 <>
                                   <Link href={`/aula/${cap.id}`} className="flex-1 min-w-0 group/row">
@@ -369,11 +496,7 @@ export default function MateriasPage() {
                                       href={`/exercicios/${cap.id}`}
                                       title="Exercícios do capítulo"
                                       aria-label={`Exercícios do capítulo ${cap.numero_capitulo}`}
-                                      className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
-                                        travado
-                                          ? "bg-surface-elevated text-ink-faint/50 pointer-events-none"
-                                          : "bg-subject-wash text-subject-700 dark:text-subject-400 hover:bg-subject-500 hover:text-white"
-                                      }`}
+                                      className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors bg-subject-wash text-subject-700 dark:text-subject-400 hover:bg-subject-500 hover:text-white"
                                     >
                                       <PenLine className="w-4 h-4" aria-hidden="true" />
                                     </Link>
@@ -381,11 +504,7 @@ export default function MateriasPage() {
                                       href={`/aula/${cap.id}`}
                                       title="Abrir aula"
                                       aria-label={`Abrir aula do capítulo ${cap.numero_capitulo}`}
-                                      className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
-                                        travado
-                                          ? "bg-surface-elevated text-ink-faint/50 pointer-events-none"
-                                          : "bg-surface-elevated text-ink-muted hover:text-subject-600 dark:hover:text-subject-400"
-                                      }`}
+                                      className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors bg-surface-elevated text-ink-muted hover:text-subject-600 dark:hover:text-subject-400"
                                     >
                                       <PlayIcon />
                                     </Link>
@@ -403,6 +522,19 @@ export default function MateriasPage() {
             })}
           </div>
         )}
+
+        {/* Modal Global de Checkout In-App (Etapa 9) */}
+        <CheckoutModal
+          isOpen={checkoutOpen}
+          onClose={() => setCheckoutOpen(false)}
+          tipoProduto={checkoutData.tipoProduto}
+          referenciaId={checkoutData.referenciaId}
+          tituloProduto={checkoutData.titulo}
+          precoPadrao={checkoutData.preco}
+          onPaymentSuccess={() => {
+            loadSkillTree();
+          }}
+        />
       </main>
     </div>
   );

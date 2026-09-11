@@ -49,6 +49,13 @@ class ExercisesService:
         if not item:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item de exercício não localizado.")
 
+        from app.modules.payments.access_control import verificar_acesso_capitulo
+        if not await verificar_acesso_capitulo(db, current_user, item.capitulo_id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Conteúdo bloqueado. É necessária uma matrícula ativa para submeter exercícios deste capítulo.",
+            )
+
         # RN-EXE-008: o número real da tentativa é autoritativo no SERVIDOR (contagem de
         # registros desta dupla usuário+item). O campo `tentativa_numero` do payload é
         # apenas um hint opcional; nunca define pontuação nem libera 2ª chance. Isso
@@ -261,6 +268,13 @@ class ExercisesService:
         item_matriz = await db.get(ItemExercicio, item_matriz_id)
         if not item_matriz:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item matriz não localizado.")
+
+        from app.modules.payments.access_control import verificar_acesso_capitulo
+        if not await verificar_acesso_capitulo(db, current_user, item_matriz.capitulo_id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Conteúdo bloqueado. É necessária uma matrícula ativa para gerar questões deste capítulo.",
+            )
 
         # Mutação paramétrica quadrática determinística
         r1, r2 = 2, 3

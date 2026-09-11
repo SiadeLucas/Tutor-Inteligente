@@ -8,10 +8,32 @@ Valida:
 5. Bateria de fixação por capítulo e consulta da Caixa de Reforço.
 """
 import pytest
+import pytest_asyncio
+from decimal import Decimal
+from datetime import datetime, timedelta, timezone
 from httpx import AsyncClient
 from sqlalchemy import select
 from app.models.exercise import ItemExercicio, ProvaCat, CaixaReforco
 from app.models.content import Capitulo, Disciplina
+from app.models.payment import MatriculaPagamento
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def matricular_usuario_teste(usuario_teste, db_session):
+    """Concede Passe Global para usuario_teste para permitir testes de exercícios de capítulos."""
+    mat = MatriculaPagamento(
+        usuario_id=usuario_teste["id"],
+        tipo_produto="passe_global",
+        referencia_produto_id=None,
+        data_inicio=datetime.now(timezone.utc),
+        data_expiracao=datetime.now(timezone.utc) + timedelta(days=365),
+        status="active",
+        valor_pago=Decimal("199.00"),
+        metodo_pagamento="pix",
+        transacao_gateway_id="fixture_passe_global_exe",
+    )
+    db_session.add(mat)
+    await db_session.commit()
 
 
 async def autenticar(async_client: AsyncClient, usuario_teste: dict) -> dict:

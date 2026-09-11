@@ -7,10 +7,32 @@ consolidação de tempo de estudo em horas_estudo_diarias (RN-PRG-003).
 Todos os endpoints exigem autenticação (Bearer token via get_current_user).
 """
 import pytest
+import pytest_asyncio
+from decimal import Decimal
+from datetime import datetime, timedelta, timezone
 from httpx import AsyncClient
 from sqlalchemy import select
 
 from app.models.progress import HeatmapDominio, HorasEstudoDiarias
+from app.models.payment import MatriculaPagamento
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def matricular_usuario_teste(usuario_teste, db_session):
+    """Concede Passe Global ativo para usuario_teste nos testes pedagógicos de conteúdo."""
+    mat = MatriculaPagamento(
+        usuario_id=usuario_teste["id"],
+        tipo_produto="passe_global",
+        referencia_produto_id=None,
+        data_inicio=datetime.now(timezone.utc),
+        data_expiracao=datetime.now(timezone.utc) + timedelta(days=365),
+        status="active",
+        valor_pago=Decimal("199.00"),
+        metodo_pagamento="pix",
+        transacao_gateway_id="fixture_passe_global",
+    )
+    db_session.add(mat)
+    await db_session.commit()
 
 
 async def autenticar(async_client: AsyncClient, usuario_teste: dict) -> dict:
@@ -326,3 +348,70 @@ async def test_placeholders_socratica_e_pista(async_client: AsyncClient, usuario
     assert pista_res.status_code == 200
     pista_data = pista_res.json()
     assert "pista_socratica_katex" in pista_data
+
+
+@pytest.mark.asyncio
+async def test_bloqueio_comercial_conteudo_sem_matricula(
+    async_client: AsyncClient,
+    db_session,
+):
+    """Estudante sem matrícula ativa deve receber 403 Forbidden em aulas, fixação e chat (RN-PAG-001.1)."""
+    from app.core.security import hash_senha
+    from app.models.user import Usuario
+    from sqlalchemy import delete
+
+    email_sem_mat = "aluno_bloqueado@tutorinteligente.com.br"
+    aluno_bloq = Usuario(
+        cpf="55566677788",
+        email=email_sem_mat,
+        senha_hash=hash_senha("SenhaForte123@"),
+        nome_completo="Aluno Bloqueado",
+        data_nascimento=datetime(2006, 1, 1).date(),
+        idade_anos=18,
+        eh_menor_idade=False,
+        uf="SP",
+        cidade="São Paulo",
+        cep="01001000",
+        escola_tipo="publica",
+        serie_ano="3_ano",
+        role="student",
+        ativo=True,
+    )
+    db_session.add(aluno_bloq)
+    await db_session.commit()
+    await db_session.refresh(aluno_bloq)
+
+    headers_bloq = await autenticar(
+        async_client,
+        {"email": email_sem_mat, "senha_plana": "SenhaForte123@"},
+    )
+    cap1_id = await obter_cap1_id(async_client, headers_bloq)
+
+    # 1. Tentativa de obter aula completa -> 403 Forbidden
+    res_aula = await async_client.get(f"/api/v1/conteudo/aulas/{cap1_id}", headers=headers_bloq)
+    assert res_aula.status_code == 403
+    assert "bloqueado" in res_aula.json()["detail"].lower()
+
+    # 2. Tentativa de obter bateria de fixação -> 403 Forbidden
+    res_fix = await async_client.get(f"/api/v1/conteudo/aulas/{cap1_id}/fixacao", headers=headers_bloq)
+    assert res_fix.status_code == 403
+
+    # 3. Tentativa de submeter fixação -> 403 Forbidden
+    res_sub = await async_client.post(
+        f"/api/v1/conteudo/aulas/{cap1_id}/fixacao",
+        json={"respostas": {1: 1}, "segundos_estudo": 60},
+        headers=headers_bloq,
+    )
+    assert res_sub.status_code == 403
+
+    # 4. Tentativa de conversar com tutor socrático -> 403 Forbidden
+    res_chat = await async_client.post(
+        f"/api/v1/conteudo/aulas/{cap1_id}/chat",
+        json={"capitulo_id": cap1_id, "mensagem": "Ajuda!"},
+        headers=headers_bloq,
+    )
+    assert res_chat.status_code == 403
+
+    # Limpeza
+    await db_session.execute(delete(Usuario).where(Usuario.id == aluno_bloq.id))
+    await db_session.commit()

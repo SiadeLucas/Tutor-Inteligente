@@ -31,6 +31,7 @@ from app.ai.llm_factory import LLMFactory
 from app.ai.rag_engine import RAGEngine
 from app.ai.prompts.socratic import SYSTEM_PROMPT_SOCRATICO
 from app.ai.socratic_state import SocraticStateManager
+from app.modules.payments.access_control import obter_capitulos_desbloqueados, verificar_acesso_capitulo
 
 logger = logging.getLogger("app.modules.content.router")
 from app.schemas.content import (
@@ -80,8 +81,10 @@ def _montar_nó_heatmap(
     heatmap: Optional[HeatmapDominio],
     tem_conteudo: bool = True,
     pre_requisito_pendente: bool = False,
+    comercialmente_desbloqueado: bool = True,
 ) -> SkillTreeNodeResponse:
-    """Constrói o nó da Skill Tree aplicando RN-PRG-012 sobre o heatmap real e disponibilidade de conteúdo."""
+    """Constrói o nó da Skill Tree aplicando RN-PRG-012 sobre o heatmap real, disponibilidade de conteúdo e gating comercial."""
+    esta_desbloqueado = tem_conteudo and comercialmente_desbloqueado
     if heatmap is None:
         return SkillTreeNodeResponse(
             id=cap.id,
@@ -93,7 +96,7 @@ def _montar_nó_heatmap(
             status_dominio="not_started",
             cor_heatmap="grey",
             percentual_acerto=0.0,
-            desbloqueado=tem_conteudo,
+            desbloqueado=esta_desbloqueado,
             tem_conteudo=tem_conteudo,
             pre_requisito_pendente=pre_requisito_pendente,
         )
@@ -110,7 +113,7 @@ def _montar_nó_heatmap(
         status_dominio=STATUS_DOMINIO_PARA_FRONTEND[heatmap.status_cor],
         cor_heatmap=cor,
         percentual_acerto=taxa,
-        desbloqueado=tem_conteudo,
+        desbloqueado=esta_desbloqueado,
         tem_conteudo=tem_conteudo,
         pre_requisito_pendente=pre_requisito_pendente,
     )
@@ -189,6 +192,7 @@ async def listar_capitulos_volume(
 
     capitulo_ids = [c.id for c in capitulos]
     heatmaps = await _obter_heatmaps(db, usuario.id, capitulo_ids)
+    desbloqueados_comercial = await obter_capitulos_desbloqueados(db, usuario, capitulo_ids)
 
     # Identifica capítulos que possuem aula publicada
     aulas_res = await db.execute(
@@ -202,6 +206,7 @@ async def listar_capitulos_volume(
     nodes = []
     for idx, cap in enumerate(sorted_caps):
         tem_conteudo = cap.id in aulas_publicadas_ids
+        comercial_ok = cap.id in desbloqueados_comercial
         pre_pendente = False
         if idx > 0:
             cap_anterior = sorted_caps[idx - 1]
@@ -214,6 +219,7 @@ async def listar_capitulos_volume(
                 heatmaps.get(cap.id),
                 tem_conteudo=tem_conteudo,
                 pre_requisito_pendente=pre_pendente,
+                comercialmente_desbloqueado=comercial_ok,
             )
         )
     return nodes
@@ -282,6 +288,7 @@ async def obter_skill_tree(
     todos_capitulos = [cap for vol in volumes for cap in vol.capitulos]
     capitulo_ids = [c.id for c in todos_capitulos]
     heatmaps = await _obter_heatmaps(db, usuario.id, capitulo_ids)
+    desbloqueados_comercial = await obter_capitulos_desbloqueados(db, usuario, capitulo_ids)
 
     # Identifica capítulos que possuem aula publicada
     aulas_res = await db.execute(
@@ -297,6 +304,7 @@ async def obter_skill_tree(
         capitulos_nodes = []
         for idx, cap in enumerate(sorted_caps):
             tem_conteudo = cap.id in aulas_publicadas_ids
+            comercial_ok = cap.id in desbloqueados_comercial
             pre_pendente = False
             if idx > 0:
                 cap_anterior = sorted_caps[idx - 1]
@@ -309,6 +317,7 @@ async def obter_skill_tree(
                     heatmaps.get(cap.id),
                     tem_conteudo=tem_conteudo,
                     pre_requisito_pendente=pre_pendente,
+                    comercialmente_desbloqueado=comercial_ok,
                 )
             )
 
@@ -336,6 +345,12 @@ async def obter_aula_capitulo(
     usuario: Usuario = Depends(get_current_user),
 ):
     """Recupera os 4 blocos pedagógicos (Teoria KaTeX, Exemplos, Dicas e Fixação) para o capítulo selecionado."""
+    if not await verificar_acesso_capitulo(db, usuario, capitulo_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Conteúdo bloqueado. É necessária uma matrícula ativa para acessar este capítulo.",
+        )
+
     stmt = (
         select(Aula)
         .join(Capitulo, Aula.capitulo_id == Capitulo.id)
@@ -384,6 +399,12 @@ async def obter_bateria_fixacao(
     """Serve a bateria de fixação do capítulo SEM expor o gabarito.
     A correção ocorre apenas no POST de submissão (anti-trapaça).
     """
+    if not await verificar_acesso_capitulo(db, usuario, capitulo_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Conteúdo bloqueado. É necessária uma matrícula ativa para acessar este capítulo.",
+        )
+
     cap_res = await db.execute(
         select(Capitulo).where(Capitulo.id == capitulo_id).options(selectinload(Capitulo.volume))
     )
@@ -428,6 +449,12 @@ async def submeter_fixacao(
     usuário (RN-PRG-012) e consolida o tempo líquido ativo do dia na
     horas_estudo_diarias (RN-PRG-003 / Tabela 17).
     """
+    if not await verificar_acesso_capitulo(db, usuario, capitulo_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Conteúdo bloqueado. É necessária uma matrícula ativa para acessar este capítulo.",
+        )
+
     cap_res = await db.execute(
         select(Capitulo).where(Capitulo.id == capitulo_id).options(selectinload(Capitulo.volume))
     )
@@ -555,6 +582,12 @@ async def concluir_aula(
     Preferencialmente use POST /aulas/{id}/fixacao, que corrige no servidor
     e já registra heatmap + tempo de estudo em uma única chamada.
     """
+    if not await verificar_acesso_capitulo(db, usuario, capitulo_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Conteúdo bloqueado. É necessária uma matrícula ativa para acessar este capítulo.",
+        )
+
     cap_res = await db.execute(select(Capitulo).where(Capitulo.id == capitulo_id))
     capitulo = cap_res.scalar_one_or_none()
     if not capitulo:
@@ -640,6 +673,12 @@ async def chat_socratico(
     4. Determina o estágio socrático adequado (1: Reflexão, 2: Pista, 3: Passo Guiado).
     5. Invoca a LLMFactory com fallback resiliente para falhas de rede/cota.
     """
+    if not await verificar_acesso_capitulo(db, usuario, capitulo_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Conteúdo bloqueado. É necessária uma matrícula ativa para acessar este capítulo.",
+        )
+
     # 1. Rate limiting pedagógico via Redis (30 mensagens / capítulo / dia)
     try:
         redis_client = get_redis()
@@ -790,6 +829,12 @@ async def obter_pista(
     RN-CNT-012: Fornece pista contextual de Estágio 2 apontando a propriedade matemática
     do Iezzi aplicável sem entregar a resposta final.
     """
+    if not await verificar_acesso_capitulo(db, usuario, capitulo_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Conteúdo bloqueado. É necessária uma matrícula ativa para acessar este capítulo.",
+        )
+
     stmt = (
         select(Capitulo)
         .options(selectinload(Capitulo.volume))

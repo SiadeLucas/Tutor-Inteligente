@@ -33,7 +33,7 @@ class UsuarioAuthResponse(BaseModel):
     nome_completo: str
     email: EmailStr
     cpf: str
-    role: Literal["student", "teacher"]
+    role: Literal["student", "teacher", "admin"]
     avatar_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

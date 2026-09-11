@@ -6,7 +6,7 @@ related:
   - systems/index.md
   - systems/folder-structure.md
   - knowledge/data-architecture.md
-last_updated: "2026-09-10"
+last_updated: "2026-09-11"
 updated_by: antigravity
 ---
 
@@ -61,7 +61,7 @@ graph LR
     E6["✅ Etapa 6\nMotor de IA\ne RAG"]
     E7["✅ Etapa 7\nExercícios\ne Motor CAT"]
     E8["✅ Etapa 8\nProgresso\ne Analytics"]
-    E9["💳 Etapa 9\nPagamento\ne Checkout"]
+    E9["✅ Etapa 9\nPagamento\ne Checkout"]
     E10["👨‍🏫 Etapa 10\nDeploy em Nuvem\n& Painel Professor"]
 
     E1 --> E3 --> E4 --> E5 --> E6 --> E7 --> E8 --> E9 --> E10
@@ -75,6 +75,7 @@ graph LR
     style E6 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E7 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E8 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
+    style E9 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
 ```
 
 ---
@@ -156,12 +157,12 @@ Tabelas `heatmap_dominio`, `historico_theta` e `horas_estudo_diarias` com migra�
 
 ---
 
-### [Etapa 9: Pagamento e Checkout](etapa-09-pagamento.md)
-**Duração estimada: 1-2 semanas**
+### [Etapa 9: Pagamento e Checkout](etapa-09-pagamento.md) — :white_check_mark: **Concluída**
+**Duração estimada: 1-2 semanas** | **Status:** `Concluída`
 
-Tabelas `matriculas_pagamentos` e `transacoes_financeiras`. Integração com gateway Asaas (conta Sandbox → Produção), geração de PIX dinâmico com QR Code, checkout transparente com cartão de crédito tokenizado, webhook com idempotência e `secrets.compare_digest`, cálculo de upgrade proporcional e vigência de 365 dias. Frontend com modal de checkout in-app, polling de status PIX e confirmação de pagamento.
+Tabelas `matriculas_pagamentos` e `transacoes_financeiras` com migração `006_payment_tables`. Integração com gateway Asaas (Sandbox + simulador dev), geração de PIX dinâmico com QR Code, checkout de cartão de crédito, webhook com idempotência e `secrets.compare_digest`, cálculo de upgrade proporcional (100% de abatimento de capítulos) e vigência de 365 dias. Frontend com modal de checkout in-app, polling de status PIX e liberação automática de conteúdo.
 
-**Entregável:** Compra de capítulo avulso via PIX e Cartão com ativação instantânea da matrícula.
+**Entregável:** Compra de capítulo avulso via PIX e Cartão com ativação instantânea da matrícula. [x] Concluído!
 
 ---
 
@@ -194,7 +195,8 @@ graph TD
     style E1 fill:#15803d,color:#fff
     style E2 fill:#475569,stroke:#64748b,stroke-dasharray: 5 5,color:#cbd5e1
     style E3 fill:#15803d,color:#fff
-    style E4 fill:#1d4ed8,color:#fff
+    style E4 fill:#15803d,color:#fff
+    style E9 fill:#15803d,color:#fff
     style E10 fill:#7e22ce,color:#fff
 ```
 

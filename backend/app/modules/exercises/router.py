@@ -136,6 +136,12 @@ async def obter_bateria_capitulo(
     Retorna 3 a 5 exercícios de fixação do capítulo ordenados por dificuldade crescente (parâmetro b).
     Gabarito ocultado para validação server-side.
     """
+    from app.modules.payments.access_control import verificar_acesso_capitulo
+    if not await verificar_acesso_capitulo(db, current_user, capitulo_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Conteúdo bloqueado. É necessária uma matrícula ativa para acessar este capítulo.",
+        )
     return await ExercisesService.obter_bateria_fixacao(capitulo_id, db)
 
 
