@@ -25,6 +25,9 @@ export function setAccessToken(token: string | null) {
 
 export function clearAuth() {
   setAccessToken(null);
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("ti_user");
+  }
 }
 
 export function getAccessToken(): string | null {

@@ -4,7 +4,7 @@ type: module
 status: draft
 related:
   - modules/interface/business-rules/index.md
-last_updated: "2026-09-10"
+last_updated: "2026-09-11"
 updated_by: antigravity
 ---
 
@@ -21,7 +21,7 @@ updated_by: antigravity
 | Tablet | 768px - 1024px | `.layout-tablet` |
 | Desktop | > 1024px | `.layout-desktop` |
 
-#### RN-INT-007 (revisada 2026-09-10): Navegação Primária por Breakpoint
+#### RN-INT-007 (revisada 2026-09-11): Navegação Primária por Breakpoint
 
 A navegação primária é renderizada pelo `AppShell` (`frontend/src/components/nav/AppShell.tsx`),
 composto por `GlobalHeader` (topo) + `SideNav` (desktop) + `BottomNav` (mobile).
@@ -30,7 +30,7 @@ composto por `GlobalHeader` (topo) + `SideNav` (desktop) + `BottomNav` (mobile).
 |:---|:---|:---|
 | Mobile (< 768px) | `BottomNav` fixa na base + `GlobalHeader` compacto (h-14) no topo | Tab bar com 4 itens (Matérias, Praticar, Progresso, Perfil), dentro da zona do polegar; **sem hamburger** |
 | Tablet (768–1024px) | Mesmo padrão do mobile | BottomNav + header; grid de 2 colunas (RN-INT-008) |
-| Desktop (> 1024px) | `SideNav` fixa de 256px | Sempre visível, ícones + labels; conteúdo deslocado (`lg:pl-64`); BottomNav oculta |
+| Desktop (> 1024px) | `SideNav` fixa de 256px + `GlobalHeader` sticky no topo | `SideNav` sempre visível com os 4 itens em paridade com o mobile (Matérias, Praticar, Progresso, Perfil) e botão único de saída no rodapé; `GlobalHeader` possui avatar com link para `/perfil` e oculta botão duplicado de logout (`lg:hidden`); conteúdo deslocado (`lg:pl-64`); BottomNav oculta |
 
 Regras adicionais:
 - **Focus-mode:** `/exercicios` e `/onboarding/cat` não exibem navegação primária

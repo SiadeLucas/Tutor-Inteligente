@@ -11,7 +11,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpen, Dumbbell, TrendingUp, LogOut } from "lucide-react";
+import { BookOpen, Dumbbell, TrendingUp, LogOut, User } from "lucide-react";
 import { api, clearAuth } from "@/lib/api";
 import { useDisciplineTheme } from "@/components/theme/DisciplineThemeProvider";
 
@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { href: "/materias", label: "Matérias", icon: BookOpen, match: (p: string) => p.startsWith("/materias") || p.startsWith("/aula") },
   { href: "/reforco", label: "Praticar", icon: Dumbbell, match: (p: string) => p.startsWith("/reforco") || p.startsWith("/exercicios") },
   { href: "/progresso", label: "Progresso", icon: TrendingUp, match: (p: string) => p.startsWith("/progresso") },
+  { href: "/perfil", label: "Perfil", icon: User, match: (p: string) => p.startsWith("/perfil") },
 ] as const;
 
 export function SideNav() {

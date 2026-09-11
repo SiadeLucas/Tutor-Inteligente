@@ -14,6 +14,7 @@ import { usePathname } from "next/navigation";
 import { GlobalHeader } from "@/components/header/GlobalHeader";
 import { SideNav } from "@/components/nav/SideNav";
 import { BottomNav } from "@/components/nav/BottomNav";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 /** Rotas em modo foco: sem SideNav nem BottomNav (mantêm apenas o header). */
 const FOCUS_MODE_ROUTES = ["/exercicios", "/onboarding/cat"];
@@ -21,6 +22,7 @@ const FOCUS_MODE_ROUTES = ["/exercicios", "/onboarding/cat"];
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "/";
   const isFocusMode = FOCUS_MODE_ROUTES.some((r) => pathname.startsWith(r));
+  const { user } = useCurrentUser();
 
   return (
     <div className="min-h-screen">
@@ -28,7 +30,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {!isFocusMode && <BottomNav />}
 
       <div className="lg:pl-64">
-        <GlobalHeader userRole="student" userName="Aluno" />
+        <GlobalHeader userRole="student" userName={user?.nome_completo || "Aluno"} />
         <div className={isFocusMode ? "" : "pb-safe-bottom"}>{children}</div>
       </div>
     </div>

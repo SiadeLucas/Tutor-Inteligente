@@ -28,6 +28,13 @@ export default function Home() {
             </div>
 
             <Link
+              href="/cadastro"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated transition-colors"
+            >
+              Criar Conta
+            </Link>
+
+            <Link
               href="/login"
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-subject-500 hover:bg-subject-600 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
             >
@@ -56,18 +63,25 @@ export default function Home() {
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
-              href="/login"
+              href="/cadastro"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-subject-500 hover:bg-subject-600 text-white font-semibold text-sm shadow-sm transition-colors cursor-pointer"
             >
-              <span>Entrar com Login ou CPF</span>
+              <span>Começar Gratuitamente</span>
               <ArrowRight className="w-4 h-4" />
+            </Link>
+
+            <Link
+              href="/login"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-slate-300 dark:border-line hover:bg-slate-100 dark:hover:bg-surface-elevated text-slate-700 dark:text-slate-200 font-semibold text-sm transition-colors"
+            >
+              Entrar na Conta
             </Link>
 
             <a
               href="#pilares"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-slate-300 dark:border-line hover:bg-slate-100 dark:hover:bg-surface-elevated text-slate-700 dark:text-slate-200 font-semibold text-sm transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-white text-sm font-medium transition-colors"
             >
-              Conhecer a Metodologia
+              Metodologia
             </a>
           </div>
         </section>

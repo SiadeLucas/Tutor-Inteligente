@@ -9,6 +9,7 @@
  */
 
 import React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, User, BookOpen } from "lucide-react";
 import { api, clearAuth } from "@/lib/api";
@@ -42,6 +43,16 @@ export function GlobalHeader({
   };
 
   const nomeDisciplina = disciplina?.nome ?? "Matemática";
+
+  const iniciais =
+    userName && userName !== "Aluno" && userName !== "Professor"
+      ? userName
+          .trim()
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((p) => p[0]?.toUpperCase() ?? "")
+          .join("")
+      : "";
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-surface-card/95 backdrop-blur supports-[backdrop-filter]:bg-surface-card/85">
@@ -87,19 +98,28 @@ export function GlobalHeader({
             Presença Ativa
           </span>
 
-          <span
-            title={userName}
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-surface-elevated border border-line text-ink-muted"
+          <Link
+            href="/perfil"
+            title={`Perfil de ${userName}`}
+            aria-label="Acessar meu perfil e configurações"
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-surface-elevated hover:bg-subject-wash border border-line hover:border-subject-300 text-ink-muted hover:text-subject-600 transition-colors cursor-pointer"
           >
-            <User className="w-4 h-4" aria-hidden="true" />
-          </span>
+            {iniciais ? (
+              <span className="text-xs font-bold text-subject-700 dark:text-subject-300">{iniciais}</span>
+            ) : (
+              <User className="w-4 h-4" aria-hidden="true" />
+            )}
+          </Link>
 
+          {/* Botão de sair: no desktop para alunos fica oculto pois já existe o botão na SideNav */}
           <button
             onClick={handleLogout}
             disabled={loggingOut}
             title="Encerrar sessão"
             aria-label="Encerrar sessão"
-            className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-ink-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+            className={`inline-flex items-center justify-center w-9 h-9 rounded-lg text-ink-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer ${
+              userRole === "student" ? "lg:hidden" : ""
+            }`}
           >
             <LogOut className="w-4 h-4" aria-hidden="true" />
           </button>

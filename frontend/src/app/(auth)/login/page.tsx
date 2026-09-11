@@ -61,6 +61,13 @@ function LoginForm() {
       });
 
       setAccessToken(data.access_token);
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem("ti_user", JSON.stringify(data.usuario));
+        } catch {
+          // ignore
+        }
+      }
 
       if (data.usuario.role === "teacher") {
         router.push("/teacher");
