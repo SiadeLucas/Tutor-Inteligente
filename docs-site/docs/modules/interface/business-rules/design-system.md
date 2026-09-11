@@ -1,32 +1,41 @@
 ---
 title: Interface - 1. Design System
 type: module
-status: draft
+status: active
 related:
   - modules/interface/business-rules/index.md
-last_updated: "2026-08-28"
-updated_by: claude
+last_updated: "2026-09-10"
+updated_by: antigravity
 ---
 
 # 1. Design System
 
 ### 1.1 Paleta de Cores
 
-#### RN-INT-001: Cores Primárias e Tokens
-- A cor primária da plataforma é **laranja** (`#F57C00`), consistente com a documentação MkDocs.
-- Todos os componentes devem referenciar tokens CSS custom properties (ex: `var(--ti-primary)`) ao invés de valores hex diretos.
-- Tokens obrigatórios:
+#### RN-INT-001 (revisada 2026-09-10): Cor como Dado — Tokens por Disciplina
+- **Fonte da verdade:** a coluna `disciplinas.cor_tema` (banco de dados). A cor da matéria é DADO, não código.
+- O motor de cor (`frontend/src/lib/color.ts`) deriva, em OKLCH, uma escala completa `50–900` a partir desse único hex, com lightness e croma fixos por step.
+- Como a lightness é idêntica entre disciplinas, o contraste (WCAG AA) é garantido por construção para qualquer matéria cadastrada.
+- O `DisciplineThemeProvider` (carregado no `layout.tsx` raiz) busca a disciplina em `GET /api/v1/conteudo/disciplinas/{slug}` e injeta as variáveis na `<html>`.
+- **Camadas de tokens (Tailwind):**
+  - `subject-{50..900}` + `subject-wash`/`subject-wash-strong` — identidade da matéria (laranja = Matemática hoje).
+  - `ink-{text,muted,faint}` — texto estrutural.
+  - `surface-{bg,card,elevated}` — fundos.
+  - `line` / `line-strong` — bordas e hairlines.
+- **Cores semânticas universais permanecem globais** (não variam por matéria): `emerald` = sucesso, `rose` = erro, `amber` = alerta/pontuação parcial. O heatmap de domínio (RN-PRG-012: cinza/vermelho/amarelo/verde) é semântico e não é tematizado.
+- **Dark mode neutro:** superfícies escuras não são tingidas pela matéria; apenas a escala `subject-*` carrega a identidade. Neutros recebem matiz sutil do hue da disciplina (croma ≤ 0.014).
+- **Proibido em componentes:** hex de marca e classes `orange-*`/`amber-*` como cor de marca. Ícones são sempre vetoriais (Lucide/Material) — nunca emoji (RN-INT-004).
+- Tokens legados `--ti-*` foram removidos; componentes que os referenciavam foram migrados.
 
-| Token | Valor Light | Valor Dark | Uso |
-|:---|:---|:---|:---|
-| `--ti-primary` | `#F57C00` | `#FFB74D` | CTAs, botões, links ativos |
-| `--ti-primary-dark` | `#EF6C00` | `#FB8C00` | Header, footer, tabs |
-| `--ti-primary-light` | `#FB8C00` | `#FFCC80` | Hovers, destaques |
-| `--ti-accent` | `#FFB74D` | `#FFCC80` | Badges, scrollbars |
-| `--ti-deep` | `#E65100` | `#FF9800` | Texto em destaque |
-| `--ti-tint` | `#FFF3E0` | `rgba(255,183,77,0.1)` | Fundos sutis |
-| `--ti-bg` | `#FFFFFF` | `#1a1408` | Fundo principal |
-| `--ti-text` | `#212121` | `#E0E0E0` | Texto principal |
+| Token (classe Tailwind) | Variável CSS | Uso |
+|:---|:---|:---|
+| `subject-{50..900}` | `--subject-{50..900}` | Identidade da matéria: CTAs (`500`/`600` hover), destaque textual (`600`/`700`), tintas (`100`/`200`) |
+| `subject-wash` / `subject-wash-strong` | `--subject-wash` / `--subject-wash-strong` | Fundos tingidos com alfa pré-computado (essencial no dark mode) |
+| `ink-text` / `ink-muted` / `ink-faint` | `--ink-text` / `--ink-muted` / `--ink-faint` | Texto principal, secundário e apagado |
+| `surface-bg` / `surface-card` / `surface-elevated` | `--surface-bg` / `--surface-card` / `--surface-elevated` | Fundo da página, cards, elementos elevados/hover |
+| `line` / `line-strong` | `--line-border` / `--line-strong` | Bordas e hairlines |
+
+Para novas disciplinas (ex: Física, Química), basta inserir o registro com o hex desejado em `disciplinas.cor_tema` — a escala completa é derivada automaticamente, sem alteração de código ou CSS.
 
 ---
 

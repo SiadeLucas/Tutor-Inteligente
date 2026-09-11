@@ -2,14 +2,14 @@
 title: "Etapa 5: Conteúdo Didático"
 type: "Implementation Guide"
 status: "Completed"
-<!-- Consolidação pós-revisão: migração 003 unificada (heatmap_dominio + horas_estudo_diarias incluídas), auth obrigatória, fixação server-side e heatmap real integrados. -->
+<!-- Consolidação canônica integral: 100% dos 11 volumes e 63 capítulos da Coleção Iezzi estruturados em app.seeds.volumes com AULAS_DATA KaTeX, FIXACAO_DATA server-side, RAG_DATA para pgvector e TRI_DATA 3PL calibrados. -->
 related: ["etapa-03-autenticacao.md", "etapa-06-agente.md"]
-last_updated: "2026-09-07"
+last_updated: "2026-09-10"
 updated_by: "antigravity"
 ---
 
 <!-- ai-summary
-Guia detalhado de implementação da Etapa 5 (Conteúdo Didático) do Tutor Inteligente. Cobre a criação das tabelas de banco de dados (disciplinas, volumes, capítulos, aulas, vetores RAG), modelos SQLAlchemy, migrações Alembic, endpoints FastAPI de conteúdo, e interfaces React no frontend incluindo a Árvore de Habilidades (Skill Tree) e a Tela de Aula em formato Split-Screen com suporte a KaTeX.
+Guia detalhado de implementação da Etapa 5 (Conteúdo Didático) do Tutor Inteligente. Cobre a criação das tabelas de banco de dados (disciplinas, volumes, capítulos, aulas, vetores RAG), modelos SQLAlchemy, migrações Alembic, endpoints FastAPI de conteúdo, interfaces React no frontend incluindo a Árvore de Habilidades (Skill Tree) e a Tela de Aula em formato Split-Screen com suporte a KaTeX, além da base canônica de 11 volumes e 63 capítulos em app.seeds.volumes.
 -->
 
 # Etapa 5: Conteúdo Didático
@@ -129,31 +129,42 @@ Você deve implementar tanto rotas de navegação de estrutura (para alimentar a
 
 ---
 
-## 5. Script de Seed do Banco de Dados
+## 5. Scripts Canônicos de Seed e Sincronização Contínua (Deploy)
 
-Crie um script em `backend/scripts/seed_content.py` para popular o banco de dados inicial, essencial para testes e desenvolvimento do Frontend.
+A base instrucional completa da plataforma está versionada diretamente em código Python sob `backend/app/seeds/volumes/` (`vol_01_conjuntos.py` a `vol_11_financeira_estatistica.py`). Os scripts de carga rodam 100% offline, em menos de 5 segundos, com semântica estrita de **UPSERT (Update or Insert)**.
 
-### Dados a serem populados:
-- **Disciplina:** "Matemática" (`slug`: matematica)
-- **11 Volumes Baseados na Coleção Iezzi:**
-  1. Conjuntos e Funções (`grande_area`: algebra_funcoes)
-  2. Logaritmos (`grande_area`: algebra_funcoes)
-  3. Trigonometria (`grande_area`: geometria)
-  4. Sequências, Matrizes e Determinantes (`grande_area`: algebra_linear)
-  5. Combinatória e Probabilidade (`grande_area`: aplicada)
-  6. Complexos e Polinômios (`grande_area`: algebra_funcoes)
-  7. Geometria Analítica (`grande_area`: geometria)
-  8. Limites e Derivadas (`grande_area`: algebra_funcoes)
-  9. Geometria Plana (`grande_area`: geometria)
-  10. Geometria Espacial (`grande_area`: geometria)
-  11. Matemática Financeira e Estatística (`grande_area`: aplicada)
-- **Capítulos/Aulas de Exemplo:** Crie ao menos 3-5 capítulos completos no "Volume 1" preenchidos com markdowns e fórmulas KaTeX válidas.
+### Dados Populados:
+- **1 Disciplina:** "Matemática" (`slug`: matematica)
+- **11 Volumes Canônicos da Coleção Iezzi:**
+  1. Conjuntos e Funções (`algebra_funcoes`) — 8 capítulos
+  2. Logaritmos (`algebra_funcoes`) — 5 capítulos
+  3. Trigonometria (`geometria`) — 5 capítulos
+  4. Sequências, Matrizes e Determinantes (`algebra_linear`) — 6 capítulos
+  5. Combinatória e Probabilidade (`aplicada`) — 6 capítulos
+  6. Complexos, Polinômios e Equações (`algebra_funcoes`) — 4 capítulos
+  7. Geometria Analítica (`geometria`) — 5 capítulos
+  8. Limites, Derivadas e Integrais (`algebra_funcoes`) — 6 capítulos
+  9. Geometria Plana (`geometria`) — 6 capítulos
+  10. Geometria Espacial (`geometria`) — 6 capítulos
+  11. Matemática Financeira e Estatística (`aplicada`) — 6 capítulos
+- **63 Aulas Completas com KaTeX:** Teoria, Exemplos Resolvidos e Dicas IA estruturados em 3 blocos.
+- **189 Questões de Fixação Server-Side:** Centralizadas em `BATERIAS_FIXACAO_CANONICAS` (3 por capítulo, gabarito protegido).
+- **315 Itens Calibrados TRI 3PL:** Mapeados por `(volume_numero, capitulo_numero)` em `itens_exercicios`.
 
-Execute o seed via PowerShell:
+### Comandos de Execução Local / Container:
 
 ```powershell
-python backend/scripts/seed_content.py
+# População de Conteúdo Didático (63 Aulas)
+docker exec -e PYTHONPATH=. ti-backend python -m scripts.seed_content
+
+# População de Exercícios Calibrados TRI (315 Itens)
+docker exec -e PYTHONPATH=. ti-backend python -m scripts.seed_exercises
 ```
+
+### Estratégia de Deploy Contínuo (AWS CI/CD):
+Graças à idempotência dos seeders:
+- **Novos Commits / Deploys:** Rodam automaticamente após `alembic upgrade head`. Qualquer ajuste em textos KaTeX ou distratores nos arquivos de seed é refletido no PostgreSQL sem recriar UUIDs nem corromper tentativas ou heatmaps dos alunos.
+- **Base Vetorial RAG (`pgvector`):** O script `scripts/ingest_iezzi.py` utiliza a API do Gemini e é disparado isoladamente no provisionamento inicial ou sob demanda.
 
 ---
 
@@ -202,7 +213,7 @@ Implemente um componente de abas (Tabs) para navegar entre:
 
 - [x] A migração Alembic para todas as tabelas de conteúdo é executada sem erros no Windows.
 - [x] A extensão `pgvector` é habilitada corretamente pela migração.
-- [x] O script de seed popula o banco com 1 disciplina, 11 volumes categorizados e ao menos 3 aulas de exemplo com marcações KaTeX (11 volumes, 63 capítulos e 4 aulas completas com KaTeX).
+- [x] O script de seed popula o banco com 1 disciplina, 11 volumes categorizados e todos os 63 capítulos dos 11 volumes preenchidos com aulas completas em KaTeX (teoria, exemplos, dicas), baterias de fixação server-side em `BATERIAS_FIXACAO_CANONICAS`, 315 itens calibrados TRI (TRI_DATA) e fragmentos RAG canônicos em `app.seeds.volumes`.
 - [x] O endpoint de `/capitulos/{volume_id}` retorna a estrutura com dados de progresso (status da árvore).
 - [x] A interface da Skill Tree no Frontend agrupa os 11 volumes por grandes áreas (ex: Álgebra).
 - [x] A coloração dos nós dos capítulos muda adequadamente com base nos dados mockados de desempenho.

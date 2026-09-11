@@ -86,11 +86,11 @@ function RedefinirSenhaForm() {
   };
 
   return (
-    <div className="bg-white dark:bg-[#261d11] border border-slate-200/90 dark:border-[#3d2f1f] rounded-2xl p-7 sm:p-9 shadow-sm">
+    <div className="bg-white dark:bg-surface-card border border-slate-200/90 dark:border-line rounded-2xl p-7 sm:p-9 shadow-sm">
       {verificando ? (
         <div className="text-center py-8">
-          <div className="w-6 h-6 border-2 border-[#F57C00] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs text-slate-500 dark:text-[#A89F91]">Validando autenticidade do link...</p>
+          <div className="w-6 h-6 border-2 border-subject-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-xs text-slate-500 dark:text-ink-muted">Validando autenticidade do link...</p>
         </div>
       ) : !tokenValido ? (
         <div className="text-center space-y-4">
@@ -98,13 +98,13 @@ function RedefinirSenhaForm() {
             <AlertCircle className="w-6 h-6" />
           </div>
           <h3 className="text-base font-bold text-slate-900 dark:text-white">Link Indisponível</h3>
-          <p className="text-xs text-slate-600 dark:text-[#A89F91] leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-ink-muted leading-relaxed">
             {mensagemErroToken || "Este link mágico expirou ou já foi utilizado para alterar a senha."}
           </p>
           <div className="pt-3">
             <Link
               href="/esqueci-senha"
-              className="w-full py-2.5 px-4 rounded-xl bg-[#F57C00] hover:bg-[#EF6C00] text-white font-semibold text-xs transition-colors inline-flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-xl bg-subject-500 hover:bg-subject-600 text-white font-semibold text-xs transition-colors inline-flex items-center justify-center gap-2"
             >
               Solicitar Novo Link
             </Link>
@@ -113,7 +113,7 @@ function RedefinirSenhaForm() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           {emailMascarado && (
-            <div className="p-3 bg-[#FFF3E0] dark:bg-[#2b1f10] border border-[#FFB74D]/40 rounded-xl text-xs text-[#E65100] dark:text-[#FFB74D] flex items-center justify-between">
+            <div className="p-3 bg-subject-100 dark:bg-subject-wash border border-subject-200 rounded-xl text-xs text-subject-700 dark:text-subject-300 flex items-center justify-between">
               <span>Conta vinculada:</span>
               <strong className="font-mono text-slate-900 dark:text-white">{emailMascarado}</strong>
             </div>
@@ -144,7 +144,7 @@ function RedefinirSenhaForm() {
                 onKeyUp={(e) => setCapsLockAtivo(e.getModifierState("CapsLock"))}
                 onBlur={() => setCapsLockAtivo(false)}
                 placeholder="Mínimo 8 caracteres"
-                className="w-full pl-10 pr-11 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
+                className="w-full pl-10 pr-11 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all"
               />
               <button
                 type="button"
@@ -180,7 +180,7 @@ function RedefinirSenhaForm() {
                 value={confirmacaoSenha}
                 onChange={(e) => setConfirmacaoSenha(e.target.value)}
                 placeholder="Repita a nova senha idêntica"
-                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all"
               />
             </div>
           </div>
@@ -189,7 +189,7 @@ function RedefinirSenhaForm() {
             <button
               type="submit"
               disabled={salvando}
-              className="w-full py-3 px-4 rounded-xl bg-[#F57C00] hover:bg-[#EF6C00] text-white font-semibold text-sm shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl bg-subject-500 hover:bg-subject-600 text-white font-semibold text-sm shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {salvando ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -209,24 +209,24 @@ function RedefinirSenhaForm() {
 
 export default function RedefinirSenhaPage() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#1a1408] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6">
+    <div className="min-h-screen bg-surface-bg dark:bg-surface-bg text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#F57C00] text-white shadow-sm mb-3">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-subject-500 text-white shadow-sm mb-3">
             <ShieldCheck className="w-7 h-7" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             Criar Nova Senha
           </h1>
-          <p className="text-xs text-slate-500 dark:text-[#A89F91] mt-1">
+          <p className="text-xs text-slate-500 dark:text-ink-muted mt-1">
             Defina uma nova credencial segura para a sua conta
           </p>
         </div>
 
         <Suspense
           fallback={
-            <div className="bg-white dark:bg-[#261d11] border border-slate-200 dark:border-[#3d2f1f] rounded-2xl p-8 text-center text-slate-500">
-              <div className="w-6 h-6 border-2 border-[#F57C00] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+            <div className="bg-white dark:bg-surface-card border border-slate-200 dark:border-line rounded-2xl p-8 text-center text-slate-500">
+              <div className="w-6 h-6 border-2 border-subject-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
               Carregando...
             </div>
           }

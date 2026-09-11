@@ -9,7 +9,7 @@ import { apenasDigitos, mascaraCPF, validarCPF } from "@/lib/formatters";
 import { Genero, ValidacaoEtapaResponse } from "@/types/onboarding";
 
 const inputCls =
-  "w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all";
+  "w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all";
 
 export default function Step1Identity({ onNext }: { onNext: () => void }) {
   const { form, setCampo, calcularIdadeAluno, salvandoRascunho } = useOnboarding();
@@ -65,10 +65,10 @@ export default function Step1Identity({ onNext }: { onNext: () => void }) {
     <div className="space-y-4">
       <div>
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">Dados Pessoais</h2>
-        <p className="text-xs text-slate-500 dark:text-[#A89F91] mt-1">
+        <p className="text-xs text-slate-500 dark:text-ink-muted mt-1">
           Sua identificação civil na plataforma.
           {idade !== null && (
-            <span className="ml-1 font-semibold text-[#E65100] dark:text-[#FFB74D]">
+            <span className="ml-1 font-semibold text-subject-700 dark:text-subject-300">
               ({idade} anos{idade < 18 ? " — dados do responsável serão solicitados na próxima etapa" : ""})
             </span>
           )}
@@ -117,10 +117,10 @@ export default function Step1Identity({ onNext }: { onNext: () => void }) {
             setCpfInvalido(digitos.length === 11 && !validarCPF(form.cpf));
           }}
           placeholder="000.000.000-00"
-          className={`w-full px-3.5 py-2.5 bg-white dark:bg-[#1a1408] border rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 transition-all ${
+          className={`w-full px-3.5 py-2.5 bg-white dark:bg-surface-bg border rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 transition-all ${
             cpfInvalido
               ? "border-rose-400 focus:ring-rose-400/20 focus:border-rose-500"
-              : "border-slate-300 dark:border-[#3d2f1f] focus:ring-[#F57C00]/20 focus:border-[#F57C00]"
+              : "border-slate-300 dark:border-line focus:ring-subject-300 focus:border-subject-500"
           }`}
         />
         {cpfInvalido && (
@@ -148,7 +148,7 @@ export default function Step1Identity({ onNext }: { onNext: () => void }) {
             min="1900-01-01"
             max={new Date().toISOString().slice(0, 10)}
             onChange={(e) => setCampo("data_nascimento", e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
+            className="w-full px-3.5 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all"
           />
         </div>
         <div>
@@ -158,7 +158,7 @@ export default function Step1Identity({ onNext }: { onNext: () => void }) {
           <select
             value={form.genero}
             onChange={(e) => setCampo("genero", e.target.value as Genero)}
-            className="w-full px-3.5 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
+            className="w-full px-3.5 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all"
           >
             <option value="masculino">Masculino</option>
             <option value="feminino">Feminino</option>
@@ -176,7 +176,7 @@ export default function Step1Identity({ onNext }: { onNext: () => void }) {
           type="button"
           onClick={handleAvancar}
           disabled={carregando}
-          className="py-3 px-5 rounded-xl bg-[#F57C00] hover:bg-[#EF6C00] text-white font-semibold text-sm shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="py-3 px-5 rounded-xl bg-subject-500 hover:bg-subject-600 text-white font-semibold text-sm shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {carregando ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

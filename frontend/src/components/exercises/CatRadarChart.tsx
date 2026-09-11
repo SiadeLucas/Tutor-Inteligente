@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useDisciplineTheme } from "@/components/theme/DisciplineThemeProvider";
 import {
   Radar,
   RadarChart,
@@ -31,6 +32,10 @@ export function CatRadarChart({
   thetaFinal,
   classificacao = "Intermediário",
 }: CatRadarChartProps) {
+  // RN-INT-001: cor da disciplina vem do tema (fonte da verdade no banco)
+  const { palette } = useDisciplineTheme();
+  const subjectColor = palette?.scale[500] ?? "#F57C00";
+
   // Converte a escala theta (-3 a +3) para uma pontuação percentual pedagógica (0 a 100)
   // formula: pontuacao = ((theta + 3) / 6) * 100
   const data = Object.entries(scores).map(([areaKey, thetaVal]) => {
@@ -87,8 +92,8 @@ export function CatRadarChart({
             <Radar
               name="Proficiência"
               dataKey="pontuacao"
-              stroke="#F57C00"
-              fill="#F57C00"
+              stroke={subjectColor}
+              fill={subjectColor}
               fillOpacity={0.45}
             />
           </RadarChart>

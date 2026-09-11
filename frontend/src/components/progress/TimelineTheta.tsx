@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useDisciplineTheme } from "@/components/theme/DisciplineThemeProvider";
 import {
   LineChart,
   Line,
@@ -19,6 +20,11 @@ interface TimelineThetaProps {
 }
 
 export function TimelineTheta({ timeline, thetaAtual }: TimelineThetaProps) {
+  // RN-INT-001: cor da disciplina vem do tema (fonte da verdade no banco)
+  const { palette } = useDisciplineTheme();
+  const subjectColor = palette?.scale[500] ?? "#F57C00";
+  const subjectColorDark = palette?.scale[600] ?? "#E65100";
+
   // Se houver poucos dados históricos, garante visualização com ponto atual
   const dadosGrafico =
     timeline && timeline.length > 0
@@ -50,7 +56,7 @@ export function TimelineTheta({ timeline, thetaAtual }: TimelineThetaProps) {
         </div>
         <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#F57C00]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-subject-500" />
             <span className="text-slate-600 dark:text-slate-300">Proficiência (&theta;)</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -128,10 +134,10 @@ export function TimelineTheta({ timeline, thetaAtual }: TimelineThetaProps) {
             <Line
               type="monotone"
               dataKey="theta"
-              stroke="#F57C00"
+              stroke={subjectColor}
               strokeWidth={2.5}
-              dot={{ r: 4, fill: "#F57C00" }}
-              activeDot={{ r: 6, fill: "#E65100" }}
+              dot={{ r: 4, fill: subjectColor }}
+              activeDot={{ r: 6, fill: subjectColorDark }}
             />
           </LineChart>
         </ResponsiveContainer>

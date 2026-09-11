@@ -4,8 +4,8 @@ type: module
 status: draft
 related:
   - modules/interface/business-rules/index.md
-last_updated: "2026-08-28"
-updated_by: claude
+last_updated: "2026-09-10"
+updated_by: antigravity
 ---
 
 # 2. Responsividade
@@ -21,13 +21,28 @@ updated_by: claude
 | Tablet | 768px - 1024px | `.layout-tablet` |
 | Desktop | > 1024px | `.layout-desktop` |
 
-#### RN-INT-007: Comportamento da Sidebar por Breakpoint
+#### RN-INT-007 (revisada 2026-09-10): Navegação Primária por Breakpoint
 
-| Breakpoint | Sidebar | Comportamento |
+A navegação primária é renderizada pelo `AppShell` (`frontend/src/components/nav/AppShell.tsx`),
+composto por `GlobalHeader` (topo) + `SideNav` (desktop) + `BottomNav` (mobile).
+
+| Breakpoint | Componente | Comportamento |
 |:---|:---|:---|
-| Mobile | Oculta | Hamburger menu no topo. Abre como overlay lateral com animação slide-in |
-| Tablet | Colapsável | Ícones visíveis, expande ao hover ou clique. Overlay no conteúdo |
-| Desktop | Fixa expandida | Sempre visível com ícones + labels. Largura fixa de 240-280px |
+| Mobile (< 768px) | `BottomNav` fixa na base + `GlobalHeader` compacto (h-14) no topo | Tab bar com 4 itens (Matérias, Praticar, Progresso, Perfil), dentro da zona do polegar; **sem hamburger** |
+| Tablet (768–1024px) | Mesmo padrão do mobile | BottomNav + header; grid de 2 colunas (RN-INT-008) |
+| Desktop (> 1024px) | `SideNav` fixa de 256px | Sempre visível, ícones + labels; conteúdo deslocado (`lg:pl-64`); BottomNav oculta |
+
+Regras adicionais:
+- **Focus-mode:** `/exercicios` e `/onboarding/cat` não exibem navegação primária
+  (nem SideNav nem BottomNav) — telas dedicadas e focadas, conforme protótipos de
+  Exercícios e CAT. O GlobalHeader permanece para contexto e logout.
+- **Safe areas:** o root layout declara `viewportFit: "cover"`; a BottomNav aplica
+  `env(safe-area-inset-bottom)` e as páginas usam utilitário `.pb-safe-bottom`
+  (56px + safe-area) para conteúdo não ficar sob a tab bar.
+- **Páginas não renderizam header:** o header vive no layout da rota (`(student)/layout.tsx`,
+  `(teacher)/layout.tsx`); imports por página são proibidos (fonte de duplicação).
+- Itens ativos da navegação usam estado visual com tokens da disciplina
+  (`subject-wash` + `text-subject-600`), nunca cores fixas.
 
 #### RN-INT-008: Grid de Cards
 

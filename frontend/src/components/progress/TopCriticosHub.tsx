@@ -84,12 +84,12 @@ export function TopCriticosHub({ topCriticos, temPendencias }: TopCriticosHubPro
                 href={item.acao_revisar_teoria_url}
                 className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors shadow-sm"
               >
-                <BookOpen className="w-3.5 h-3.5 text-[#F57C00]" />
+                <BookOpen className="w-3.5 h-3.5 text-subject-600" />
                 <span>Revisar Teoria</span>
               </Link>
               <Link
                 href={item.acao_praticar_reforco_url}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-[#F57C00] hover:bg-[#E65100] text-white transition-colors shadow-sm"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-subject-500 hover:bg-subject-600 text-white transition-colors shadow-sm"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Praticar Reforço</span>

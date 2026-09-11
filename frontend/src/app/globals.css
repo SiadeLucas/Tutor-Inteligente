@@ -2,40 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * RN-INT-001 revisada — Tokens por Disciplina
+ *
+ * Os valores abaixo são FALLBACKS de build-time (laranja = Matemática).
+ * Em runtime, o DisciplineThemeProvider sobrescreve TODAS as variáveis com
+ * valores derivados de `disciplinas.cor_tema` via OKLCH (lib/color.ts).
+ *
+ * Regras:
+ * - Componentes NUNCA usam hex de marca; apenas `subject-*`, `ink-*`,
+ *   `surface-*` e `line-*`.
+ * - Cores semânticas universais (sucesso/erro/alerta) permanecem globais:
+ *   emerald = sucesso, rose = erro, amber = alerta (em qualquer matéria).
+ * - Dark mode é neutro (superfícies não são tingidas pela matéria);
+ *   apenas a escala subject-* carrega a identidade.
+ */
 :root {
-  /* Tokens Oficiais Tutor Inteligente (RN-INT-001) - Modo Claro */
-  --ti-primary: #F57C00;
-  --ti-primary-dark: #EF6C00;
-  --ti-primary-light: #FB8C00;
-  --ti-accent: #FFB74D;
-  --ti-deep: #E65100;
-  --ti-tint: #FFF3E0;
-  --ti-bg: #F8FAFC;
-  --ti-card: #FFFFFF;
-  --ti-text: #1E293B;
-  --ti-text-muted: #64748B;
-  --ti-border: #E2E8F0;
+  /* Identidade da disciplina (fallback: Matemática #F57C00) */
+  --subject-50: #fdf4ea;
+  --subject-100: #fae7d2;
+  --subject-200: #f5cfa8;
+  --subject-300: #efb27a;
+  --subject-400: #f79c55;
+  --subject-500: #f57c00;
+  --subject-600: #e06800;
+  --subject-700: #ba5202;
+  --subject-800: #944105;
+  --subject-900: #783607;
+  --subject-base: #f57c00;
+  --subject-wash: rgba(245, 124, 0, 0.08);
+  --subject-wash-strong: rgba(245, 124, 0, 0.16);
 
-  --background: var(--ti-bg);
-  --foreground: var(--ti-text);
+  /* Estruturais light (matizados sutilmente pelo hue da matéria) */
+  --surface-bg: #fafafa;
+  --surface-card: #ffffff;
+  --surface-elevated: #f7f6f5;
+  --ink-text: #292524;
+  --ink-muted: #6b6560;
+  --ink-faint: #8f8880;
+  --line-border: #e8e5e2;
+  --line-strong: #d6d1cc;
+
+  --background: var(--surface-bg);
+  --foreground: var(--ink-text);
 }
 
 .dark {
-  /* Tokens Oficiais Tutor Inteligente (RN-INT-001) - Modo Escuro */
-  --ti-primary: #FFB74D;
-  --ti-primary-dark: #FB8C00;
-  --ti-primary-light: #FFCC80;
-  --ti-accent: #FFCC80;
-  --ti-deep: #FF9800;
-  --ti-tint: rgba(255, 183, 77, 0.1);
-  --ti-bg: #1a1408;
-  --ti-card: #261d11;
-  --ti-text: #E0E0E0;
-  --ti-text-muted: #A89F91;
-  --ti-border: #3d2f1f;
+  /* Dark mode NEUTRO: superfícies não herdam a cor da matéria.
+     O provider sobrescreve com matiz sutil do hue atual. */
+  --surface-bg: #191715;
+  --surface-card: #221f1d;
+  --surface-elevated: #2b2725;
+  --ink-text: #ece9e6;
+  --ink-muted: #a8a29c;
+  --ink-faint: #7d766f;
+  --line-border: #332f2c;
+  --line-strong: #453f3b;
 
-  --background: var(--ti-bg);
-  --foreground: var(--ti-text);
+  --background: var(--surface-bg);
+  --foreground: var(--ink-text);
 }
 
 body {
@@ -45,4 +70,27 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Slide-over do chat socrático (mobile) — RN-INT-007 */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.22s ease-out;
+}
+
+/* Espaço para a BottomNav (56px) + safe-area do dispositivo (RN-INT-009) */
+.pb-safe-bottom {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  .pb-safe-bottom {
+    padding-bottom: 0;
+  }
 }

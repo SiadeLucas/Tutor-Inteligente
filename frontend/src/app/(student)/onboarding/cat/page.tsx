@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Clock, ArrowRight, ShieldCheck, Award, Sparkles } from "lucide-react";
-import { GlobalHeader } from "@/components/header/GlobalHeader";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { api, extrairMensagemErro } from "@/lib/api";
 import {
@@ -102,13 +101,12 @@ export default function ProvaCatPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
-      <GlobalHeader />
+    <div className="min-h-screen bg-surface-bg dark:bg-surface-bg text-slate-900 dark:text-slate-100 flex flex-col">
 
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8">
         {loading ? (
           <div className="p-16 text-center text-slate-400">
-            <div className="inline-block w-8 h-8 border-4 border-[#F57C00] border-t-transparent rounded-full animate-spin mb-4" />
+            <div className="inline-block w-8 h-8 border-4 border-subject-500 border-t-transparent rounded-full animate-spin mb-4" />
             <p className="font-semibold text-sm">Calibrando seu teste adaptativo...</p>
           </div>
         ) : error ? (
@@ -119,7 +117,7 @@ export default function ProvaCatPage() {
           /* Tela de Dossiê Diagnóstico CAT com Gráfico Radar */
           <div className="space-y-6">
             <div className="text-center">
-              <div className="w-16 h-16 bg-amber-100 dark:bg-amber-950/60 text-[#F57C00] rounded-full flex items-center justify-center mx-auto mb-3 shadow-xs">
+              <div className="w-16 h-16 bg-subject-100 dark:bg-subject-wash text-subject-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-xs">
                 <Sparkles className="w-8 h-8" />
               </div>
               <h2 className="text-2xl font-black text-slate-900 dark:text-white">
@@ -143,7 +141,7 @@ export default function ProvaCatPage() {
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
                 <span className="text-xs text-slate-400 uppercase block">Escore θ Geral</span>
-                <span className="text-lg font-mono font-bold text-[#F57C00]">
+                <span className="text-lg font-mono font-bold text-subject-600">
                   {resultadoFinal.theta_final !== undefined && resultadoFinal.theta_final !== null
                     ? (resultadoFinal.theta_final >= 0 ? `+${resultadoFinal.theta_final.toFixed(2)}` : resultadoFinal.theta_final.toFixed(2))
                     : "0.00"}
@@ -167,7 +165,7 @@ export default function ProvaCatPage() {
             <div className="text-center pt-2">
               <button
                 onClick={() => router.push(resultadoFinal.redirecionar_url || "/materias")}
-                className="px-8 py-3 rounded-xl bg-[#F57C00] hover:bg-[#E65100] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all inline-flex items-center gap-2"
+                className="px-8 py-3 rounded-xl bg-subject-500 hover:bg-subject-600 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all inline-flex items-center gap-2"
               >
                 Acessar Trilha Personalizada
                 <ArrowRight className="w-4 h-4" />
@@ -190,7 +188,7 @@ export default function ProvaCatPage() {
               </div>
 
               <div className="flex items-center gap-1.5 text-xs font-mono font-semibold text-slate-500 bg-slate-50 dark:bg-slate-800/60 px-3 py-1 rounded-lg">
-                <Clock className="w-3.5 h-3.5 text-[#F57C00]" />
+                <Clock className="w-3.5 h-3.5 text-subject-600" />
                 {formatarTempo(segundosGastos)}
               </div>
             </div>
@@ -214,14 +212,14 @@ export default function ProvaCatPage() {
                         onClick={() => setRespostaSelecionada(alt.letra)}
                         className={`w-full text-left p-4 rounded-xl border transition-all flex items-start gap-3.5 ${
                           selecionada
-                            ? "border-[#F57C00] bg-orange-50/50 dark:bg-orange-950/20 shadow-xs"
+                            ? "border-subject-500 bg-subject-wash dark:bg-subject-wash shadow-xs"
                             : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900"
                         }`}
                       >
                         <span
                           className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${
                             selecionada
-                              ? "bg-[#F57C00] text-white"
+                              ? "bg-subject-500 text-white"
                               : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
                           }`}
                         >
@@ -242,7 +240,7 @@ export default function ProvaCatPage() {
                     onChange={(e) => setRespostaSelecionada(e.target.value)}
                     placeholder="Digite sua resposta"
                     disabled={submetendo}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono text-base focus:ring-2 focus:ring-[#F57C00] outline-none"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono text-base focus:ring-2 focus:ring-subject-500 outline-none"
                   />
                   {respostaSelecionada.trim() && (
                     <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
@@ -258,7 +256,7 @@ export default function ProvaCatPage() {
               <button
                 onClick={handleSubmeter}
                 disabled={!respostaSelecionada.trim() || submetendo}
-                className="px-7 py-2.5 rounded-xl bg-[#F57C00] hover:bg-[#E65100] text-white font-bold text-sm shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-7 py-2.5 rounded-xl bg-subject-500 hover:bg-subject-600 text-white font-bold text-sm shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {submetendo ? "Calculando..." : "Próxima Questão"}
                 <ArrowRight className="w-4 h-4" />

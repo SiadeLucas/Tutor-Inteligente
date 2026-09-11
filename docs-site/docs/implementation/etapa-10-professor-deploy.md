@@ -3,11 +3,12 @@ title: "Etapa 10: Painel do Professor e Deploy Final"
 type: implementation-step
 status: planned
 related: []
-last_updated: "2026-09-06"
+last_updated: "2026-09-10"
+updated_by: "antigravity"
 ---
 
 <!-- ai-summary
-Implementação da área de gestão para docentes (analytics, curadoria e financeiro), estruturação das pipelines de CI/CD via GitHub Actions e deploy completo na AWS com domínio próprio e rotinas de backup.
+Implementação da área de gestão para docentes (analytics, curadoria e financeiro), estruturação das pipelines de CI/CD via GitHub Actions com deploy automatizado e sincronização idempotente de conteúdo na AWS, além de rotinas de backup.
 -->
 
 # Etapa 10: Painel do Professor e Deploy Final
@@ -267,11 +268,32 @@ jobs:
           git pull origin main
           docker compose -f docker-compose.prod.yml build
           docker compose -f docker-compose.prod.yml up -d
-          docker compose -f docker-compose.prod.yml exec backend alembic upgrade head
+          # 1. Aplica migrações estruturais do banco
+          docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head
+          # 2. Sincroniza catálogo de 11 volumes, 63 capítulos e 63 aulas KaTeX (idempotente, < 2s)
+          docker compose -f docker-compose.prod.yml exec -T backend python -m scripts.seed_content
+          # 3. Sincroniza 315 itens calibrados TRI 3PL vinculados por (vol, cap) (idempotente, < 3s)
+          docker compose -f docker-compose.prod.yml exec -T backend python -m scripts.seed_exercises
 ```
 
 > [!IMPORTANT]
 > Nunca "commite" chaves SSH ou IPs diretamente. Use a aba **Settings > Secrets and variables > Actions** do seu repositório no GitHub para configurar `EC2_HOST`, `EC2_USER` e `EC2_SSH_KEY`.
+
+### 10.3.3 Sincronização Automatizada de Conteúdo Didático e Questões TRI (Idempotência no Deploy)
+
+Uma das maiores vantagens da arquitetura de conteúdo do Tutor Inteligente é que **todo o acervo pedagógico está versionado em código Git** em `backend/app/seeds/volumes/` (`vol_01_conjuntos.py` a `vol_11_financeira_estatistica.py`).
+
+1. **Zero Custo de IA no Deploy:** Nenhuma chamada a LLMs ou APIs pagas é executada durante o deploy. Os dados já chegam pré-processados e formatados em KaTeX com parâmetros psicométricos 3PL calibrados.
+2. **Idempotência (UPSERT Seguro):**
+   - Os scripts `seed_content.py` e `seed_exercises.py` verificam a existência de cada registro antes de inserir. Se o volume, capítulo, aula ou questão já existir, realizam apenas a atualização (*UPDATE*) dos textos e parâmetros.
+   - **Garantia de Integridade:** Não há risco de duplicação de dados, recriação de UUIDs ou corrupção do histórico de progresso (`heatmap_dominio`, `tentativas_exercicios`).
+   - A execução é ultrarrápida: menos de 5 segundos no total para sincronizar todas as 63 aulas e 315 itens TRI contra o banco PostgreSQL de produção.
+3. **Ingestão Vetorial RAG (`pgvector`) — Execução Isolada:**
+   - O script `scripts/ingest_iezzi.py` consome a API do Google Gemini (`gemini-embedding-001`) para gerar vetores 768d e **NÃO deve ser disparado em todo commit de rotina**, evitando esgotamento de quota ou custos desnecessários.
+   - Ele deve ser executado manualmente apenas no provisionamento inicial do ambiente ou quando novos fragmentos canônicos forem adicionados:
+     ```bash
+     docker compose -f docker-compose.prod.yml exec -T backend python scripts/ingest_iezzi.py
+     ```
 
 ---
 

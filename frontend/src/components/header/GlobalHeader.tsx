@@ -1,10 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+/**
+ * GlobalHeader — barra superior compacta (RN-INT-007 revisada).
+ *
+ * Mobile/tablet: fixa no topo (h-14), com marca compacta, badge da disciplina
+ * (nome/ícone vindos do banco via DisciplineThemeProvider), presença e logout.
+ * Desktop: permanece como barra fina sticky (a marca completa vive na SideNav).
+ */
+
+import React from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, LogOut, Sparkles, User, ShieldCheck } from "lucide-react";
+import { LogOut, User, BookOpen } from "lucide-react";
 import { api, clearAuth } from "@/lib/api";
+import { useDisciplineTheme } from "@/components/theme/DisciplineThemeProvider";
 
 interface GlobalHeaderProps {
   userRole?: "student" | "teacher" | "admin";
@@ -18,7 +26,8 @@ export function GlobalHeader({
   showDisciplineBadge = true,
 }: GlobalHeaderProps) {
   const router = useRouter();
-  const [loggingOut, setLoggingOut] = useState(false);
+  const { disciplina } = useDisciplineTheme();
+  const [loggingOut, setLoggingOut] = React.useState(false);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -32,69 +41,67 @@ export function GlobalHeader({
     }
   };
 
+  const nomeDisciplina = disciplina?.nome ?? "Matemática";
+
   return (
-    <header className="w-full bg-white dark:bg-[#1a1408] border-b border-slate-200 dark:border-[#382b1c] sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Lado Esquerdo: Logo institucional e Disciplina */}
-        <div className="flex items-center gap-4 sm:gap-6">
-          <Link href={userRole === "teacher" ? "/teacher" : "/materias"} className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-[#F57C00] flex items-center justify-center text-white font-bold shadow-sm group-hover:bg-[#EF6C00] transition-colors">
-              <span className="text-sm tracking-tight font-black">TI</span>
-            </div>
-            <div className="hidden sm:block">
-              <span className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-none block">
+    <header className="sticky top-0 z-30 border-b border-line bg-surface-card/95 backdrop-blur supports-[backdrop-filter]:bg-surface-card/85">
+      <div className="h-14 flex items-center justify-between gap-3 px-4 sm:px-6">
+        {/* Marca compacta (a marca completa vive na SideNav em desktop) */}
+        <div className="flex items-center gap-3 min-w-0">
+          {userRole === "teacher" ? (
+            <a href="/teacher" className="flex items-center gap-2.5 min-w-0">
+              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-subject-500 text-white font-black text-xs shadow-sm flex-shrink-0">
+                TI
+              </span>
+              <span className="hidden sm:block text-sm font-bold text-ink-text tracking-tight truncate">
+                Painel do Docente
+              </span>
+            </a>
+          ) : (
+            <a href="/materias" className="flex items-center gap-2.5 min-w-0">
+              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-subject-500 text-white font-black text-xs shadow-sm flex-shrink-0">
+                TI
+              </span>
+              <span className="hidden sm:block text-sm font-bold text-ink-text tracking-tight truncate">
                 Tutor Inteligente
               </span>
-              <span className="text-[11px] text-slate-500 dark:text-[#A89F91] leading-none block mt-0.5">
-                {userRole === "teacher" ? "Painel do Docente" : "Ensino Médio • Iezzi"}
-              </span>
-            </div>
-          </Link>
+            </a>
+          )}
 
-          {/* RN-INT-019: Seletor Global de Disciplina (Badge Elegante no Lançamento) */}
+          {/* RN-INT-019: badge da disciplina — nome/ícone do banco (cor só no tema) */}
           {showDisciplineBadge && (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FFF3E0] dark:bg-[#2b1f10] text-[#E65100] dark:text-[#FFB74D] border border-[#FFB74D]/40">
-              <span>📐</span>
-              <span className="font-medium">Matemática (Ensino Médio)</span>
-            </div>
+            <span className="hidden sm:inline-flex items-center gap-1.5 pl-2.5 ml-1 border-l border-line text-xs font-semibold text-ink-muted">
+              <BookOpen className="w-3.5 h-3.5 text-subject-600 dark:text-subject-400" aria-hidden="true" />
+              <span className="truncate max-w-[160px]">{nomeDisciplina}</span>
+            </span>
           )}
         </div>
 
-        {/* Lado Direito: Status de Presença (Heartbeat), Perfil e Logout */}
-        <div className="flex items-center gap-3 sm:gap-4">
-          {/* Indicador de Heartbeat Ativo */}
-          <div
+        {/* Direita: presença, perfil, logout */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span
             title="Sessão única monitorada via Redis (Heartbeat 30s)"
             className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40"
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Presença Ativa</span>
-          </div>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
+            Presença Ativa
+          </span>
 
-          {/* Identificação de Perfil */}
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-[#382b1c]">
-            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-[#2a1f12] border border-slate-200 dark:border-[#3d2f1f] flex items-center justify-center text-slate-600 dark:text-[#FFCC80]">
-              <User className="w-4 h-4" />
-            </div>
-            <div className="hidden lg:block text-left">
-              <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block leading-tight">
-                {userName}
-              </span>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
-                {userRole === "teacher" ? "Professor" : "Estudante"}
-              </span>
-            </div>
-          </div>
+          <span
+            title={userName}
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-surface-elevated border border-line text-ink-muted"
+          >
+            <User className="w-4 h-4" aria-hidden="true" />
+          </span>
 
-          {/* Botão de Logout */}
           <button
             onClick={handleLogout}
             disabled={loggingOut}
             title="Encerrar sessão"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-slate-200 dark:border-[#382b1c] transition-colors cursor-pointer"
+            aria-label="Encerrar sessão"
+            className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-ink-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
           >
-            <LogOut className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{loggingOut ? "Saindo..." : "Sair"}</span>
+            <LogOut className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       </div>

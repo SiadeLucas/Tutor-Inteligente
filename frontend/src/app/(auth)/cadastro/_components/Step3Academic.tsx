@@ -10,7 +10,7 @@ import { apenasDigitos, mascaraCEP } from "@/lib/formatters";
 import { EscolaTipo, ViaCepResponse } from "@/types/onboarding";
 
 const inputCls =
-  "w-full px-3.5 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all";
+  "w-full px-3.5 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all";
 
 const OPCOES_SERIE = [
   { valor: "6_ano", rotulo: "6º Ano — Fundamental" },
@@ -93,7 +93,7 @@ export default function Step3Academic({ onBack }: { onBack: () => void }) {
     <div className="space-y-4">
       <div>
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">Acadêmico & Endereço</h2>
-        <p className="text-xs text-slate-500 dark:text-[#A89F91] mt-1">
+        <p className="text-xs text-slate-500 dark:text-ink-muted mt-1">
           Onde você estuda e onde podemos te encontrar.
         </p>
       </div>
@@ -126,7 +126,7 @@ export default function Step3Academic({ onBack }: { onBack: () => void }) {
             onChange={(e) => setCampo("cep", mascaraCEP(e.target.value))}
             onBlur={(e) => void consultarCep(e.target.value)}
             placeholder="00000-000"
-            className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
+            className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all"
           />
         </div>
       </div>
@@ -192,7 +192,7 @@ export default function Step3Academic({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      <div className="pt-1 border-t border-slate-100 dark:border-[#3d2f1f]" />
+      <div className="pt-1 border-t border-slate-100 dark:border-line" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -234,7 +234,7 @@ export default function Step3Academic({ onBack }: { onBack: () => void }) {
           <select
             value={form.serie_ano}
             onChange={(e) => setCampo("serie_ano", e.target.value)}
-            className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
+            className="w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all"
           >
             <option value="">Selecione...</option>
             {OPCOES_SERIE.map((opcao) => (
@@ -250,7 +250,7 @@ export default function Step3Academic({ onBack }: { onBack: () => void }) {
             type="button"
             onClick={onBack}
             disabled={carregando}
-            className="py-3 px-4 rounded-xl border border-slate-300 dark:border-[#3d2f1f] text-slate-600 dark:text-slate-300 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-[#1a1408] transition-colors flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+            className="py-3 px-4 rounded-xl border border-slate-300 dark:border-line text-slate-600 dark:text-slate-300 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-surface-bg transition-colors flex items-center gap-2 disabled:opacity-50 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Voltar</span>
@@ -263,7 +263,7 @@ export default function Step3Academic({ onBack }: { onBack: () => void }) {
           type="button"
           onClick={handleFinalizar}
           disabled={carregando}
-          className="py-3 px-5 rounded-xl bg-[#F57C00] hover:bg-[#EF6C00] text-white font-semibold text-sm shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="py-3 px-5 rounded-xl bg-subject-500 hover:bg-subject-600 text-white font-semibold text-sm shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {carregando ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

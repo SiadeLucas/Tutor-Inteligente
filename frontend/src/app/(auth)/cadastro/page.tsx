@@ -14,26 +14,26 @@ function CadastroContent() {
   const [currentStep, setCurrentStep] = useState(1);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#1a1408] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6">
+    <div className="min-h-screen bg-surface-bg dark:bg-surface-bg text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-2xl">
         {/* Cabeçalho Institucional */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#F57C00] text-white shadow-sm mb-3">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-subject-500 text-white shadow-sm mb-3">
             <span className="text-xl font-black tracking-tight">TI</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             Crie sua Conta no Tutor Inteligente
           </h1>
-          <p className="text-xs text-slate-500 dark:text-[#A89F91] mt-1">
+          <p className="text-xs text-slate-500 dark:text-ink-muted mt-1">
             Matemática do Ensino Médio • Fundamentos com Rigor e IA Socrática
           </p>
-          <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#FFF3E0] dark:bg-[#2b1f10] text-[#E65100] dark:text-[#FFB74D] border border-[#FFB74D]/30">
+          <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-subject-100 dark:bg-subject-wash text-subject-700 dark:text-subject-300 border border-subject-200">
             <BookOpen className="w-3.5 h-3.5" />
             <span>Orientado pela Coleção Gelson Iezzi</span>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#261d11] border border-slate-200/90 dark:border-[#3d2f1f] rounded-2xl p-6 sm:p-9 shadow-sm">
+        <div className="bg-white dark:bg-surface-card border border-slate-200/90 dark:border-line rounded-2xl p-6 sm:p-9 shadow-sm">
           <ProgressBar currentStep={currentStep} totalSteps={3} />
 
           <div className="mt-8">
@@ -47,7 +47,7 @@ function CadastroContent() {
 
         <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6 leading-relaxed">
           Já tem uma conta?{" "}
-          <Link href="/login" className="font-medium text-[#E65100] dark:text-[#FFB74D] hover:underline">
+          <Link href="/login" className="font-medium text-subject-700 dark:text-subject-300 hover:underline">
             Faça login
           </Link>
           <br />

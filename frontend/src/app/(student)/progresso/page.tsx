@@ -12,7 +12,6 @@ import {
   Award,
   Loader2,
 } from "lucide-react";
-import { GlobalHeader } from "@/components/header/GlobalHeader";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { api, getAccessToken, extrairMensagemErro } from "@/lib/api";
 import {
@@ -125,10 +124,9 @@ export default function ProgressoPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#1a1408] text-slate-900 dark:text-slate-100 flex flex-col">
-        <GlobalHeader userRole="student" userName="Aluno" showDisciplineBadge={true} />
+      <div className="min-h-screen bg-surface-bg dark:bg-surface-bg text-slate-900 dark:text-slate-100 flex flex-col">
         <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin text-[#F57C00]" />
+          <Loader2 className="w-8 h-8 animate-spin text-subject-600" />
           <p className="text-sm text-slate-500">Compilando analytics e histórico psicométrico...</p>
         </div>
       </div>
@@ -136,8 +134,7 @@ export default function ProgressoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#1a1408] text-slate-900 dark:text-slate-100 flex flex-col">
-      <GlobalHeader userRole="student" userName="Aluno" showDisciplineBadge={true} />
+    <div className="min-h-screen bg-surface-bg dark:bg-surface-bg text-slate-900 dark:text-slate-100 flex flex-col">
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Barra Superior de Ações & Navegação */}
@@ -145,14 +142,14 @@ export default function ProgressoPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/materias"
-              className="p-2 rounded-xl text-slate-500 hover:text-[#F57C00] hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-colors shadow-sm"
+              className="p-2 rounded-xl text-slate-500 hover:text-subject-600 hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-colors shadow-sm"
               title="Voltar para Matérias"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-[#F57C00] uppercase tracking-wider">
+                <span className="text-[11px] font-bold text-subject-600 uppercase tracking-wider">
                   Painel de Analytics & Evolução
                 </span>
               </div>
@@ -166,7 +163,7 @@ export default function ProgressoPage() {
           <button
             onClick={handleBaixarBoletim}
             disabled={baixandoPdf}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm bg-[#F57C00] hover:bg-[#E65100] text-white shadow-md hover:shadow-lg transition-all active:scale-[0.98] disabled:opacity-60"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm bg-subject-500 hover:bg-subject-600 text-white shadow-md hover:shadow-lg transition-all active:scale-[0.98] disabled:opacity-60"
           >
             {baixandoPdf ? (
               <>
@@ -197,7 +194,7 @@ export default function ProgressoPage() {
                 <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                   Proficiência Geral (TRI &theta;)
                 </span>
-                <span className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-[#F57C00]">
+                <span className="p-2 rounded-xl bg-subject-100 dark:bg-subject-wash text-subject-600">
                   <TrendingUp className="w-4 h-4" />
                 </span>
               </div>
@@ -211,8 +208,8 @@ export default function ProgressoPage() {
                   </span>
                 </div>
                 <div className="mt-2 flex items-center gap-1.5">
-                  <Award className="w-3.5 h-3.5 text-[#F57C00]" />
-                  <span className="text-xs font-bold text-[#E65100] dark:text-[#FFB74D]">
+                  <Award className="w-3.5 h-3.5 text-subject-600" />
+                  <span className="text-xs font-bold text-subject-700 dark:text-subject-300">
                     Nível {progresso.classificacao_nivel}
                   </span>
                 </div>
@@ -276,7 +273,7 @@ export default function ProgressoPage() {
                 <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                   Sequência Ativa (Streak)
                 </span>
-                <span className="p-2 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400">
+                <span className="p-2 rounded-xl bg-subject-100 dark:bg-subject-wash text-subject-600 dark:text-subject-400">
                   <Flame className="w-4 h-4" />
                 </span>
               </div>
@@ -289,7 +286,7 @@ export default function ProgressoPage() {
                     {progresso.streak_dias_consecutivos === 1 ? "dia ativo" : "dias ativos"}
                   </span>
                 </div>
-                <p className="mt-2 text-[11px] text-orange-600 dark:text-orange-400 font-medium">
+                <p className="mt-2 text-[11px] text-subject-600 dark:text-subject-400 font-medium">
                   {progresso.streak_dias_consecutivos > 0
                     ? "Mantenha o foco diário de 50 minutos!"
                     : "Comece uma aula hoje para iniciar seu streak!"}

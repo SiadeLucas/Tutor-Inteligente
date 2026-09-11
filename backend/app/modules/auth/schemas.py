@@ -4,7 +4,7 @@ Schemas Pydantic v2 para Autenticação, Tokens e Sessões.
 from __future__ import annotations
 import re
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional, Literal
 from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
 
@@ -37,6 +37,21 @@ class UsuarioAuthResponse(BaseModel):
     avatar_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class MeResponse(UsuarioAuthResponse):
+    """Perfil completo para a tela /perfil (RN-INT §2.6)."""
+    telefone: str = ""
+    uf: str
+    cidade: str
+    serie_ano: str
+    escola_tipo: str
+    nome_escola: Optional[str] = None
+    data_nascimento: Optional[date] = None
+    genero: str = "nao_informato"
+    eh_menor_idade: bool = False
+    dados_responsavel: Optional[dict] = None
+    criado_em: datetime
 
 
 class LoginResponse(BaseModel):
@@ -85,5 +100,14 @@ class VerificarTokenResponse(BaseModel):
 class RedefinirSenhaRequest(BaseModel):
     """Requisição final de redefinição de senha com token criptográfico de uso único."""
     token: str = Field(..., description="Token criptográfico de uso único recebido no link mágico")
+class AtualizarPerfilRequest(BaseModel):
+    """Atualização de dados cadastrais editáveis (RN-INT §2.6)."""
+    telefone: Optional[str] = Field(None, min_length=10, max_length=11, description="Somente dígitos, DDD + número")
+    avatar_url: Optional[str] = Field(None, max_length=500)
+
+
+class AlterarSenhaRequest(BaseModel):
+    """Troca de senha autenticada (RN-AUT §regras-credenciais)."""
+    senha_atual: str = Field(..., min_length=1)
     nova_senha: str = Field(..., min_length=8, description="Nova senha com no mínimo 8 caracteres")
     confirmacao_senha: Optional[str] = Field(None, min_length=8, description="Confirmação idêntica da nova senha")

@@ -21,6 +21,9 @@ from app.modules.auth.schemas import (
     LoginRequest,
     LoginResponse,
     UsuarioAuthResponse,
+    MeResponse,
+    AtualizarPerfilRequest,
+    AlterarSenhaRequest,
     HeartbeatResponse,
     SolicitarLinkMagicoRequest,
     SolicitarLinkMagicoResponse,
@@ -261,6 +264,66 @@ async def logout(
 
     response.delete_cookie("refresh_token")
     return {"mensagem": "Logout realizado com sucesso."}
+
+
+# ============================================================================
+# 4.5 Perfil (RN-INT §2.6 — tela /perfil)
+# ============================================================================
+
+@router.get("/me", response_model=MeResponse, summary="Perfil completo do usuário autenticado")
+async def obter_meu_perfil(
+    db: AsyncSession = Depends(get_db),
+    usuario: Usuario = Depends(get_current_user),
+):
+    """Retorna dados cadastrais para a tela Perfil (nome, contato, escola, responsável)."""
+    await db.refresh(usuario)
+    return usuario
+
+
+@router.patch("/me", response_model=MeResponse, summary="Atualizar dados editáveis do perfil")
+async def atualizar_meu_perfil(
+    payload: AtualizarPerfilRequest,
+    db: AsyncSession = Depends(get_db),
+    usuario: Usuario = Depends(get_current_user),
+):
+    """
+    Atualiza apenas campos editáveis pelo aluno (telefone, avatar_url).
+    E-mail/CPF/serie não são editáveis aqui (integridade acadêmica e
+    recuperação de conta — ver docs knowledge/database/01-usuarios.md).
+    """
+    if payload.telefone is not None:
+        usuario.telefone = payload.telefone
+    if payload.avatar_url is not None:
+        usuario.avatar_url = payload.avatar_url
+    await db.commit()
+    await db.refresh(usuario)
+    return usuario
+
+
+@router.patch("/me/senha", summary="Alterar senha autenticada (mantém a sessão atual)")
+async def alterar_minha_senha(
+    payload: AlterarSenhaRequest,
+    db: AsyncSession = Depends(get_db),
+    usuario: Usuario = Depends(get_current_user),
+):
+    """
+    RN-AUT (regras-credenciais): exige senha atual válida; nova senha >= 8 chars.
+    Diferente de /redefinir-senha (link mágico), esta rota NÃO revoga a sessão:
+    a troca acontece logado, então manter a sessão é o comportamento esperado.
+    """
+    if not verificar_senha(payload.senha_atual, usuario.senha_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Senha atual incorreta.",
+        )
+    if payload.nova_senha == payload.senha_atual:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A nova senha deve ser diferente da atual.",
+        )
+    usuario.senha_hash = hash_senha(payload.nova_senha)
+    await db.commit()
+    return {"mensagem": "Senha alterada com sucesso."}
 
 
 @router.post("/logout-remoto")

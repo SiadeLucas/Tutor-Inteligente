@@ -1,14 +1,26 @@
 "use client";
 
+/**
+ * /materias — Árvore de Habilidades (Fase 3: "Caderno de Foco").
+ *
+ * Design system revisado (RN-INT-001/007):
+ * - Header tipográfico flat (sem banner-card): uma única superfície por tela.
+ * - Mastery strip por volume: células na cor canônica do heatmap (RN-PRG-012)
+ *   — leitura de domínio de um relance, sem abrir nada.
+ * - Capítulos como linhas com hairlines (fim do card-in-card).
+ * - Stats com tabular-nums (números não "tremer" ao atualizar).
+ * - Toda a cor via tokens (subject/ink/surface/line) — laranja = Matemática,
+ *   mas a página é agnóstica de disciplina.
+ *
+ * Lógica de dados preservada: skill-tree, pendências CAT/Reforço, filtro por
+ * grande área, expansão de volumes (Volume 1 aberto por padrão).
+ */
+
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
-  BookOpen,
-  ChevronDown,
-  ChevronRight,
   Clock,
   AlertCircle,
-  PlayCircle,
   Sparkles,
   Layers,
   Compass,
@@ -17,10 +29,12 @@ import {
   PenLine,
   Inbox,
   ClipboardList,
+  ChevronDown,
+  Sigma,
+  Lock,
 } from "lucide-react";
 import { ItemCaixaReforco } from "@/types/exercise";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
-import { GlobalHeader } from "@/components/header/GlobalHeader";
 import { api, extrairMensagemErro } from "@/lib/api";
 import { VolumeComCapitulos, SkillTreeNode } from "@/types/content";
 
@@ -31,6 +45,20 @@ const GRANDES_AREAS = [
   { key: "algebra_linear", label: "Álgebra Linear", icon: Grid },
   { key: "aplicada", label: "Matemática Aplicada", icon: Sparkles },
 ];
+
+/** Cores canônicas do heatmap (RN-PRG-012) — semânticas, não tematizadas. */
+function heatmapClasses(cor: string): { cell: string; label: string } {
+  switch (cor) {
+    case "green":
+      return { cell: "bg-emerald-500", label: "Domínio consolidado" };
+    case "yellow":
+      return { cell: "bg-amber-400", label: "Domínio em progresso" };
+    case "red":
+      return { cell: "bg-rose-500", label: "Precisa de reforço" };
+    default:
+      return { cell: "bg-slate-200 dark:bg-slate-700", label: "Não iniciado" };
+  }
+}
 
 export default function MateriasPage() {
   useHeartbeat();
@@ -43,8 +71,6 @@ export default function MateriasPage() {
   const [reforcoPendentes, setReforcoPendentes] = useState(0);
   const [catPendente, setCatPendente] = useState(false);
 
-  // Pendências da Caixa de Reforço e pendência da prova diagnóstica CAT (etapa-04:
-  // a prova é disparada no primeiro acesso a uma matéria)
   useEffect(() => {
     async function loadPendencias() {
       try {
@@ -67,13 +93,10 @@ export default function MateriasPage() {
     async function loadSkillTree() {
       try {
         setLoading(true);
-        // api.get injeta o Bearer token e trata refresh silencioso automaticamente
         const data: VolumeComCapitulos[] = await api.get(
           "/api/v1/conteudo/skill-tree?disciplina_slug=matematica"
         );
         setVolumes(data);
-
-        // Expandir o Volume 1 por padrão
         if (data.length > 0) {
           setExpandedVolumes({ [data[0].id]: true });
         }
@@ -83,15 +106,11 @@ export default function MateriasPage() {
         setLoading(false);
       }
     }
-
     loadSkillTree();
   }, []);
 
   const toggleVolume = (volId: string) => {
-    setExpandedVolumes((prev) => ({
-      ...prev,
-      [volId]: !prev[volId],
-    }));
+    setExpandedVolumes((prev) => ({ ...prev, [volId]: !prev[volId] }));
   };
 
   const filteredVolumes = useMemo(() => {
@@ -111,48 +130,40 @@ export default function MateriasPage() {
   }, [volumes]);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#1a1408] text-slate-900 dark:text-slate-100 flex flex-col">
-      <GlobalHeader userRole="student" userName="Aluno" showDisciplineBadge={true} />
+    <div className="text-slate-900 dark:text-slate-100">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* ── Header tipográfico flat (sem banner-card) ─────────────────── */}
+        <header className="mb-6">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-subject-600 dark:text-subject-400">
+            <Sigma className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>Matemática · Coleção Gelson Iezzi</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1.5">
+            Árvore de Habilidades
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-ink-muted mt-1.5 leading-relaxed max-w-xl">
+            Sessões focadas de <strong className="font-semibold text-slate-700 dark:text-slate-300">50 minutos</strong> com
+            tutoria socrática. A cor de cada célula mostra seu domínio — passe o mouse para detalhes.
+          </p>
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-        {/* Banner Curricular */}
-        <div className="bg-white dark:bg-[#261d11] border border-slate-200/90 dark:border-[#3d2f1f] rounded-2xl p-6 sm:p-8 shadow-sm mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Stats inline, tabular-nums */}
+          <div className="flex items-baseline gap-5 mt-4 tabular-nums">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#FFF3E0] dark:bg-[#2b1f10] text-[#E65100] dark:text-[#FFB74D] border border-[#FFB74D]/30 mb-3">
-                <BookOpen className="w-4 h-4 text-[#F57C00]" />
-                <span>Coleção Gelson Iezzi — 11 Volumes</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Árvore de Habilidades de Matemática 📐
-              </h1>
-              <p className="text-slate-600 dark:text-[#A89F91] text-sm mt-1.5 max-w-3xl leading-relaxed">
-                Navegue pela progressão clássica de <strong>Fundamentos de Matemática Elementar</strong>. Cada capítulo
-                foi dimensionado para sessões focadas de <strong>50 minutos</strong> com auxílio de inteligência artificial socrática.
-              </p>
+              <span className="text-xl font-extrabold text-subject-600 dark:text-subject-400">{volumes.length}</span>
+              <span className="text-xs text-ink-faint ml-1.5">volumes</span>
             </div>
-
-            {/* Estatísticas Rápidas */}
-            <div className="flex items-center gap-4 border-t md:border-t-0 md:border-l border-slate-100 dark:border-[#382b1c] pt-4 md:pt-0 md:pl-6">
-              <div className="text-center">
-                <div className="text-2xl font-black text-[#F57C00]">{volumes.length}</div>
-                <div className="text-xs text-slate-500 dark:text-[#A89F91]">Volumes</div>
-              </div>
-              <div className="h-8 w-px bg-slate-200 dark:bg-[#382b1c]" />
-              <div className="text-center">
-                <div className="text-2xl font-black text-slate-800 dark:text-slate-200">{totalCapitulosGeral}</div>
-                <div className="text-xs text-slate-500 dark:text-[#A89F91]">Capítulos</div>
-              </div>
-              <div className="h-8 w-px bg-slate-200 dark:bg-[#382b1c]" />
-              <div className="text-center">
-                <div className="text-2xl font-black text-emerald-600">{progressoGeral}%</div>
-                <div className="text-xs text-slate-500 dark:text-[#A89F91]">Domínio</div>
-              </div>
+            <div>
+              <span className="text-xl font-extrabold">{totalCapitulosGeral}</span>
+              <span className="text-xs text-ink-faint ml-1.5">capítulos</span>
+            </div>
+            <div>
+              <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">{progressoGeral}%</span>
+              <span className="text-xs text-ink-faint ml-1.5">domínio</span>
             </div>
           </div>
 
-          {/* Filtro por Grandes Áreas */}
-          <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-1 scrollbar-none border-t border-slate-100 dark:border-[#382b1c] pt-4">
+          {/* Filtro por Grande Área */}
+          <div className="flex items-center gap-2 mt-5 -mx-4 px-4 overflow-x-auto scrollbar-none sm:mx-0 sm:px-0">
             {GRANDES_AREAS.map((area) => {
               const Icon = area.icon;
               const isSelected = selectedArea === area.key;
@@ -160,200 +171,234 @@ export default function MateriasPage() {
                 <button
                   key={area.key}
                   onClick={() => setSelectedArea(area.key)}
-                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                  aria-pressed={isSelected}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
                     isSelected
-                      ? "bg-[#F57C00] text-white shadow-sm shadow-orange-500/20"
-                      : "bg-slate-100 dark:bg-[#1a1408] text-slate-600 dark:text-[#A89F91] hover:bg-slate-200 dark:hover:bg-[#332514]"
+                      ? "bg-subject-500 text-white"
+                      : "bg-surface-elevated text-ink-muted hover:text-ink-text border border-transparent hover:border-line"
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>{area.label}</span>
                 </button>
               );
             })}
           </div>
-        </div>
+        </header>
 
-        {/* Estado de Carregamento */}
-        {loading && (
-          <div className="space-y-4">
-            {[1, 2, 3].map((n) => (
-              <div
-                key={n}
-                className="h-24 bg-white dark:bg-[#261d11] rounded-2xl border border-slate-200/80 dark:border-[#3d2f1f] animate-pulse"
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Estado de Erro */}
-        {error && (
-          <div className="p-6 rounded-2xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-400 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <p className="text-sm font-medium">{error}</p>
-          </div>
-        )}
-
-        {/* Chamada: Prova Diagnóstica CAT pendente (primeiro acesso a uma matéria) */}
+        {/* ── Callouts (CAT pendente / Reforço) ─────────────────────────── */}
         {!loading && catPendente && (
           <Link
             href="/onboarding/cat"
-            className="mb-5 flex items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-[#FFF3E0] to-[#FFE8CC] dark:from-[#2b1f10] dark:to-[#33230e] border border-[#FFB74D]/40 hover:border-[#F57C00] transition-all group shadow-sm"
+            className="mb-3 flex items-center justify-between gap-4 px-4 py-3.5 rounded-xl bg-subject-wash border border-subject-200 dark:border-transparent group"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl bg-[#F57C00] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
-                <ClipboardList className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                  Prova Diagnóstica pendente
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-[#A89F91] mt-0.5">
-                  Calibre sua trilha: o motor adaptativo mapeia seu nível em 12 a 20 questões.
+            <div className="flex items-center gap-3 min-w-0">
+              <ClipboardList className="w-5 h-5 text-subject-600 dark:text-subject-400 flex-shrink-0" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-ink-text leading-tight">Prova Diagnóstica pendente</p>
+                <p className="text-xs text-ink-muted mt-0.5 truncate">
+                  Calibre sua trilha: 12 a 20 questões adaptativas.
                 </p>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#F57C00] hover:bg-[#E65100] text-white text-xs font-bold transition-colors flex-shrink-0">
+            <span className="text-xs font-bold text-subject-700 dark:text-subject-400 flex-shrink-0 group-hover:underline">
               Iniciar
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </Link>
+        )}
+        {!loading && reforcoPendentes > 0 && (
+          <Link
+            href="/reforco"
+            className="mb-3 flex items-center justify-between gap-4 px-4 py-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 group"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <Inbox className="w-5 h-5 text-rose-600 dark:text-rose-400 flex-shrink-0" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-ink-text leading-tight">Caixa de Reforço</p>
+                <p className="text-xs text-ink-muted mt-0.5 truncate">
+                  {reforcoPendentes === 1 ? "1 item aguardando revisão" : `${reforcoPendentes} itens aguardando revisão`}
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-rose-600 dark:text-rose-400 flex-shrink-0 group-hover:underline">
+              Revisar
             </span>
           </Link>
         )}
 
-        {/* Acesso rápido: Caixa de Reforço */}
-        {!loading && reforcoPendentes > 0 && (
-          <Link
-            href="/reforco"
-            className="mb-5 flex items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-[#261d11] border border-slate-200/90 dark:border-[#3d2f1f] hover:border-[#F57C00] dark:hover:border-[#FFB74D] transition-all group shadow-xs"
+        {/* ── Estados de carga/erro ─────────────────────────────────────── */}
+        {loading && (
+          <div className="space-y-3 mt-6" aria-busy="true" aria-label="Carregando árvore de habilidades">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="h-20 rounded-xl bg-surface-card border border-line animate-pulse" />
+            ))}
+          </div>
+        )}
+        {error && (
+          <div
+            role="alert"
+            className="mt-6 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 flex items-center gap-3"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
-                <Inbox className="w-4.5 h-4.5" />
-              </div>
-              <div>
-                <span className="font-semibold text-slate-900 dark:text-white text-sm">
-                  Caixa de Reforço
-                </span>
-                <span className="text-xs text-slate-500 dark:text-[#A89F91] ml-2">
-                  {reforcoPendentes === 1 ? "1 item aguardando revisão" : `${reforcoPendentes} itens aguardando revisão`}
-                </span>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#F57C00] transition-colors" />
-          </Link>
+            <AlertCircle className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+            <p className="text-sm font-medium">{error}</p>
+          </div>
+        )}
+        {!loading && !error && filteredVolumes.length === 0 && (
+          <div className="mt-6 p-8 rounded-xl bg-surface-card border border-line text-center">
+            <p className="text-sm font-semibold text-ink-text">Nenhum volume nesta área</p>
+            <p className="text-xs text-ink-faint mt-1">Tente outro filtro de grande área.</p>
+          </div>
         )}
 
-        {/* Lista de Volumes e Capítulos (Accordion) */}
+        {/* ── Lista de Volumes: mastery strip + linhas ──────────────────── */}
         {!loading && !error && (
-          <div className="space-y-5">
+          <div className="space-y-3">
             {filteredVolumes.map((vol) => {
               const isExpanded = !!expandedVolumes[vol.id];
-              const totalCaps = vol.capitulos?.length || 0;
-              const dominioVolume = totalCaps > 0
-                ? Math.round((vol.capitulos!.filter((c) => c.status_dominio === "mastered").length / totalCaps) * 100)
-                : 0;
+              const caps = vol.capitulos || [];
+              const totalCaps = caps.length;
+              const dominioVolume =
+                totalCaps > 0
+                  ? Math.round((caps.filter((c) => c.status_dominio === "mastered").length / totalCaps) * 100)
+                  : 0;
 
               return (
-                <div
+                <section
                   key={vol.id}
-                  className="bg-white dark:bg-[#261d11] border border-slate-200/90 dark:border-[#3d2f1f] rounded-2xl overflow-hidden shadow-xs transition-all"
+                  className="bg-surface-card border border-line rounded-xl overflow-hidden"
                 >
-                  {/* Cabeçalho do Volume (Clicável) */}
+                  {/* Cabeçalho do volume */}
                   <button
                     onClick={() => toggleVolume(vol.id)}
-                    className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-slate-50/70 dark:hover:bg-[#2e2315] transition-colors"
+                    aria-expanded={isExpanded}
+                    className="w-full px-4 sm:px-5 pt-4 pb-3.5 text-left hover:bg-surface-elevated/60 transition-colors"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-xl bg-[#FFF3E0] dark:bg-[#2b1f10] text-[#E65100] dark:text-[#FFB74D] font-extrabold text-sm flex items-center justify-center border border-[#FFB74D]/30 flex-shrink-0">
-                        {String(vol.numero_volume).padStart(2, "0")}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="font-bold text-slate-900 dark:text-white text-base">
-                            Vol. {vol.numero_volume}: {vol.titulo}
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span
+                          className="flex items-center justify-center w-9 h-9 rounded-lg bg-subject-100 dark:bg-subject-wash text-subject-700 dark:text-subject-400 font-extrabold text-sm flex-shrink-0 tabular-nums"
+                          aria-hidden="true"
+                        >
+                          {String(vol.numero_volume).padStart(2, "0")}
+                        </span>
+                        <div className="min-w-0">
+                          <h2 className="font-bold text-sm sm:text-base leading-snug truncate">
+                            {vol.titulo}
                           </h2>
+                          <p className="text-[11px] text-ink-faint mt-0.5 tabular-nums">
+                            {totalCaps} {totalCaps === 1 ? "capítulo" : "capítulos"} · {totalCaps * 50} min ·{" "}
+                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">{dominioVolume}%</span>
+                          </p>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-[#A89F91] mt-0.5">
-                          {totalCaps} {totalCaps === 1 ? "capítulo" : "capítulos"} • Duração estimada: {totalCaps * 50} min
-                        </p>
                       </div>
+                      <ChevronDown
+                        className={`w-4 h-4 text-ink-faint flex-shrink-0 transition-transform ${isExpanded ? "" : "-rotate-90"}`}
+                        aria-hidden="true"
+                      />
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <span className="hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-100 dark:bg-[#1a1408] text-slate-600 dark:text-[#A89F91]">
-                        {vol.grande_area.replace("_", " ").toUpperCase()}
-                      </span>
-                      {isExpanded ? (
-                        <ChevronDown className="w-5 h-5 text-slate-400" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5 text-slate-400" />
-                      )}
-                    </div>
+                    {/* Mastery strip: uma célula por capítulo (RN-PRG-012) */}
+                    {totalCaps > 0 && (
+                      <div className="flex gap-[3px] mt-3" aria-hidden="true">
+                        {caps.map((cap) => (
+                          <span
+                            key={cap.id}
+                            className={`h-1.5 flex-1 rounded-full ${heatmapClasses(cap.cor_heatmap).cell}`}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </button>
 
-                  {/* Lista Expandida de Capítulos */}
+                  {/* Capítulos expandidos: linhas com hairline, não cards */}
                   {isExpanded && (
-                    <div className="border-t border-slate-100 dark:border-[#382b1c] px-6 py-4 bg-slate-50/50 dark:bg-[#20180e]">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {vol.capitulos?.map((cap: SkillTreeNode) => {
-                          const statusColor = getStatusColor(cap.cor_heatmap);
-                          const travado = !cap.desbloqueado;
+                    <ul className="border-t border-line">
+                      {caps.map((cap: SkillTreeNode) => {
+                        const semConteudo = cap.tem_conteudo === false;
+                        const travado = !cap.desbloqueado || semConteudo;
+                        const hm = heatmapClasses(cap.cor_heatmap);
 
-                          return (
-                            <div
-                              key={cap.id}
-                              className={`group p-4 rounded-xl bg-white dark:bg-[#261d11] border ${
-                                travado
-                                  ? "border-slate-200/60 dark:border-[#2e2315] opacity-70"
-                                  : "border-slate-200/80 dark:border-[#3d2f1f] hover:border-[#F57C00] dark:hover:border-[#FFB74D] hover:shadow-sm"
-                              } transition-all flex items-start justify-between`}
-                            >
-                              <Link href={`/aula/${cap.id}`} className="flex items-start gap-3 group flex-1 min-w-0">
-                                <div
-                                  className={`w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${statusColor.bg} border ${statusColor.border}`}
-                                />
-                                <div className="min-w-0">
-                                  <div className="text-xs font-semibold text-slate-400 dark:text-slate-500">
-                                    Capítulo {cap.numero_capitulo}
-                                  </div>
-                                  <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm group-hover:text-[#F57C00] transition-colors leading-snug mt-0.5">
-                                    {cap.titulo}
-                                  </h3>
-                                  <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-500 dark:text-[#A89F91]">
-                                    <Clock className="w-3.5 h-3.5" />
-                                    <span>{cap.tempo_estimado_min} min</span>
-                                    {cap.percentual_acerto > 0 && (
-                                      <span className="font-semibold">{Math.round(cap.percentual_acerto)}%</span>
-                                    )}
-                                  </div>
-                                </div>
-                              </Link>
+                        return (
+                          <li key={cap.id} className="border-b border-line last:border-b-0">
+                            <div className="px-4 sm:px-5 py-3 flex items-center gap-3">
+                              {/* Dot de domínio */}
+                              <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${hm.cell}`} title={hm.label} />
 
-                              <div className="flex items-center gap-2 mt-1 pl-3 flex-shrink-0">
-                                <Link
-                                  href={`/exercicios/${cap.id}`}
-                                  title="Exercícios do capítulo"
-                                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                                    travado
-                                      ? "bg-slate-100 dark:bg-[#1a1408] text-slate-400 pointer-events-none"
-                                      : "bg-[#FFF3E0] dark:bg-[#2b1f10] text-[#E65100] dark:text-[#FFB74D] hover:bg-[#F57C00] hover:text-white"
-                                  }`}
-                                >
-                                  <PenLine className="w-4 h-4" />
-                                </Link>
-                                <Link href={`/aula/${cap.id}`} title="Abrir aula">
-                                  <span className="text-slate-300 dark:text-slate-600 group-hover:text-[#F57C00] transition-colors">
-                                    <PlayCircle className="w-5 h-5" />
-                                  </span>
-                                </Link>
-                              </div>
+                              {/* Conteúdo principal da linha */}
+                              {semConteudo ? (
+                                <>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[11px] font-semibold text-ink-faint tabular-nums">
+                                        Cap. {cap.numero_capitulo}
+                                      </span>
+                                      <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-100 dark:bg-surface-elevated text-ink-faint">
+                                        Em breve
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-ink-muted truncate mt-0.5">{cap.titulo}</p>
+                                  </div>
+                                  <Clock className="w-4 h-4 text-ink-faint flex-shrink-0" aria-hidden="true" />
+                                </>
+                              ) : (
+                                <>
+                                  <Link href={`/aula/${cap.id}`} className="flex-1 min-w-0 group/row">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[11px] font-semibold text-ink-faint tabular-nums">
+                                        Cap. {cap.numero_capitulo}
+                                      </span>
+                                      {cap.pre_requisito_pendente && (
+                                        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-ink-faint">
+                                          <Lock className="w-3 h-3" aria-hidden="true" />
+                                          sugerido anterior
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-sm font-semibold text-ink-text group-hover/row:text-subject-600 dark:group-hover/row:text-subject-400 transition-colors truncate mt-0.5">
+                                      {cap.titulo}
+                                    </p>
+                                  </Link>
+
+                                  {/* Ações à direita */}
+                                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                                    <span className="hidden sm:flex items-center gap-1 text-[11px] text-ink-faint tabular-nums mr-1">
+                                      <Clock className="w-3 h-3" aria-hidden="true" />
+                                      {cap.tempo_estimado_min}min
+                                    </span>
+                                    <Link
+                                      href={`/exercicios/${cap.id}`}
+                                      title="Exercícios do capítulo"
+                                      aria-label={`Exercícios do capítulo ${cap.numero_capitulo}`}
+                                      className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+                                        travado
+                                          ? "bg-surface-elevated text-ink-faint/50 pointer-events-none"
+                                          : "bg-subject-wash text-subject-700 dark:text-subject-400 hover:bg-subject-500 hover:text-white"
+                                      }`}
+                                    >
+                                      <PenLine className="w-4 h-4" aria-hidden="true" />
+                                    </Link>
+                                    <Link
+                                      href={`/aula/${cap.id}`}
+                                      title="Abrir aula"
+                                      aria-label={`Abrir aula do capítulo ${cap.numero_capitulo}`}
+                                      className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+                                        travado
+                                          ? "bg-surface-elevated text-ink-faint/50 pointer-events-none"
+                                          : "bg-surface-elevated text-ink-muted hover:text-subject-600 dark:hover:text-subject-400"
+                                      }`}
+                                    >
+                                      <PlayIcon />
+                                    </Link>
+                                  </div>
+                                </>
+                              )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   )}
-                </div>
+                </section>
               );
             })}
           </div>
@@ -363,15 +408,21 @@ export default function MateriasPage() {
   );
 }
 
-function getStatusColor(heatmap: string) {
-  switch (heatmap) {
-    case "green":
-      return { bg: "bg-emerald-500", border: "border-emerald-600" };
-    case "yellow":
-      return { bg: "bg-amber-400", border: "border-amber-500" };
-    case "red":
-      return { bg: "bg-rose-500", border: "border-rose-600" };
-    default:
-      return { bg: "bg-slate-300 dark:bg-slate-600", border: "border-slate-400 dark:border-slate-500" };
-  }
+/** Ícone de play em SVG inline (Lucide PlayCircle). */
+function PlayIcon() {
+  return (
+    <svg
+      className="w-4 h-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <polygon points="10 8 16 12 10 16 10 8" />
+    </svg>
+  );
 }

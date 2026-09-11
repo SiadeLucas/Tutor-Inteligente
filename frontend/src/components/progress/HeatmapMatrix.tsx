@@ -81,7 +81,7 @@ export function HeatmapMatrix({
                 onClick={() => onSelectVolume(vol.volume_id)}
                 className={`flex flex-col items-start px-3.5 py-2 rounded-xl text-left transition-all border ${
                   isSelected
-                    ? "bg-[#FFF3E0] dark:bg-[#332514] border-[#F57C00] text-[#E65100] dark:text-[#FFB74D] shadow-sm ring-1 ring-[#F57C00]/30"
+                    ? "bg-subject-100 dark:bg-subject-wash-strong border-subject-500 text-subject-700 dark:text-subject-300 shadow-sm ring-1 ring-subject-300"
                     : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
@@ -111,7 +111,7 @@ export function HeatmapMatrix({
             {/* Cabeçalho do Volume Selecionado */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-[#F57C00]" />
+                <BookOpen className="w-4 h-4 text-subject-600" />
                 <span className="font-bold text-sm text-slate-900 dark:text-white">
                   Volume {selectedVolume.numero_volume}: {selectedVolume.titulo_volume}
                 </span>
@@ -124,11 +124,11 @@ export function HeatmapMatrix({
                   <span className="text-xs text-slate-500">Completude:</span>
                   <div className="w-28 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#F57C00] rounded-full transition-all duration-500"
+                      className="h-full bg-subject-500 rounded-full transition-all duration-500"
                       style={{ width: `${selectedVolume.completude_volume_percentual}%` }}
                     />
                   </div>
-                  <span className="text-xs font-mono font-bold text-[#E65100] dark:text-[#FFB74D]">
+                  <span className="text-xs font-mono font-bold text-subject-700 dark:text-subject-300">
                     {selectedVolume.completude_volume_percentual}%
                   </span>
                 </div>
@@ -185,7 +185,7 @@ export function HeatmapMatrix({
                 </div>
                 <Link
                   href={`/aula/${hoveredCap.capitulo_id}`}
-                  className="flex items-center gap-1 font-semibold text-[#E65100] dark:text-[#FFB74D] hover:underline"
+                  className="flex items-center gap-1 font-semibold text-subject-700 dark:text-subject-300 hover:underline"
                 >
                   Acessar Aula & Exercícios <ChevronRight className="w-3.5 h-3.5" />
                 </Link>

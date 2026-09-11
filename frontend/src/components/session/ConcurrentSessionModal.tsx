@@ -28,8 +28,8 @@ export function ConcurrentSessionModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#1a1408] border border-slate-200 dark:border-[#3d2f1f] rounded-2xl shadow-xl max-w-md w-full p-6 text-center">
-        <div className="mx-auto w-14 h-14 bg-[#FFF3E0] dark:bg-[#2b1f10] text-[#F57C00] rounded-full flex items-center justify-center mb-4 ring-8 ring-[#FFF3E0]/50 dark:ring-[#2b1f10]/50">
+      <div className="bg-white dark:bg-surface-bg border border-slate-200 dark:border-line rounded-2xl shadow-xl max-w-md w-full p-6 text-center">
+        <div className="mx-auto w-14 h-14 bg-subject-100 dark:bg-subject-wash text-subject-600 rounded-full flex items-center justify-center mb-4 ring-8 ring-subject-200 dark:ring-subject-wash-strong">
           <ShieldAlert className="w-7 h-7" />
         </div>
 
@@ -37,7 +37,7 @@ export function ConcurrentSessionModal() {
           Sessão Conectada em Outro Aparelho
         </h3>
 
-        <p className="text-sm text-slate-600 dark:text-[#A89F91] mb-5 leading-relaxed">
+        <p className="text-sm text-slate-600 dark:text-ink-muted mb-5 leading-relaxed">
           {details?.mensagem ||
             "Sua conta foi acessada em outro dispositivo. Para garantir a segurança dos seus dados pedagógicos e avaliações, apenas uma conexão simultânea é permitida."}
         </p>
@@ -49,7 +49,7 @@ export function ConcurrentSessionModal() {
 
         <button
           onClick={handleRedirect}
-          className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#F57C00] hover:bg-[#EF6C00] text-white font-medium text-sm shadow-sm transition-colors cursor-pointer"
+          className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-subject-500 hover:bg-subject-600 text-white font-medium text-sm shadow-sm transition-colors cursor-pointer"
         >
           <LogIn className="w-4 h-4" />
           Fazer Login Novamente

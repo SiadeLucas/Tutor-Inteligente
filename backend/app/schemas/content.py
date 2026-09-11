@@ -105,6 +105,8 @@ class SkillTreeNodeResponse(BaseModel):
     cor_heatmap: Literal["green", "yellow", "red", "grey"] = "grey"
     percentual_acerto: float = 0.0
     desbloqueado: bool = True
+    tem_conteudo: bool = True
+    pre_requisito_pendente: bool = False
 
 
 class VolumeComCapitulosResponse(BaseModel):

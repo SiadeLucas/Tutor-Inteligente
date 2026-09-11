@@ -10,9 +10,9 @@ import { requisitosSenha } from "@/lib/formatters";
 import { ValidacaoEtapaResponse } from "@/types/onboarding";
 
 const inputCls =
-  "w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all";
+  "w-full pl-10 pr-3.5 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all";
 
-const CORES_FORCA = ["bg-slate-200 dark:bg-[#3d2f1f]", "bg-rose-500", "bg-amber-500", "bg-lime-500", "bg-green-600"];
+const CORES_FORCA = ["bg-slate-200 dark:bg-surface-elevated", "bg-rose-500", "bg-amber-500", "bg-lime-500", "bg-green-600"];
 const ROTULOS_FORCA = ["", "Fraca", "Razoável", "Boa", "Forte"];
 
 export default function Step2Credentials({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
@@ -81,7 +81,7 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
     <div className="space-y-4">
       <div>
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">Contato & Credenciais</h2>
-        <p className="text-xs text-slate-500 dark:text-[#A89F91] mt-1">
+        <p className="text-xs text-slate-500 dark:text-ink-muted mt-1">
           Como você acessará a plataforma e como poderemos falar com você.
         </p>
       </div>
@@ -177,12 +177,12 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
               value={form.confirmacao_senha}
               onChange={(e) => setCampo("confirmacao_senha", e.target.value)}
               placeholder="Repita a senha"
-              className={`w-full px-3.5 py-2.5 ${form.confirmacao_senha ? "pr-11" : ""} bg-white dark:bg-[#1a1408] border rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 transition-all ${
+              className={`w-full px-3.5 py-2.5 ${form.confirmacao_senha ? "pr-11" : ""} bg-white dark:bg-surface-bg border rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 transition-all ${
               form.confirmacao_senha.length > 0
                 ? form.senha === form.confirmacao_senha
                   ? "border-emerald-500 focus:ring-emerald-500/20 focus:border-emerald-500"
                   : "border-rose-400 focus:ring-rose-400/20 focus:border-rose-500"
-                : "border-slate-300 dark:border-[#3d2f1f] focus:ring-[#F57C00]/20 focus:border-[#F57C00]"
+                : "border-slate-300 dark:border-line focus:ring-subject-300 focus:border-subject-500"
             }`}
             />
             {form.confirmacao_senha.length > 0 && (
@@ -207,12 +207,12 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
             <div
               key={nivel}
               className={`h-1 flex-1 rounded-full ${
-                forca >= nivel ? CORES_FORCA[forca] : "bg-slate-200 dark:bg-[#3d2f1f]"
+                forca >= nivel ? CORES_FORCA[forca] : "bg-slate-200 dark:bg-surface-elevated"
               }`}
             />
           ))}
         </div>
-        <span className="text-[10px] font-semibold text-slate-500 dark:text-[#A89F91] w-14 text-right">
+        <span className="text-[10px] font-semibold text-slate-500 dark:text-ink-muted w-14 text-right">
           {ROTULOS_FORCA[forca]}
         </span>
       </div>
@@ -227,7 +227,7 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
                 ? "text-slate-400 dark:text-slate-500"
                 : req.cumprido
                   ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-slate-500 dark:text-[#A89F91]"
+                  : "text-slate-500 dark:text-ink-muted"
             }`}
           >
             {req.cumprido ? (
@@ -272,10 +272,10 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
 
       {/* Bloco condicional: responsável legal para menores de 18 anos (RN-ONB-005) */}
       {menor && (
-        <div className="border border-[#FFB74D]/40 bg-[#FFF3E0]/60 dark:bg-[#2b1f10]/60 rounded-xl p-4 space-y-3">
+        <div className="border border-subject-200 bg-subject-100/60 dark:bg-subject-wash/60 rounded-xl p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-[#E65100] dark:text-[#FFB74D]" />
-            <p className="text-xs font-bold text-[#E65100] dark:text-[#FFB74D]">
+            <ShieldCheck className="w-4 h-4 text-subject-700 dark:text-subject-300" />
+            <p className="text-xs font-bold text-subject-700 dark:text-subject-300">
               Responsável legal (obrigatório para menores de 18 anos)
             </p>
           </div>
@@ -284,7 +284,7 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
             value={responsavel.nome_completo}
             onChange={(e) => setResponsavel({ nome_completo: e.target.value })}
             placeholder="Nome completo do responsável"
-            className="w-full px-3.5 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
+            className="w-full px-3.5 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all"
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input
@@ -293,7 +293,7 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
               value={responsavel.cpf}
               onChange={(e) => setResponsavel({ cpf: mascaraCPF(e.target.value) })}
               placeholder="CPF do responsável"
-              className="w-full px-3.5 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
+              className="w-full px-3.5 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all"
             />
             <input
               type="text"
@@ -301,7 +301,7 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
               value={responsavel.telefone}
               onChange={(e) => setResponsavel({ telefone: mascaraTelefone(e.target.value) })}
               placeholder="Telefone do responsável"
-              className="w-full px-3.5 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
+              className="w-full px-3.5 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all"
             />
           </div>
           <input
@@ -309,7 +309,7 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
             value={responsavel.email ?? ""}
             onChange={(e) => setResponsavel({ email: e.target.value })}
             placeholder="E-mail do responsável (opcional)"
-            className="w-full px-3.5 py-2.5 bg-white dark:bg-[#1a1408] border border-slate-300 dark:border-[#3d2f1f] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#F57C00]/20 focus:border-[#F57C00] transition-all"
+            className="w-full px-3.5 py-2.5 bg-white dark:bg-surface-bg border border-slate-300 dark:border-line rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-subject-300 focus:border-subject-500 transition-all"
           />
         </div>
       )}
@@ -319,7 +319,7 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
           <button
             type="button"
             onClick={onBack}
-            className="py-3 px-4 rounded-xl border border-slate-300 dark:border-[#3d2f1f] text-slate-600 dark:text-slate-300 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-[#1a1408] transition-colors flex items-center gap-2 cursor-pointer"
+            className="py-3 px-4 rounded-xl border border-slate-300 dark:border-line text-slate-600 dark:text-slate-300 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-surface-bg transition-colors flex items-center gap-2 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Voltar</span>
@@ -332,7 +332,7 @@ export default function Step2Credentials({ onNext, onBack }: { onNext: () => voi
           type="button"
           onClick={handleAvancar}
           disabled={carregando}
-          className="py-3 px-5 rounded-xl bg-[#F57C00] hover:bg-[#EF6C00] text-white font-semibold text-sm shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="py-3 px-5 rounded-xl bg-subject-500 hover:bg-subject-600 text-white font-semibold text-sm shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {carregando ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

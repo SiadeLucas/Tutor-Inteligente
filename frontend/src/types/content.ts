@@ -24,6 +24,8 @@ export interface SkillTreeNode {
   cor_heatmap: "green" | "yellow" | "red" | "grey";
   percentual_acerto: number;
   desbloqueado: boolean;
+  tem_conteudo?: boolean;
+  pre_requisito_pendente?: boolean;
 }
 
 export interface VolumeComCapitulos {

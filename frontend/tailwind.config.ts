@@ -10,17 +10,46 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        ti: {
-          primary: "#F57C00",
-          "primary-dark": "#EF6C00",
-          "primary-light": "#FB8C00",
-          accent: "#FFB74D",
-          deep: "#E65100",
-          tint: "#FFF3E0",
-          "bg-dark": "#1a1408",
-          "text-dark": "#FFCC80",
+        /**
+         * RN-INT-001 revisada — Discipline-Scoped Tokens
+         *
+         * Os valores das variáveis são injetados em runtime pelo
+         * DisciplineThemeProvider a partir de `disciplinas.cor_tema` (banco).
+         * Nenhum hex de disciplina deve aparecer em componentes.
+         *
+         * `subject-*`: identidade da matéria (laranja = Matemática hoje).
+         * `ink-*`: texto estrutural (levemente matizado pelo hue da matéria).
+         * `surface-*`: fundos (bg/card/elevated).
+         * `line-*`: bordas e hairlines.
+         */
+        subject: {
+          50: "var(--subject-50)",
+          100: "var(--subject-100)",
+          200: "var(--subject-200)",
+          300: "var(--subject-300)",
+          400: "var(--subject-400)",
+          500: "var(--subject-500)",
+          600: "var(--subject-600)",
+          700: "var(--subject-700)",
+          800: "var(--subject-800)",
+          900: "var(--subject-900)",
+          DEFAULT: "var(--subject-500)",
+          wash: "var(--subject-wash)",
+          "wash-strong": "var(--subject-wash-strong)",
+        },
+        ink: {
+          text: "var(--ink-text)",
+          muted: "var(--ink-muted)",
+          faint: "var(--ink-faint)",
+        },
+        surface: {
+          bg: "var(--surface-bg)",
+          card: "var(--surface-card)",
+          elevated: "var(--surface-elevated)",
+        },
+        line: {
+          DEFAULT: "var(--line-border)",
+          strong: "var(--line-strong)",
         },
       },
       fontFamily: {

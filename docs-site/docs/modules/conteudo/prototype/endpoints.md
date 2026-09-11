@@ -4,8 +4,8 @@ type: module
 status: draft
 related:
   - modules/conteudo/prototype/index.md
-last_updated: "2026-09-03"
-updated_by: claude
+last_updated: "2026-09-10"
+updated_by: antigravity
 ---
 
 # 5. Endpoints da API FastAPI
@@ -37,6 +37,20 @@ from app.ai.prompts.socratic import SYSTEM_PROMPT_SOCRATICO
 from app.modules.content.socratic_tutor import SocraticStateManager
 
 router = APIRouter(prefix="/api/v1/conteudo", tags=["Conteúdo & Tutor Socrático"])
+
+
+@router.get("/disciplinas", response_model=List[DisciplinaResponse])
+async def listar_disciplinas(current_user = Depends(get_current_user), db = Depends(get_db)):
+    """Catálogo de disciplinas ativas (ordem de exibição). Ver RN-INT-001 revisada."""
+
+
+@router.get("/disciplinas/{slug}", response_model=DisciplinaResponse)
+async def obter_disciplina(slug: str, current_user = Depends(get_current_user), db = Depends(get_db)):
+    """
+    Detalhe da disciplina, incluindo `icone` e `cor_tema`.
+    `cor_tema` é a FONTE DA VERDADE da identidade visual da matéria:
+    o frontend deriva toda a escala de tons (OKLCH) a partir deste hex.
+    """
 
 
 @router.post("/aulas/{capitulo_id}/chat", response_model=ChatAulaResponse)

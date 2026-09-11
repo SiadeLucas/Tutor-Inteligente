@@ -78,8 +78,10 @@ def _obter_bateria(capitulo: Capitulo) -> Optional[list[dict]]:
 def _montar_nó_heatmap(
     cap: Capitulo,
     heatmap: Optional[HeatmapDominio],
+    tem_conteudo: bool = True,
+    pre_requisito_pendente: bool = False,
 ) -> SkillTreeNodeResponse:
-    """Constrói o nó da Skill Tree aplicando RN-PRG-012 sobre o heatmap real."""
+    """Constrói o nó da Skill Tree aplicando RN-PRG-012 sobre o heatmap real e disponibilidade de conteúdo."""
     if heatmap is None:
         return SkillTreeNodeResponse(
             id=cap.id,
@@ -91,7 +93,9 @@ def _montar_nó_heatmap(
             status_dominio="not_started",
             cor_heatmap="grey",
             percentual_acerto=0.0,
-            desbloqueado=True,
+            desbloqueado=tem_conteudo,
+            tem_conteudo=tem_conteudo,
+            pre_requisito_pendente=pre_requisito_pendente,
         )
 
     taxa = float(heatmap.taxa_acertos_ponderada)
@@ -106,7 +110,9 @@ def _montar_nó_heatmap(
         status_dominio=STATUS_DOMINIO_PARA_FRONTEND[heatmap.status_cor],
         cor_heatmap=cor,
         percentual_acerto=taxa,
-        desbloqueado=heatmap.aula_concluida or cap.ordem == 1,
+        desbloqueado=tem_conteudo,
+        tem_conteudo=tem_conteudo,
+        pre_requisito_pendente=pre_requisito_pendente,
     )
 
 
@@ -132,18 +138,6 @@ async def _obter_heatmaps(
 # ============================================================================
 # 1. Catálogo e Estrutura Curricular (Disciplinas, Volumes, Capítulos)
 # ============================================================================
-
-@router.get("/disciplinas", response_model=List[DisciplinaResponse], summary="Listar disciplinas ativas")
-async def listar_disciplinas(
-    db: AsyncSession = Depends(get_db),
-    usuario: Usuario = Depends(get_current_user),
-):
-    """Retorna todas as disciplinas disponíveis para estudo (ex: Matemática)."""
-    result = await db.execute(
-        select(Disciplina).where(Disciplina.ativo == True).order_by(Disciplina.ordem)  # noqa: E712
-    )
-    return result.scalars().all()
-
 
 @router.get("/volumes/{disciplina_id}", response_model=List[VolumeResponse], summary="Listar volumes de uma disciplina")
 async def listar_volumes_disciplina(
@@ -193,8 +187,70 @@ async def listar_capitulos_volume(
         if not vol_check.scalar_one_or_none():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Volume não encontrado.")
 
-    heatmaps = await _obter_heatmaps(db, usuario.id, [c.id for c in capitulos])
-    return [_montar_nó_heatmap(cap, heatmaps.get(cap.id)) for cap in capitulos]
+    capitulo_ids = [c.id for c in capitulos]
+    heatmaps = await _obter_heatmaps(db, usuario.id, capitulo_ids)
+
+    # Identifica capítulos que possuem aula publicada
+    aulas_res = await db.execute(
+        select(Aula.capitulo_id).where(
+            and_(Aula.capitulo_id.in_(capitulo_ids), Aula.publicado == True)  # noqa: E712
+        )
+    )
+    aulas_publicadas_ids = set(aulas_res.scalars().all())
+
+    sorted_caps = sorted(capitulos, key=lambda c: c.ordem)
+    nodes = []
+    for idx, cap in enumerate(sorted_caps):
+        tem_conteudo = cap.id in aulas_publicadas_ids
+        pre_pendente = False
+        if idx > 0:
+            cap_anterior = sorted_caps[idx - 1]
+            hm_ant = heatmaps.get(cap_anterior.id)
+            pre_pendente = not (hm_ant and hm_ant.aula_concluida)
+
+        nodes.append(
+            _montar_nó_heatmap(
+                cap,
+                heatmaps.get(cap.id),
+                tem_conteudo=tem_conteudo,
+                pre_requisito_pendente=pre_pendente,
+            )
+        )
+    return nodes
+
+
+@router.get("/disciplinas", response_model=List[DisciplinaResponse], summary="Listar disciplinas ativas")
+async def listar_disciplinas(
+    db: AsyncSession = Depends(get_db),
+    usuario: Usuario = Depends(get_current_user),
+):
+    """
+    Catálogo de disciplinas ativas (ordem de exibição).
+
+    RN-INT-001 revisada: `cor_tema` de cada disciplina é a FONTE DA VERDADE
+    da identidade visual. O frontend deriva toda a escala de tons a partir
+    deste único hex (OKLCH), permitindo novas matérias sem mudança de código.
+    """
+    res = await db.execute(
+        select(Disciplina)
+        .where(Disciplina.ativo == True)  # noqa: E712
+        .order_by(Disciplina.ordem)
+    )
+    return res.scalars().all()
+
+
+@router.get("/disciplinas/{slug}", response_model=DisciplinaResponse, summary="Obter disciplina ativa por slug")
+async def obter_disciplina(
+    slug: str,
+    db: AsyncSession = Depends(get_db),
+    usuario: Usuario = Depends(get_current_user),
+):
+    """Detalhe da disciplina (inclui `icone` e `cor_tema` para theming global)."""
+    res = await db.execute(select(Disciplina).where(Disciplina.slug == slug, Disciplina.ativo == True))  # noqa: E712
+    disciplina = res.scalar_one_or_none()
+    if not disciplina:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Disciplina não encontrada.")
+    return disciplina
 
 
 @router.get("/skill-tree", response_model=List[VolumeComCapitulosResponse], summary="Recuperar Árvore de Habilidades completa da disciplina ativa")
@@ -206,7 +262,7 @@ async def obter_skill_tree(
     """
     Retorna a Skill Tree completa da disciplina, com todos os 11 volumes,
     seus capítulos e o heatmap de domínio real do usuário autenticado,
-    em uma única chamada otimizada (2 queries no total).
+    em uma única chamada otimizada.
     """
     disc_res = await db.execute(
         select(Disciplina).where(Disciplina.slug == disciplina_slug)
@@ -224,14 +280,38 @@ async def obter_skill_tree(
     volumes = volumes_res.scalars().all()
 
     todos_capitulos = [cap for vol in volumes for cap in vol.capitulos]
-    heatmaps = await _obter_heatmaps(db, usuario.id, [c.id for c in todos_capitulos])
+    capitulo_ids = [c.id for c in todos_capitulos]
+    heatmaps = await _obter_heatmaps(db, usuario.id, capitulo_ids)
+
+    # Identifica capítulos que possuem aula publicada
+    aulas_res = await db.execute(
+        select(Aula.capitulo_id).where(
+            and_(Aula.capitulo_id.in_(capitulo_ids), Aula.publicado == True)  # noqa: E712
+        )
+    )
+    aulas_publicadas_ids = set(aulas_res.scalars().all())
 
     tree = []
     for vol in volumes:
-        capitulos_nodes = [
-            _montar_nó_heatmap(cap, heatmaps.get(cap.id))
-            for cap in sorted(vol.capitulos, key=lambda c: c.ordem)
-        ]
+        sorted_caps = sorted(vol.capitulos, key=lambda c: c.ordem)
+        capitulos_nodes = []
+        for idx, cap in enumerate(sorted_caps):
+            tem_conteudo = cap.id in aulas_publicadas_ids
+            pre_pendente = False
+            if idx > 0:
+                cap_anterior = sorted_caps[idx - 1]
+                hm_ant = heatmaps.get(cap_anterior.id)
+                pre_pendente = not (hm_ant and hm_ant.aula_concluida)
+
+            capitulos_nodes.append(
+                _montar_nó_heatmap(
+                    cap,
+                    heatmaps.get(cap.id),
+                    tem_conteudo=tem_conteudo,
+                    pre_requisito_pendente=pre_pendente,
+                )
+            )
+
         tree.append(
             VolumeComCapitulosResponse(
                 id=vol.id,

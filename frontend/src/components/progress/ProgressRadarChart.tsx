@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useDisciplineTheme } from "@/components/theme/DisciplineThemeProvider";
 import {
   Radar,
   RadarChart,
@@ -24,6 +25,10 @@ export function ProgressRadarChart({
   thetaAtual,
   classificacao,
 }: ProgressRadarChartProps) {
+  // RN-INT-001: cor da disciplina vem do tema (fonte da verdade no banco)
+  const { palette } = useDisciplineTheme();
+  const subjectColor = palette?.scale[500] ?? "#F57C00";
+
   // Converte a escala psicométrica (-3.0 a +3.0) em pontuação percentual pedagógica (0 a 100)
   const data = radarAreas.map((item) => {
     const pontuacaoEntrada = Math.round(
@@ -112,9 +117,9 @@ export function ProgressRadarChart({
             <Radar
               name="Proficiência Atual"
               dataKey="atual"
-              stroke="#F57C00"
+              stroke={subjectColor}
               strokeWidth={2}
-              fill="#F57C00"
+              fill={subjectColor}
               fillOpacity={0.45}
             />
           </RadarChart>

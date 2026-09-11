@@ -4,8 +4,8 @@ type: module
 status: draft
 related:
   - modules/interface/flow/index.md
-last_updated: "2026-08-28"
-updated_by: claude
+last_updated: "2026-09-10"
+updated_by: antigravity
 ---
 
 # 1. Navegação e Layout
@@ -33,7 +33,7 @@ flowchart LR
 ```mermaid
 flowchart TD
     A["Usuário acessa a plataforma"] --> B{"Largura da tela?"}
-    B -->|"< 768px (Mobile)"| C["Sidebar oculta \n Hamburger menu no topo \n Cards empilhados (1 coluna) \n Conteúdo full-width"]
+    B -->|"< 768px (Mobile)"| C["BottomNav fixa na base (sem hamburger) \n Header compacto no topo \n Cards empilhados (1 coluna) \n Conteúdo full-width"]
     B -->|"768-1024px (Tablet)"| D["Sidebar colapsável \n Grid de 2 colunas \n Sidebar de conteúdo sobreposta"]
     B -->|"> 1024px (Desktop)"| E["Sidebar fixa expandida \n Grid de 2-3 colunas \n Sidebar de conteúdo visível"]
 ```

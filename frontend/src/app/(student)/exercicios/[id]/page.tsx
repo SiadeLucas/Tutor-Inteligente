@@ -1,10 +1,20 @@
 "use client";
 
+/**
+ * /exercicios/[id] — Focus mode (Fase 5: "Caderno de Foco").
+ *
+ * Tela dedicada e focada (protótipo RN-INT §2.4): uma questão por vez,
+ * sem navegação primária (AppShell focus-mode), sem cards dentro de cards.
+ * A questão É a página: coluna única ~42rem, CTA único na base.
+ *
+ * Lógica preservada: submissão com tentativas (1|2), pontuação por acerto,
+ * Questão Gêmea inserida após a atual, conclusão com aproveitamento.
+ */
+
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, RotateCcw, Award } from "lucide-react";
-import { GlobalHeader } from "@/components/header/GlobalHeader";
+import { ArrowLeft, CheckCircle2, Award, Inbox, TrendingUp } from "lucide-react";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { api, extrairMensagemErro } from "@/lib/api";
 import { ItemExercicio, SubmissaoResult } from "@/types/exercise";
@@ -13,7 +23,6 @@ import { ExerciseCard } from "@/components/exercises/ExerciseCard";
 export default function ExerciciosCapituloPage() {
   useHeartbeat();
   const params = useParams();
-  const router = useRouter();
   const capituloId = params.id as string;
 
   const [itens, setItens] = useState<ItemExercicio[]>([]);
@@ -92,101 +101,142 @@ export default function ExerciciosCapituloPage() {
   const maxPontosPossivel = pontuacoes.length * 1.0;
   const aproveitamento = maxPontosPossivel > 0 ? Math.round((totalPontos / maxPontosPossivel) * 100) : 0;
 
+  const pctProgresso = itens.length > 0 ? (indiceAtual / itens.length) * 100 : 0;
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
-      <GlobalHeader />
-
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8">
-        {/* Barra Superior de Navegação e Progresso */}
-        <div className="flex items-center justify-between mb-6">
-          <Link
-            href="/materias"
-            className="flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar para Matérias
-          </Link>
-
-          {!loading && itens.length > 0 && !concluido && (
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Progresso: {indiceAtual + 1} / {itens.length}
-              </span>
-              <div className="w-32 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+    <div className="min-h-screen flex flex-col text-slate-900 dark:text-slate-100">
+      {/* ── Faixa de progresso da bateria (abaixo do GlobalHeader) ── */}
+      {!loading && !error && itens.length > 0 && !concluido && (
+        <div className="sticky top-14 z-20 border-b border-line bg-surface-bg/95 backdrop-blur supports-[backdrop-filter]:bg-surface-bg/90">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-4">
+            <Link
+              href="/materias"
+              aria-label="Sair da bateria e voltar para Matérias"
+              className="p-1.5 -ml-1.5 rounded-lg text-ink-faint hover:text-ink-text hover:bg-surface-elevated transition-colors flex-shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+            </Link>
+            <div className="flex-1">
+              <div className="flex items-center justify-between text-[11px] font-bold mb-1.5">
+                <span className="uppercase tracking-widest text-ink-faint">
+                  Questão {indiceAtual + 1} de {itens.length}
+                </span>
+                <span className="text-ink-faint tabular-nums">
+                  {totalPontos.toFixed(1).replace(".", ",")} pts
+                </span>
+              </div>
+              <div className="h-1 rounded-full bg-line overflow-hidden">
                 <div
-                  className="h-full bg-[#F57C00] transition-all duration-300"
-                  style={{ width: `${((indiceAtual + 1) / itens.length) * 100}%` }}
+                  className="h-full bg-subject-500 transition-[width] duration-300 ease-out"
+                  style={{ width: `${pctProgresso}%` }}
                 />
               </div>
             </div>
-          )}
+          </div>
         </div>
+      )}
 
-        {/* Conteúdo Central */}
-        {loading ? (
-          <div className="p-12 text-center text-slate-400">
-            <div className="inline-block w-8 h-8 border-4 border-[#F57C00] border-t-transparent rounded-full animate-spin mb-4" />
-            <p>Carregando exercícios de fixação...</p>
+      {/* ── Palco central: a questão é a página ── */}
+      <main className="flex-1 w-full max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+        {loading && (
+          <div className="space-y-5" aria-busy="true" aria-label="Carregando exercícios">
+            <div className="h-6 w-40 rounded-full bg-surface-elevated animate-pulse" />
+            <div className="space-y-3">
+              {[100, 92, 96, 78].map((w, i) => (
+                <div
+                  key={i}
+                  className="h-4 rounded-full bg-surface-elevated animate-pulse"
+                  style={{ width: `${w}%` }}
+                />
+              ))}
+            </div>
+            <div className="pt-4 space-y-2.5">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-14 rounded-xl bg-surface-card border border-line animate-pulse" />
+              ))}
+            </div>
           </div>
-        ) : error ? (
-          <div className="p-6 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 rounded-2xl text-rose-700 dark:text-rose-300 text-center">
-            {error}
-          </div>
-        ) : itens.length === 0 ? (
-          <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-            <p className="text-slate-500">Nenhum exercício cadastrado para este capítulo ainda.</p>
+        )}
+
+        {error && (
+          <div
+            role="alert"
+            className="rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 p-6 text-center"
+          >
+            <p className="text-sm font-medium text-rose-700 dark:text-rose-300">{error}</p>
             <Link
               href="/materias"
-              className="mt-4 inline-block px-5 py-2 rounded-xl bg-[#F57C00] text-white font-semibold text-xs"
+              className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-ink-muted hover:text-ink-text underline"
             >
-              Voltar ao Catálogo
+              <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+              Voltar para Matérias
             </Link>
           </div>
-        ) : concluido ? (
-          /* Tela de Conclusão da Bateria */
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 text-center max-w-lg mx-auto shadow-sm">
-            <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Award className="w-8 h-8" />
+        )}
+
+        {concluido && (
+          /* ── Conclusão: hero flat, número como protagonista ── */
+          <div className="max-w-md mx-auto text-center pt-8 sm:pt-16">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-subject-wash text-subject-600 dark:text-subject-400 mb-5">
+              <Award className="w-8 h-8" aria-hidden="true" />
             </div>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">
-              Bateria de Fixação Concluída!
-            </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-              Você completou todos os exercícios recomendados para este capítulo.
+            <h2 className="text-2xl font-extrabold tracking-tight">Bateria concluída</h2>
+            <p className="text-sm text-ink-muted mt-2">
+              Você respondeu {pontuacoes.length} {pontuacoes.length === 1 ? "questão" : "questões"} deste capítulo.
             </p>
 
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl mb-6 grid grid-cols-2 gap-4 text-center">
+            <div className="mt-8 flex items-end justify-center gap-8 tabular-nums">
               <div>
-                <span className="text-xs text-slate-400 block uppercase">Pontuação Final</span>
-                <span className="text-xl font-black text-[#F57C00]">
-                  {totalPontos.toFixed(1)} / {maxPontosPossivel.toFixed(1)}
+                <span className="block text-5xl font-black text-subject-600 dark:text-subject-400 leading-none">
+                  {aproveitamento}
+                  <span className="text-2xl align-top">%</span>
+                </span>
+                <span className="block text-[11px] font-bold uppercase tracking-widest text-ink-faint mt-2">
+                  Aproveitamento
                 </span>
               </div>
-              <div>
-                <span className="text-xs text-slate-400 block uppercase">Aproveitamento</span>
-                <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">
-                  {aproveitamento}%
+              <div className="pb-1 text-left">
+                <span className="block text-xl font-extrabold leading-none">
+                  {totalPontos.toFixed(1).replace(".", ",")}
+                </span>
+                <span className="block text-[11px] text-ink-faint mt-1">
+                  de {maxPontosPossivel.toFixed(1).replace(".", ",")} pontos
                 </span>
               </div>
             </div>
 
-            <div className="flex gap-3 justify-center">
+            <div
+              className={`mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border ${
+                aproveitamento >= 60
+                  ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/40"
+                  : "bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900/40"
+              }`}
+            >
+              <TrendingUp className="w-3.5 h-3.5" aria-hidden="true" />
+              {aproveitamento >= 60
+                ? "Capítulo validado para a árvore de habilidades"
+                : "Abaixo de 60% — itens foram para a Caixa de Reforço"}
+            </div>
+
+            <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/materias"
-                className="px-6 py-2.5 rounded-xl bg-[#F57C00] hover:bg-[#E65100] text-white font-bold text-sm shadow-sm transition-all"
+                className="inline-flex items-center justify-center gap-2 px-6 min-h-[48px] rounded-xl bg-subject-500 hover:bg-subject-600 text-white font-bold text-sm transition-colors"
               >
                 Continuar Estudando
               </Link>
               <Link
                 href="/reforco"
-                className="px-6 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm transition-all"
+                className="inline-flex items-center justify-center gap-2 px-6 min-h-[48px] rounded-xl border border-line hover:bg-surface-elevated text-ink-muted font-semibold text-sm transition-colors"
               >
+                <Inbox className="w-4 h-4" aria-hidden="true" />
                 Ver Caixa de Reforço
               </Link>
             </div>
           </div>
-        ) : (
-          /* Card do Exercício Ativo */
+        )}
+
+        {!loading && !error && !concluido && itens.length > 0 && (
           <ExerciseCard
             key={itens[indiceAtual].id}
             item={itens[indiceAtual]}
