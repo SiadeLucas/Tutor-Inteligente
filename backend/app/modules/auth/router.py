@@ -13,7 +13,7 @@ from sqlalchemy import select, or_, and_
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.core.deps import extrair_bearer_token, get_current_session
+from app.core.deps import extrair_bearer_token, get_current_session, get_current_user
 from app.core.redis import get_redis
 from app.core.security import hash_senha, verificar_senha, safe_compare, TokenService
 from app.models.user import Usuario, SessaoAtiva, TokenRecuperacaoSenha
@@ -262,7 +262,14 @@ async def logout(
         except Exception:
             pass
 
-    response.delete_cookie("refresh_token")
+    eh_desenvolvimento = settings.ENVIRONMENT == "development"
+    response.delete_cookie(
+        "refresh_token",
+        path="/",
+        httponly=True,
+        secure=not eh_desenvolvimento,
+        samesite="lax" if eh_desenvolvimento else "strict",
+    )
     return {"mensagem": "Logout realizado com sucesso."}
 
 
@@ -336,20 +343,24 @@ async def logout_remoto(
     RN-AUT-015: Invalida TODAS as sessões ativas do estudante em todos os dispositivos,
     forçando desconexão geral.
     """
-    token = extrair_bearer_token(request)
+    token = None
     try:
+        token = extrair_bearer_token(request)
         payload = TokenService.decodificar_token(token)
         usuario_id = UUID(payload["sub"])
+        redis = get_redis()
+        await SessionManager.revogar_todas_sessoes_usuario(db, redis, usuario_id)
     except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido."
-        )
+        pass
 
-    redis = get_redis()
-    await SessionManager.revogar_todas_sessoes_usuario(db, redis, usuario_id)
-
-    response.delete_cookie("refresh_token")
+    eh_desenvolvimento = settings.ENVIRONMENT == "development"
+    response.delete_cookie(
+        "refresh_token",
+        path="/",
+        httponly=True,
+        secure=not eh_desenvolvimento,
+        samesite="lax" if eh_desenvolvimento else "strict",
+    )
     return {"mensagem": "Todas as sessões ativas foram desconectadas com sucesso."}
 
 

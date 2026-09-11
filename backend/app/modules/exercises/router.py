@@ -15,6 +15,7 @@ from app.modules.exercises.schemas import (
     SubmissaoExercicioResponse,
     IniciarCatRequest,
     IniciarCatResponse,
+    AbandonarCatResponse,
     SubmeterCatRequest,
     CatStatusResponse,
     ItemExercicioResponse,
@@ -72,8 +73,25 @@ async def iniciar_sessao_cat(
     """
     Instancia uma nova sessão de Prova Diagnóstica CAT com prior N(0, 1),
     selecionando o 1º item por máxima Informação de Fisher (MFI).
+
+    Se o aluno já possui uma sessão pendente (ex.: fechou a aba no meio da
+    prova), RETOMA automaticamente de onde parou, preservando o theta já
+    calibrado (RN-EXE-010 — resiliência de sessão).
     """
     return await ExercisesService.iniciar_sessao_cat(payload, current_user, db)
+
+
+@router.delete("/cat/{sessao_id}", response_model=AbandonarCatResponse, summary="Abandonar sessão CAT em andamento")
+async def abandonar_sessao_cat(
+    sessao_id: UUID,
+    current_user: Usuario = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Descarta uma sessão CAT pendente (saída de emergência). A calibragem
+    parcial é perdida: a próxima prova recomeça de theta=0.
+    """
+    return await ExercisesService.abandonar_sessao_cat(sessao_id, current_user, db)
 
 
 @router.get("/cat/historico", response_model=List[Dict[str, Any]], summary="Histórico de provas CAT finalizadas do estudante")

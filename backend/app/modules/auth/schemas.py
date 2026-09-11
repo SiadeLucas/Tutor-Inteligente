@@ -100,6 +100,10 @@ class VerificarTokenResponse(BaseModel):
 class RedefinirSenhaRequest(BaseModel):
     """Requisição final de redefinição de senha com token criptográfico de uso único."""
     token: str = Field(..., description="Token criptográfico de uso único recebido no link mágico")
+    nova_senha: str = Field(..., min_length=8, description="Nova senha com no mínimo 8 caracteres")
+    confirmacao_senha: Optional[str] = Field(None, min_length=8, description="Confirmação idêntica da nova senha")
+
+
 class AtualizarPerfilRequest(BaseModel):
     """Atualização de dados cadastrais editáveis (RN-INT §2.6)."""
     telefone: Optional[str] = Field(None, min_length=10, max_length=11, description="Somente dígitos, DDD + número")

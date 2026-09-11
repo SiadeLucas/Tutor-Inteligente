@@ -55,6 +55,10 @@ export interface IniciarCatResponse {
   indicador_progresso: string;
   total_itens_estimado: string;
   primeiro_item: ItemExercicio;
+  /** True se uma sessão pendente foi retomada (RN-EXE-010). */
+  retomada?: boolean;
+  /** Itens já respondidos na sessão (0 em prova nova). */
+  itens_respondidos?: number;
 }
 
 export interface SubmeterCatRequest {

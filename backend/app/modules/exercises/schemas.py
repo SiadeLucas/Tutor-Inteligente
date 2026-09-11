@@ -95,6 +95,18 @@ class IniciarCatResponse(BaseModel):
     indicador_progresso: str
     total_itens_estimado: str = "12 a 20 questões"
     primeiro_item: ItemExercicioResponse
+    retomada: bool = Field(
+        False,
+        description="True se uma sessão pendente foi retomada (RN-EXE-010 — resiliência); o aluno continua de onde parou.",
+    )
+    itens_respondidos: int = Field(
+        0,
+        description="Itens já respondidos na sessão (0 em uma prova nova; >0 em retomadas).",
+    )
+
+
+class AbandonarCatResponse(BaseModel):
+    mensagem: str = "Sessão CAT abandonada. A próxima prova será iniciada do zero."
 
 
 class SubmeterCatRequest(BaseModel):

@@ -4,7 +4,7 @@ type: module
 status: draft
 related:
   - modules/exercicios/prototype/index.md
-last_updated: "2026-09-09"
+last_updated: "2026-09-10"
 updated_by: buffy
 ---
 
@@ -134,6 +134,11 @@ async def iniciar_sessao_cat(
     """
     Instancia uma nova sessão de Prova Adaptativa Diagnóstica (CAT)
     com prior N(0, 1), SE inicial de 1.0 e seleciona o 1º item por máxima Informação de Fisher.
+
+    Resiliência de sessão (RN-EXE-010): se o aluno já possui uma prova
+    pendente (ex.: fechou a aba no meio), RETOMA de onde parou — a resposta
+    inclui `retomada: true` e `itens_respondidos: N`. A calibragem adaptativa
+    já atingida é preservada (o MFI nunca reinicia de theta=0 indevidamente).
     """
     from app.models.exercise import ProvaCat
     from uuid import uuid4
@@ -155,6 +160,8 @@ async def iniciar_sessao_cat(
     return {
         "sessao_cat_id": nova_prova.id,
         "indicador_progresso": "Questão 1 (Faixa: 12 a 20 questões)",
+        "retomada": false,
+        "itens_respondidos": 0,
         "primeiro_item": {
             "id": "uuid-item-inicial",
             "enunciado_katex": "Seja a função real $f(x) = 2x - 4$. O zero da função é:",
@@ -167,6 +174,28 @@ async def iniciar_sessao_cat(
             ]
         }
     }
+
+
+@router.delete("/cat/{sessao_id}")
+async def abandonar_sessao_cat(
+    sessao_id: UUID,
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Abandona (descarta) uma sessão CAT em andamento — saída de emergência.
+    A calibragem parcial é PERDIDA: a próxima prova recomeça de theta=0.
+    Sessões finalizadas não são afetadas (400 — nada a abandonar).
+    """
+    prova = await db.get(ProvaCat, sessao_id)
+    if not prova or prova.usuario_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Sessão CAT não localizada.")
+    if prova.finalizado_em is not None:
+        raise HTTPException(status_code=400, detail="Esta sessão CAT já foi concluída.")
+
+    await db.delete(prova)
+    await db.commit()
+    return {"mensagem": "Sessão CAT abandonada. A próxima prova será iniciada do zero."}
 
 
 @router.post("/cat/submeter")

@@ -25,7 +25,7 @@ import { useRouter } from "next/navigation";
 import {
   User, Lock, MonitorSmartphone, ClipboardList, Sun, Moon, Loader2,
   Check, AlertCircle, ShieldCheck, School, AtSign, Phone,
-  ChevronRight, Eye, EyeOff, Users,
+  ChevronRight, Eye, EyeOff, Users, LogOut,
 } from "lucide-react";
 import { api, extrairMensagemErro, clearAuth } from "@/lib/api";
 import { MeResponse } from "@/types/auth";
@@ -371,6 +371,7 @@ export default function PerfilPage() {
   const [confirmandoRemoto, setConfirmandoRemoto] = React.useState(false);
   const [fazendoRemoto, setFazendoRemoto] = React.useState(false);
   const [erroRemoto, setErroRemoto] = React.useState<string | null>(null);
+  const [fazendoLogoutLocal, setFazendoLogoutLocal] = React.useState(false);
 
   /* ------------------------- carregar perfil ------------------------ */
   const recarregar = React.useCallback(async () => {
@@ -409,18 +410,30 @@ export default function PerfilPage() {
     }
   }
 
+  /* ------------------------- logout local --------------------------- */
+  async function logoutLocal() {
+    setFazendoLogoutLocal(true);
+    try {
+      await api.post("/api/v1/auth/logout");
+    } catch {
+      // Ignora erro de rede para assegurar limpeza local
+    } finally {
+      clearAuth();
+      router.push("/login");
+    }
+  }
+
   /* ------------------------ logout remoto --------------------------- */
   async function logoutRemoto() {
     setErroRemoto(null);
     setFazendoRemoto(true);
     try {
       await api.post("/api/v1/auth/logout-remoto");
+    } catch (err) {
+      console.warn("Aviso no logout remoto:", err);
+    } finally {
       clearAuth();
       router.push("/login");
-    } catch (err) {
-      setErroRemoto(extrairMensagemErro(err, "Não foi possível desconectar os dispositivos."));
-      setFazendoRemoto(false);
-      setConfirmandoRemoto(false);
     }
   }
 
@@ -574,35 +587,52 @@ export default function PerfilPage() {
         {/* -------------------------- Segurança ----------------------- */}
         <Section icon={Lock} title="Segurança">
           <SenhaSection />
-          <div className="mt-6 border-t border-dashed border-line-border pt-5">
-            {!confirmandoRemoto ? (
-              <Button variant="danger" onClick={() => setConfirmandoRemoto(true)}>
-                <MonitorSmartphone className="h-4 w-4" aria-hidden="true" />
-                Desconectar todos os dispositivos
-              </Button>
-            ) : (
-              <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 dark:border-rose-900 dark:bg-rose-950/40">
-                <p className="text-sm font-medium text-rose-800 dark:text-rose-200">
-                  Desconectar em todos os dispositivos?
-                </p>
-                <p className="mt-1 text-sm text-rose-700 dark:text-rose-300">
-                  Todas as sessões ativas — inclusive esta — serão encerradas (RN-AUT-015).
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button variant="danger" onClick={() => void logoutRemoto()} disabled={fazendoRemoto}>
-                    {fazendoRemoto && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-                    Confirmar desconexão
-                  </Button>
-                  <button
-                    onClick={() => setConfirmandoRemoto(false)}
-                    className="min-h-11 rounded-lg px-4 py-2.5 text-sm font-semibold text-ink-muted hover:text-ink-text"
-                  >
-                    Cancelar
-                  </button>
-                </div>
+          <div className="mt-6 border-t border-dashed border-line-border pt-5 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-ink-text">Sair deste dispositivo</p>
+                <p className="text-xs text-ink-muted">Encerra a sua sessão ativa apenas neste navegador.</p>
               </div>
-            )}
-            {erroRemoto && <div className="mt-3"><Feedback kind="error">{erroRemoto}</Feedback></div>}
+              <Button variant="ghost" onClick={() => void logoutLocal()} disabled={fazendoLogoutLocal}>
+                {fazendoLogoutLocal ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <LogOut className="h-4 w-4" aria-hidden="true" />}
+                Sair da conta
+              </Button>
+            </div>
+
+            <div className="border-t border-dashed border-line-border pt-5">
+              <div className="mb-3">
+                <p className="text-sm font-medium text-ink-text">Desconexão global</p>
+                <p className="text-xs text-ink-muted">Encerra todas as sessões ativas em todos os dispositivos.</p>
+              </div>
+              {!confirmandoRemoto ? (
+                <Button variant="danger" onClick={() => setConfirmandoRemoto(true)}>
+                  <MonitorSmartphone className="h-4 w-4" aria-hidden="true" />
+                  Desconectar todos os dispositivos
+                </Button>
+              ) : (
+                <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 dark:border-rose-900 dark:bg-rose-950/40">
+                  <p className="text-sm font-medium text-rose-800 dark:text-rose-200">
+                    Desconectar em todos os dispositivos?
+                  </p>
+                  <p className="mt-1 text-sm text-rose-700 dark:text-rose-300">
+                    Todas as sessões ativas — inclusive esta — serão encerradas (RN-AUT-015).
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button variant="danger" onClick={() => void logoutRemoto()} disabled={fazendoRemoto}>
+                      {fazendoRemoto && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+                      Confirmar desconexão
+                    </Button>
+                    <button
+                      onClick={() => setConfirmandoRemoto(false)}
+                      className="min-h-11 rounded-lg px-4 py-2.5 text-sm font-semibold text-ink-muted hover:text-ink-text"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+              {erroRemoto && <div className="mt-3"><Feedback kind="error">{erroRemoto}</Feedback></div>}
+            </div>
           </div>
         </Section>
 

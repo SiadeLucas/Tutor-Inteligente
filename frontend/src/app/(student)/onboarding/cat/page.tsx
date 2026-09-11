@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Clock, ArrowRight, ShieldCheck, Award, Sparkles } from "lucide-react";
+import { Clock, ArrowRight, ShieldCheck, Award, Sparkles, RotateCcw, Trash2 } from "lucide-react";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { api, extrairMensagemErro } from "@/lib/api";
 import {
@@ -26,6 +26,10 @@ export default function ProvaCatPage() {
   const [submetendo, setSubmetendo] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [resultadoFinal, setResultadoFinal] = useState<CatStatusResponse | null>(null);
+  const [retomada, setRetomada] = useState<boolean>(false);
+  const [respondidas, setRespondidas] = useState<number>(0);
+  const [confirmandoAbandono, setConfirmandoAbandono] = useState<boolean>(false);
+  const [abandonando, setAbandonando] = useState<boolean>(false);
 
   // Cronômetro da questão atual
   const [segundosGastos, setSegundosGastos] = useState<number>(0);
@@ -58,6 +62,8 @@ export default function ProvaCatPage() {
         setSessaoId(res.sessao_cat_id);
         setItemAtual(res.primeiro_item);
         setIndicadorProgresso(res.indicador_progresso);
+        setRetomada(res.retomada === true);
+        setRespondidas(res.itens_respondidos ?? 0);
       } catch (err: any) {
         setError(extrairMensagemErro(err, "Não foi possível iniciar a prova diagnóstica CAT."));
       } finally {
@@ -91,6 +97,38 @@ export default function ProvaCatPage() {
       alert(extrairMensagemErro(err, "Falha ao submeter resposta no teste adaptativo."));
     } finally {
       setSubmetendo(false);
+    }
+  };
+
+  /** Descarta a sessão pendente e recomeça a prova do zero (RN-EXE-010). */
+  const handleAbandonar = async () => {
+    if (!sessaoId || abandonando) return;
+    try {
+      setAbandonando(true);
+      await api.delete(`/api/v1/exercicios/cat/${sessaoId}`);
+      // Recomeça do zero: reseta estados e instancia nova sessão.
+      setConfirmandoAbandono(false);
+      setResultadoFinal(null);
+      setItemAtual(null);
+      setRespostaSelecionada("");
+      setSegundosGastos(0);
+      setLoading(true);
+      const disciplinas: any[] = await api.get("/api/v1/conteudo/disciplinas");
+      const mat = disciplinas.find((d) => d.slug === "matematica") || disciplinas[0];
+      const res: IniciarCatResponse = await api.post("/api/v1/exercicios/cat/iniciar", {
+        disciplina_id: mat.id,
+        tipo_prova: "onboarding_diagnostico",
+      });
+      setSessaoId(res.sessao_cat_id);
+      setItemAtual(res.primeiro_item);
+      setIndicadorProgresso(res.indicador_progresso);
+      setRetomada(false);
+      setRespondidas(0);
+    } catch (err: any) {
+      alert(extrairMensagemErro(err, "Não foi possível abandonar a sessão anterior."));
+    } finally {
+      setAbandonando(false);
+      setLoading(false);
     }
   };
 
@@ -191,6 +229,49 @@ export default function ProvaCatPage() {
                 <Clock className="w-3.5 h-3.5 text-subject-600" />
                 {formatarTempo(segundosGastos)}
               </div>
+            </div>
+
+            {/* Aviso de retomada (RN-EXE-010 — resiliência de sessão) */}
+            {retomada && (
+              <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-subject-200 bg-subject-wash px-4 py-3 text-sm text-ink-text">
+                <RotateCcw className="mt-0.5 h-4 w-4 shrink-0 text-subject-600 dark:text-subject-400" aria-hidden="true" />
+                <span>
+                  <strong className="font-semibold">Prova retomada.</strong> {respondidas} resposta{respondidas === 1 ? "" : "s"} preservada{respondidas === 1 ? "" : "s"} — sua calibração continua de onde parou.
+                </span>
+              </div>
+            )}
+
+            {/* Saída de emergência: abandonar e zerar */}
+            <div className="mb-5 flex justify-end">
+              {!confirmandoAbandono ? (
+                <button
+                  type="button"
+                  onClick={() => setConfirmandoAbandono(true)}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-faint hover:text-rose-600 dark:hover:text-rose-400"
+                >
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  Começar do zero
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 dark:border-rose-900 dark:bg-rose-950/40">
+                  <span className="text-xs text-rose-700 dark:text-rose-300">Zerar o progresso e recomeçar?</span>
+                  <button
+                    type="button"
+                    onClick={() => void handleAbandonar()}
+                    disabled={abandonando}
+                    className="min-h-9 rounded-md bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-60"
+                  >
+                    {abandonando ? "Zerando..." : "Abandonar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmandoAbandono(false)}
+                    className="min-h-9 rounded-md px-2 py-1.5 text-xs font-semibold text-ink-muted hover:text-ink-text"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Enunciado */}

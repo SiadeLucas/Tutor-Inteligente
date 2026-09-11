@@ -378,7 +378,9 @@ class ExercisesService:
 
         # Integridade de sessão: apenas 1 prova em andamento por aluno/disciplina.
         # Reabrir o onboarding do zero reiniciaria o MFI a partir de theta=0,
-        # invalidando a calibragem adaptativa já atingida.
+        # invalidando a calibragem adaptativa já atingida. Se existe sessão
+        # pendente, RETOMA de onde o aluno parou (RN-EXE-010 — resiliência):
+        # fechar a aba não pode condenar a conta a um 409 permanente.
         stmt_sessao_ativa = select(ProvaCat).where(
             and_(
                 ProvaCat.usuario_id == current_user.id,
@@ -388,10 +390,7 @@ class ExercisesService:
         )
         sessao_ativa = (await db.execute(stmt_sessao_ativa)).scalar_one_or_none()
         if sessao_ativa:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Você já possui uma prova CAT em andamento para esta disciplina. Conclua a sessão atual antes de iniciar outra.",
-            )
+            return await cls._retomar_sessao_cat(sessao_ativa, db)
 
         # Cria a sessão ProvaCat
         sessao_cat = ProvaCat(
@@ -434,6 +433,139 @@ class ExercisesService:
             total_itens_estimado="12 a 20 questões",
             primeiro_item=primeiro_item_dto,
         )
+
+    @classmethod
+    async def _retomar_sessao_cat(
+        cls,
+        prova: ProvaCat,
+        db: AsyncSession,
+    ) -> IniciarCatResponse:
+        """
+        Retoma uma sessão CAT pendente (RN-EXE-010 — resiliência de sessão).
+
+        Re-seleciona o próximo item por MFI com o theta já estimado e o
+        histórico respondido — a calibragem adaptativa anterior é preservada.
+        Se o banco de itens esgotou (caso raríssimo), finaliza a sessão com
+        os dados existentes em vez de prender o aluno.
+        """
+        ids_respondidos = [str(i) for i in (prova.itens_respondidos_ids or [])]
+
+        # Reconstrói o histórico TRI a partir das respostas detalhadas
+        historico_eap: List[Tuple[ItemTRI, int]] = [
+            (
+                ItemTRI(
+                    id=r["item_id"],
+                    a=float(r["parametro_a"]),
+                    b=float(r["parametro_b"]),
+                    c=float(r["parametro_c"]),
+                    grande_area=r.get("grande_area", "algebra_funcoes"),
+                ),
+                1 if r.get("acertou") else 0,
+            )
+            for r in (prova.respostas_detalhadas or [])
+        ]
+
+        banco_tri = await cls._carregar_banco_tri(db)
+
+        area_alvo = (
+            cls.cat_engine.selecionar_area_alvo(historico_eap, minimo_por_area=2)
+            if historico_eap
+            else None
+        )
+        proximo_tri = cls.cat_engine.selecionar_proximo_item(
+            theta_atual=float(prova.theta_geral),
+            banco_disponivel=banco_tri,
+            itens_ja_aplicados_ids=ids_respondidos,
+            area_alvo=area_alvo,
+        )
+
+        if not proximo_tri:
+            # Banco esgotado: finaliza com o que há (mesma rota do fluxo normal)
+            prova.finalizado_em = func.now()
+            scores_radar = cls.cat_engine.calcular_scores_grandes_areas(historico_eap, float(prova.theta_geral))
+            prova.scores_grandes_areas = scores_radar
+            await cls._registrar_historico_cat(db, prova, scores_radar)
+            await db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="A sessão anterior esgotou o banco de itens e foi concluída automaticamente. Inicie a prova novamente.",
+            )
+
+        item = await db.get(ItemExercicio, uuid.UUID(proximo_tri.id))
+        if not item:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Item selecionado indisponível no banco.",
+            )
+
+        item_dto = ItemExercicioResponse(
+            id=item.id,
+            capitulo_id=item.capitulo_id,
+            tipo_origem=item.tipo_origem,
+            tipo_item=item.tipo_item,
+            enunciado_katex=item.enunciado_katex,
+            alternativas=[
+                AlternativaItem(letra=alt["letra"], texto_katex=alt["texto"])
+                for alt in (item.alternativas or [])
+            ],
+            parametro_a=float(item.parametro_a),
+            parametro_b=float(item.parametro_b),
+            parametro_c=float(item.parametro_c),
+            validado_sympy=item.validado_sympy,
+            criado_em=item.criado_em,
+        )
+
+        respondidas = len(ids_respondidos)
+        return IniciarCatResponse(
+            sessao_cat_id=prova.id,
+            indicador_progresso=(
+                f"Retomada — questão {respondidas + 1} "
+                f"({respondidas} já respondidas · Faixa: 12 a 20 questões)"
+            ),
+            total_itens_estimado="12 a 20 questões",
+            primeiro_item=item_dto,
+            retomada=True,
+            itens_respondidos=respondidas,
+        )
+
+    @staticmethod
+    async def _carregar_banco_tri(db: AsyncSession) -> List[ItemTRI]:
+        """Carrega todos os itens ativos mapeados para o motor TRI."""
+        stmt_todos = select(ItemExercicio).where(ItemExercicio.ativo == True)  # noqa: E712
+        todos_itens = (await db.execute(stmt_todos)).scalars().all()
+        return [
+            ItemTRI(
+                id=str(it.id),
+                a=float(it.parametro_a),
+                b=float(it.parametro_b),
+                c=float(it.parametro_c),
+                grande_area=(it.metadados_sympy.get("grande_area", "algebra_funcoes") if it.metadados_sympy else "algebra_funcoes"),
+            )
+            for it in todos_itens
+        ]
+
+    @classmethod
+    async def abandonar_sessao_cat(
+        cls,
+        sessao_id: uuid.UUID,
+        current_user: Usuario,
+        db: AsyncSession,
+    ) -> Dict[str, Any]:
+        """
+        Abandona (descarta) uma sessão CAT em andamento (RN-EXE-010 — saída
+        de emergência). A calibragem parcial é PERDIDA: a próxima prova começa
+        de theta=0, o que é preferível a prender o aluno num beco sem saída.
+        Sessões finalizadas não são afetadas (404 — nada a abandonar).
+        """
+        prova = await db.get(ProvaCat, sessao_id)
+        if not prova or prova.usuario_id != current_user.id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sessão CAT não localizada.")
+        if prova.finalizado_em is not None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Esta sessão CAT já foi concluída.")
+
+        await db.delete(prova)
+        await db.commit()
+        return {"mensagem": "Sessão CAT abandonada. A próxima prova será iniciada do zero."}
 
     @classmethod
     async def submeter_resposta_cat(
