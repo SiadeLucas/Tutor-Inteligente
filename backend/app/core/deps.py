@@ -76,3 +76,16 @@ async def get_current_user(
 ) -> Usuario:
     """Dependência de conveniência para rotas que precisam apenas do usuário."""
     return current[0]
+
+
+async def require_teacher_role(
+    current_user: Usuario = Depends(get_current_user)
+) -> Usuario:
+    """Garante que apenas professores ou administradores acessem o endpoint."""
+    if current_user.role not in ("teacher", "admin", "professor"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso restrito ao corpo docente e à administração."
+        )
+    return current_user
+

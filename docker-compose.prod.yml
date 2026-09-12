@@ -1,103 +1,100 @@
 # ==============================================================================
-# Tutor Inteligente — Orquestração Docker Compose
+# Tutor Inteligente — Orquestração Docker Compose de Produção (AWS EC2)
 # ==============================================================================
 services:
   # ---------- Banco de Dados (PostgreSQL 16 + pgvector) ----------
-  ti-database:
+  database:
     image: pgvector/pgvector:pg16
-    container_name: ti-database
+    container_name: tutor-db-prod
     restart: always
     env_file:
-      - ../.env
+      - .env
     environment:
       POSTGRES_DB: ${DB_NAME:-tutor_inteligente}
       POSTGRES_USER: ${DB_USER:-tutor_admin}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-senhalocal123}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_prod_data:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
     networks:
-      - ti-network
+      - tutor-prod-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tutor_admin} -d ${DB_NAME:-tutor_inteligente}"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
 
-  # ---------- Cache e Sessões Voláteis (Redis 7) ----------
-  ti-redis:
+  # ---------- Cache & Sessões Voláteis (Redis 7) ----------
+  redis:
     image: redis:7-alpine
-    container_name: ti-redis
+    container_name: tutor-redis-prod
     restart: always
     env_file:
-      - ../.env
-    command: ["sh", "-c", "redis-server --appendonly yes --requirepass $${REDIS_PASSWORD:-redislocal123}"]
+      - .env
+    command: ["sh", "-c", "redis-server --appendonly yes --requirepass $${REDIS_PASSWORD}"]
     volumes:
-      - redis_data:/data
+      - redis_prod_data:/data
     ports:
       - "127.0.0.1:6379:6379"
     networks:
-      - ti-network
+      - tutor-prod-network
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD:-redislocal123}\" ping"]
-      interval: 5s
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping"]
+      interval: 10s
       timeout: 5s
       retries: 5
 
   # ---------- Backend API (FastAPI + Python 3.11) ----------
-  ti-backend:
+  backend:
     build:
-      context: ../backend
+      context: ./backend
       dockerfile: Dockerfile
-    container_name: ti-backend
+    container_name: tutor-backend-prod
     restart: always
     env_file:
-      - ../.env
-    environment:
-      UVICORN_RELOAD: "1"
+      - .env
     depends_on:
-      ti-database:
+      database:
         condition: service_healthy
-      ti-redis:
+      redis:
         condition: service_healthy
-    volumes:
-      - ../backend:/app
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     networks:
-      - ti-network
+      - tutor-prod-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
+      interval: 15s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 15s
 
   # ---------- Frontend Web (Next.js 14 + TypeScript) ----------
-  ti-frontend:
+  frontend:
     build:
-      context: ../frontend
+      context: ./frontend
       dockerfile: Dockerfile
-    container_name: ti-frontend
+      args:
+        # NEXT_PUBLIC_* é inlinada em tempo de build — precisa vir como build-arg
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+    container_name: tutor-frontend-prod
     restart: always
     env_file:
-      - ../.env
-    environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      - .env
     depends_on:
-      - ti-backend
+      - backend
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     networks:
-      - ti-network
+      - tutor-prod-network
 
 volumes:
-  postgres_data:
+  postgres_prod_data:
     driver: local
-  redis_data:
+  redis_prod_data:
     driver: local
 
 networks:
-  ti-network:
+  tutor-prod-network:
     driver: bridge

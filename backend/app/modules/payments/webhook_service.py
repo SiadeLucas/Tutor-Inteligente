@@ -86,12 +86,13 @@ async def processar_webhook_asaas(db: AsyncSession, payload: Dict[str, Any]) -> 
             return {"status": "not_found", "payment_id": payment_id}
 
     # Eventos informativos sem efeito financeiro: resposta uniforme (sempre com 'status')
+    # NOTA: PAYMENT_REFUNDED NÃO está aqui — precisa cair no handler de estorno abaixo,
+    # para revogar a matrícula quando o reembolso é iniciado direto no painel do Asaas.
     elif event_type in (
         "PAYMENT_CREATED",
         "PAYMENT_UPDATED",
         "PAYMENT_OVERDUE",
         "PAYMENT_DELETED",
-        "PAYMENT_REFUNDED",
         "PAYMENT_RECEIVE_IN_CASH",
     ):
         return {"status": "ignored", "event": event_type}

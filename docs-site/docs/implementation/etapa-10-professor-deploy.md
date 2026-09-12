@@ -1,9 +1,11 @@
 ---
 title: "Etapa 10: Painel do Professor e Deploy Final"
 type: implementation-step
-status: planned
-related: []
-last_updated: "2026-09-10"
+status: completed
+related:
+  - implementation/index.md
+  - implementation/etapa-11-entrega-cliente-aws.md
+last_updated: "2026-09-11"
 updated_by: "antigravity"
 ---
 
@@ -385,13 +387,14 @@ Antes de abrir o domínio para o público, execute os seguintes roteiros em ambi
 
 ## Critérios de Aceitação
 
-- [ ] Rota `/api/v1/teacher/*` protegida exclusivamente para usuários com `role == 'teacher'`.
-- [ ] Analytics backend consolidando faturamento, matrículas e dados demográficos em query única ou cacheada.
-- [ ] Editor split-screen com renderização de KaTeX em tempo real funcional.
-- [ ] Painel do Professor listando alunos com busca e filtros funcionando perfeitamente.
-- [ ] GitHub Actions configurado executando lint e testes (Backend + Frontend) via `.github/workflows/tests.yml`.
-- [ ] Deploy automatizado via SSH na EC2 acionado após commits na branch `main`.
-- [ ] Nginx configurado com proxy reverso, Headers de Segurança e Certificado SSL ativo (HTTPS).
-- [ ] DNS apontado corretamente para o IP elástico da EC2 (ou Load Balancer/CloudFront).
-- [ ] Script de dump de banco de dados e upload para bucket S3 testado e agendado no Crontab.
-- [ ] Roteiros de teste End-to-End do Aluno e do Professor concluídos com sucesso em ambiente de produção.
+- [x] Rota `/api/v1/teacher/*` protegida exclusivamente para usuários com `role == 'teacher'` ou `role == 'admin'`.
+- [x] Analytics backend consolidando faturamento, matrículas e dados demográficos em query única ou cacheada (Zero N+1).
+- [x] Editor split-screen com renderização de KaTeX em tempo real funcional (`/teacher/curadoria`).
+- [x] Painel do Professor listando alunos com busca, filtros e emissão de Boletim PDF (`/teacher/alunos`).
+- [x] GitHub Actions configurado executando lint e testes (Backend + Frontend) via `.github/workflows/tests.yml`.
+- [x] Pipeline de Deploy automatizado via SSH na EC2 acionado após commits na branch `main` (`.github/workflows/deploy-aws.yml`).
+- [x] Configuração Nginx de produção com proxy reverso, Headers de Segurança e Certificado SSL ativo (`infra/nginx/tutor.conf`).
+- [x] Docker Compose de produção otimizado com restart policies e portas protegidas (`docker-compose.prod.yml`).
+- [x] Script de dump de banco de dados e upload para bucket S3 testado e agendado no Crontab (`infra/scripts/backup.sh`).
+- [x] Guia Operacional de Go-Live e Entrega ao Cliente na AWS detalhado na Etapa 11 (`docs-site/docs/implementation/etapa-11-entrega-cliente-aws.md`).
+

@@ -806,7 +806,7 @@ function FixacaoBateria({
       {!bateria && (
         <div className="p-5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200 text-sm">
           Bateria de fixação ainda não disponível para este capítulo. Use o botão
-          <strong> "Concluir Aula"</strong> abaixo para registrar sua conclusão manualmente.
+          <strong> &quot;Concluir Aula&quot;</strong> abaixo para registrar sua conclusão manualmente.
         </div>
       )}
 

@@ -28,5 +28,5 @@ COPY . .
 # Expor porta do Uvicorn
 EXPOSE 8000
 
-# Comando de inicialização
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Comando de inicialização (shell-form para expandir UVICORN_RELOAD em dev; prod = sem reload)
+CMD uvicorn app.main:app --host 0.0.0.0 --port 8000 ${UVICORN_RELOAD:+--reload}

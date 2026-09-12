@@ -226,5 +226,48 @@ class AsaasService:
         res_novo.raise_for_status()
         return res_novo.json()["id"]
 
+    async def estornar_cobranca(
+        self,
+        gateway_transacao_id: str,
+        valor: Optional[Decimal] = None,
+        motivo: str = "Estorno administrativo solicitado pelo professor (CDC 7 dias)"
+    ) -> Dict[str, Any]:
+        """
+        Solicita o estorno/reembolso da cobrança ao gateway Asaas.
+        Em ambiente simulado/sem chave, retorna confirmação direta.
+        """
+        if self.is_configured and not gateway_transacao_id.startswith("sim_"):
+            try:
+                async with httpx.AsyncClient(timeout=15.0) as client:
+                    payload: Dict[str, Any] = {"description": motivo}
+                    if valor is not None:
+                        payload["value"] = float(valor)
+
+                    resp = await client.post(
+                        f"{self.base_url}/payments/{gateway_transacao_id}/refund",
+                        json=payload,
+                        headers=self._headers(),
+                    )
+                    resp.raise_for_status()
+                    data = resp.json()
+                    return {
+                        "sucesso": True,
+                        "status": data.get("status", "REFUNDED"),
+                        "raw_payload": data,
+                    }
+            except Exception as exc:
+                logger.error("Falha ao processar estorno no Asaas (%s): %s", gateway_transacao_id, exc)
+                raise
+
+        # Simulação para desenvolvimento e testes
+        logger.info("Simulando estorno com sucesso para %s (valor: %s)", gateway_transacao_id, valor)
+        return {
+            "sucesso": True,
+            "status": "REFUNDED",
+            "simulado": True,
+            "motivo": motivo,
+        }
+
 
 asaas_service = AsaasService()
+

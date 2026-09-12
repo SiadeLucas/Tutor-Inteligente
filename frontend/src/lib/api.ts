@@ -3,7 +3,26 @@
  * injeção automática de Bearer token e interceptação para Silent Refresh.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+/**
+ * Resolve a base da API no cliente. Em produção servido pelo mesmo Nginx
+ * (browser em tutorinteligente.com.br), usa a própria origem — evita chamar
+ * http://localhost:8000 quando NEXT_PUBLIC_API_URL não foi embutida no build.
+ */
+function resolveApiBaseUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_API_URL;
+  if (configured) return configured;
+  if (typeof window !== "undefined" && window.location.protocol === "https:") {
+    return window.location.origin;
+  }
+  return "http://localhost:8000";
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
+
+/** Exportada para downloads diretos via fetch (ex: Boletim PDF com Bearer). */
+export function getApiBaseUrl(): string {
+  return API_BASE_URL;
+}
 
 let currentAccessToken: string | null = null;
 let isRefreshing = false;

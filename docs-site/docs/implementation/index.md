@@ -49,7 +49,7 @@ Roteiro completo e sequencial para a construção da plataforma **Tutor Intelige
 
 ---
 
-## Mapa de Progresso das 10 Etapas
+## Mapa de Progresso das Etapas
 
 ```mermaid
 graph LR
@@ -62,10 +62,11 @@ graph LR
     E7["✅ Etapa 7\nExercícios\ne Motor CAT"]
     E8["✅ Etapa 8\nProgresso\ne Analytics"]
     E9["✅ Etapa 9\nPagamento\ne Checkout"]
-    E10["👨‍🏫 Etapa 10\nDeploy em Nuvem\n& Painel Professor"]
+    E10["✅ Etapa 10\nPainel Professor\n& Prontidão CI/CD"]
+    E11["🚀 Etapa 11\nGo-Live AWS\n& Entrega Cliente"]
 
-    E1 --> E3 --> E4 --> E5 --> E6 --> E7 --> E8 --> E9 --> E10
-    E2 -.->|Consolidada no Deploy| E10
+    E1 --> E3 --> E4 --> E5 --> E6 --> E7 --> E8 --> E9 --> E10 --> E11
+    E2 -.->|Consolidada no Deploy| E11
 
     style E1 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E2 fill:#334155,stroke:#64748b,stroke-dasharray: 5 5,color:#94a3b8
@@ -76,6 +77,8 @@ graph LR
     style E7 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E8 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
     style E9 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
+    style E10 fill:#15803d,stroke:#22c55e,stroke-width:2px,color:#fff
+    style E11 fill:#7e22ce,stroke:#a855f7,stroke-width:2px,color:#fff
 ```
 
 ---
@@ -166,12 +169,21 @@ Tabelas `matriculas_pagamentos` e `transacoes_financeiras` com migração `006_p
 
 ---
 
-### [Etapa 10: Painel do Professor e Deploy Final](etapa-10-professor-deploy.md)
-**Duração estimada: 1-2 semanas**
+### [Etapa 10: Painel do Professor e Deploy Final](etapa-10-professor-deploy.md) — :white_check_mark: **Concluída**
+**Duração estimada: 1-2 semanas** | **Status:** `Concluída`
 
-Dashboard de Analytics demográfico com query agregada (zero N+1), dossiê de alunos, editor split-screen KaTeX para curadoria de conteúdo, modo Visão do Aluno e extrato financeiro. Configuração de CI/CD completo com GitHub Actions (testes + deploy automático na AWS), domínio final com SSL, monitoramento e documentação de operação.
+Dashboard de Analytics demográfico com query agregada (zero N+1), dossiê de alunos com emissão de Boletim PDF via ReportLab, editor split-screen KaTeX para curadoria de conteúdo dos 11 volumes, modo Visão do Aluno e extrato financeiro com estorno administrativo CDC de 7 dias integrado ao Asaas. Configuração completa de CI/CD via GitHub Actions (testes + deploy automático na AWS), Nginx de produção com headers OWASP, Docker Compose de produção e scripts de backup automatizado para o S3.
 
-**Entregável:** Plataforma completa em produção com domínio próprio, CI/CD ativo e todas as funcionalidades testadas.
+**Entregável:** Painel do Professor 100% funcional no navegador e artefatos de deploy em nuvem prontos para execução. [x] Concluído!
+
+---
+
+### [Etapa 11: Guia Operacional de Go-Live e Entrega ao Cliente na AWS](etapa-11-entrega-cliente-aws.md) — :rocket: **Manual Operacional Ativo**
+**Duração estimada: 2-4 horas** | **Status:** `Pronto para ativação com cartão de crédito`
+
+Manual passo a passo para o momento em que a conta AWS for criada com cartão de crédito. Abrange provisionamento de EC2 Ubuntu 24.04 LTS com IP Elástico e Swapfile, apontamento de DNS Tipo A para o domínio oficial, proxy reverso Nginx com SSL gratuito perpétuo (Certbot Let's Encrypt), carga idempotente dos 11 volumes didáticos e 315 itens TRI, backup automático diário para o Amazon S3 agendado no Crontab, configuração de Webhook do Asaas em produção e roteiro de homologação final para entrega ao cliente contratante.
+
+**Entregável:** Plataforma acessível publicamente via HTTPS com domínio próprio, dados de produção carregados e credenciais mestres entregues ao cliente.
 
 ---
 
@@ -187,17 +199,23 @@ graph TD
     E5 --> E7["Etapa 7: Exercícios"]
     E7 --> E8["Etapa 8: Progresso"]
     E3 --> E9["Etapa 9: Pagamento"]
-    E3 --> E10["Etapa 10: Deploy Final & Professor"]
+    E3 --> E10["Etapa 10: Painel Professor & CI/CD"]
     E8 --> E10
     E9 --> E10
-    E2 -.-> E10
+    E10 --> E11["Etapa 11: Go-Live AWS & Entrega"]
+    E2 -.-> E11
 
     style E1 fill:#15803d,color:#fff
     style E2 fill:#475569,stroke:#64748b,stroke-dasharray: 5 5,color:#cbd5e1
     style E3 fill:#15803d,color:#fff
     style E4 fill:#15803d,color:#fff
+    style E5 fill:#15803d,color:#fff
+    style E6 fill:#15803d,color:#fff
+    style E7 fill:#15803d,color:#fff
+    style E8 fill:#15803d,color:#fff
     style E9 fill:#15803d,color:#fff
-    style E10 fill:#7e22ce,color:#fff
+    style E10 fill:#15803d,color:#fff
+    style E11 fill:#7e22ce,color:#fff
 ```
 
 > [!NOTE]

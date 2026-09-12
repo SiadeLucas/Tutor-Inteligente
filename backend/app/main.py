@@ -13,6 +13,7 @@ from app.modules.content.router import router as content_router
 from app.modules.exercises.router import router as exercises_router
 from app.modules.progress.router import router as progress_router
 from app.modules.payments.router import router as payments_router
+from app.modules.teacher.router import router as teacher_router
 
 
 @asynccontextmanager
@@ -48,6 +49,7 @@ app.include_router(content_router)
 app.include_router(exercises_router)
 app.include_router(progress_router)
 app.include_router(payments_router)
+app.include_router(teacher_router)
 
 
 
