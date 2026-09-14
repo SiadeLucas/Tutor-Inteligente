@@ -13,6 +13,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN mkdir -p public
 
 # Next.js inlinha NEXT_PUBLIC_* apenas em tempo de BUILD.
 # A URL da API precisa ser passada como build-arg (docker-compose.prod.yml).
