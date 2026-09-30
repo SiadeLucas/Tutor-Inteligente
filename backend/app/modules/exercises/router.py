@@ -4,7 +4,7 @@ Rotas sob prefixo /api/v1/exercicios conforme docs-site/docs/implementation/etap
 """
 from typing import List, Dict, Any
 from uuid import UUID
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db

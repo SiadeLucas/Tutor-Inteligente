@@ -23,7 +23,8 @@ jobs:
           cd /home/ubuntu/tutor-inteligente
 
           echo "📦 Atualizando código-fonte via Git..."
-          git pull origin main
+          git fetch origin main
+          git reset --hard origin/main
 
           echo "🐳 Construindo e reiniciando containers de produção..."
           docker compose -f docker-compose.prod.yml build
