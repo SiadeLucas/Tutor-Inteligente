@@ -28,5 +28,6 @@ COPY . .
 # Expor porta do Uvicorn
 EXPOSE 8000
 
-# Comando de inicialização (shell-form para expandir UVICORN_RELOAD em dev; prod = sem reload)
-CMD uvicorn app.main:app --host 0.0.0.0 --port 8000 ${UVICORN_RELOAD:+--reload}
+# Comando de inicialização: aplica migrações do Alembic antes de subir a API
+# (shell-form para expandir UVICORN_RELOAD em dev; prod = sem reload)
+CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 ${UVICORN_RELOAD:+--reload}
