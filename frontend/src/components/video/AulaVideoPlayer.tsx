@@ -51,7 +51,7 @@ function parseVideoSource(rawUrl?: string | null): VideoType {
 
       return {
         type: "youtube",
-        embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1${startSeconds}`,
+        embedUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1${startSeconds}`,
         rawUrl: trimmed,
       };
     }
@@ -206,6 +206,7 @@ export function AulaVideoPlayer({
                 title={titulo || "Videoaula da disciplina"}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
               />
             )}
@@ -216,6 +217,7 @@ export function AulaVideoPlayer({
                 title={titulo || "Videoaula da disciplina"}
                 className="w-full h-full border-0"
                 allow="autoplay; fullscreen; picture-in-picture"
+                referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
               />
             )}
@@ -249,6 +251,20 @@ export function AulaVideoPlayer({
                 </a>
               </div>
             )}
+          </div>
+
+          {/* Barra de auxílio caso o navegador/adblocker bloqueie embeds */}
+          <div className="px-3.5 py-1.5 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Problemas com a exibição?</span>
+            <a
+              href={parsedSource.rawUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-semibold text-subject-400 hover:text-subject-300 hover:underline"
+            >
+              <span>Abrir no site oficial</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
         </div>
       )}

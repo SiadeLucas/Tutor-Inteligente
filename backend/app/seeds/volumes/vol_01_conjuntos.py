@@ -106,7 +106,7 @@ Como a última coluna resulta em $V$ para todas as valorações possíveis, a f�
 >   *Use isso frequentemente em demonstrações por absurdo na Geometria e Teoria dos Números!*
 > - A **recíproca** ($q \to p$) **NÃO** é logicamente equivalente a $p \to q$.
 """,
-        "video_url": "https://www.youtube.com/watch?v=0hKqX25F5z4",
+        "video_url": "https://www.youtube.com/watch?v=-hoCgITsQ-8",
     },
     2: {
         "teoria": r"""# Conjuntos e Operações Fundamentais
