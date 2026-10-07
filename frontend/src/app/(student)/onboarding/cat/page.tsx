@@ -13,6 +13,7 @@ import {
 } from "@/types/exercise";
 import { KaTeXRenderer } from "@/components/math/KaTeXRenderer";
 import { CatRadarChart } from "@/components/exercises/CatRadarChart";
+import { CatRecomendacaoModal } from "@/components/exercises/CatRecomendacaoModal";
 
 export default function ProvaCatPage() {
   useHeartbeat();
@@ -30,6 +31,7 @@ export default function ProvaCatPage() {
   const [respondidas, setRespondidas] = useState<number>(0);
   const [confirmandoAbandono, setConfirmandoAbandono] = useState<boolean>(false);
   const [abandonando, setAbandonando] = useState<boolean>(false);
+  const [modalRecomendacaoAberto, setModalRecomendacaoAberto] = useState<boolean>(false);
 
   // Cronômetro da questão atual
   const [segundosGastos, setSegundosGastos] = useState<number>(0);
@@ -87,6 +89,10 @@ export default function ProvaCatPage() {
 
       if (res.finalizado) {
         setResultadoFinal(res);
+        // Exibe o pop-up de recomendação automaticamente ao encerrar a prova
+        if (res.scores_grandes_areas && Object.keys(res.scores_grandes_areas).length > 0) {
+          setModalRecomendacaoAberto(true);
+        }
       } else if (res.proximo_item) {
         setItemAtual(res.proximo_item);
         setIndicadorProgresso(res.indicador_progresso);
@@ -346,6 +352,14 @@ export default function ProvaCatPage() {
           </div>
         ) : null}
       </main>
+
+      {/* Pop-up de recomendação exibido automaticamente ao encerrar a prova */}
+      {modalRecomendacaoAberto && resultadoFinal?.scores_grandes_areas && (
+        <CatRecomendacaoModal
+          scores={resultadoFinal.scores_grandes_areas}
+          onFechar={() => setModalRecomendacaoAberto(false)}
+        />
+      )}
     </div>
   );
 }
