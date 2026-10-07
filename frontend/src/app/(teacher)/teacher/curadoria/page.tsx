@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { KaTeXRenderer } from "@/components/math/KaTeXRenderer";
+import { AulaVideoPlayer } from "@/components/video/AulaVideoPlayer";
 
 interface CapituloItem {
   capitulo_id: string;
@@ -384,16 +385,27 @@ export default function CuradoriaPage() {
             <span className="text-[11px] text-slate-400">Renderização KaTeX</span>
           </div>
 
-          <div className="flex-1 p-6 overflow-y-auto">
+          <div className="flex-1 p-6 overflow-y-auto space-y-4">
+            {videoUrl.trim() && (
+              <div className="mb-4">
+                <AulaVideoPlayer
+                  videoUrl={videoUrl}
+                  titulo={aula?.capitulo_titulo}
+                  capituloNumero={aula?.numero_capitulo}
+                />
+              </div>
+            )}
             {getConteudoAtivo().trim() ? (
               <KaTeXRenderer
                 content={getConteudoAtivo()}
                 className="text-sm sm:text-base leading-relaxed"
               />
             ) : (
-              <div className="h-full flex items-center justify-center text-xs text-slate-400">
-                Digite ou selecione fórmulas no editor à esquerda para visualizar o resultado aqui.
-              </div>
+              !videoUrl.trim() && (
+                <div className="h-full flex items-center justify-center text-xs text-slate-400">
+                  Digite ou selecione fórmulas no editor à esquerda para visualizar o resultado aqui.
+                </div>
+              )
             )}
           </div>
         </div>

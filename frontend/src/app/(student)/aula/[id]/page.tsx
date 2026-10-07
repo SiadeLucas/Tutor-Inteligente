@@ -36,10 +36,12 @@ import {
   Play,
   MessageCircle,
   X,
+  Video,
 } from "lucide-react";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { useStudyTimer } from "@/hooks/useStudyTimer";
 import { KaTeXRenderer } from "@/components/math/KaTeXRenderer";
+import { AulaVideoPlayer } from "@/components/video/AulaVideoPlayer";
 import { api, extrairMensagemErro } from "@/lib/api";
 import {
   AulaCompleta,
@@ -468,22 +470,42 @@ export default function AulaPage() {
             </div>
           </div>
 
-          {/* Cronômetro compacto */}
-          <div className="flex items-center gap-1.5 bg-subject-wash border border-subject-200/70 px-2.5 py-1.5 rounded-lg flex-shrink-0">
-            <Clock
-              className={`w-3.5 h-3.5 text-subject-600 dark:text-subject-400 ${timer.isActive ? "" : "opacity-40"}`}
-              aria-hidden="true"
-            />
-            <span className="font-mono font-bold text-[11px] text-subject-700 dark:text-subject-400 tabular-nums">
-              {timer.formattedTime}
-            </span>
-            <button
-              onClick={timer.isActive ? timer.pause : timer.resume}
-              aria-label={timer.isActive ? "Pausar cronômetro" : "Retomar cronômetro"}
-              className="p-1 rounded text-subject-700 dark:text-subject-400 hover:bg-subject-100 dark:hover:bg-subject-wash-strong transition-colors"
-            >
-              {timer.isActive ? <Pause className="w-3 h-3" aria-hidden="true" /> : <Play className="w-3 h-3" aria-hidden="true" />}
-            </button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Atalho para Videoaula sob demanda */}
+            {aula?.video_url && (
+              <button
+                type="button"
+                onClick={() => {
+                  mudarAba("teoria");
+                  setTimeout(() => {
+                    document.getElementById("videoaula-container")?.scrollIntoView({ behavior: "smooth" });
+                  }, 50);
+                }}
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-subject-wash border border-subject-200 text-subject-700 dark:text-subject-400 text-[11px] font-bold hover:bg-subject-100 dark:hover:bg-subject-wash-strong transition-colors cursor-pointer"
+                title="Ir para a Videoaula explicativa"
+              >
+                <Video className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Videoaula</span>
+              </button>
+            )}
+
+            {/* Cronômetro compacto */}
+            <div className="flex items-center gap-1.5 bg-subject-wash border border-subject-200/70 px-2.5 py-1.5 rounded-lg flex-shrink-0">
+              <Clock
+                className={`w-3.5 h-3.5 text-subject-600 dark:text-subject-400 ${timer.isActive ? "" : "opacity-40"}`}
+                aria-hidden="true"
+              />
+              <span className="font-mono font-bold text-[11px] text-subject-700 dark:text-subject-400 tabular-nums">
+                {timer.formattedTime}
+              </span>
+              <button
+                onClick={timer.isActive ? timer.pause : timer.resume}
+                aria-label={timer.isActive ? "Pausar cronômetro" : "Retomar cronômetro"}
+                className="p-1 rounded text-subject-700 dark:text-subject-400 hover:bg-subject-100 dark:hover:bg-subject-wash-strong transition-colors"
+              >
+                {timer.isActive ? <Pause className="w-3 h-3" aria-hidden="true" /> : <Play className="w-3 h-3" aria-hidden="true" />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -593,6 +615,17 @@ export default function AulaPage() {
                 <div className="px-5 sm:px-8 py-6 sm:py-8 max-w-[65ch] min-h-[420px]">
                   {activeTab === "teoria" && (
                     <div>
+                      {/* Videoaula Complementar sob demanda */}
+                      {aula.video_url && (
+                        <div id="videoaula-container" className="mb-6">
+                          <AulaVideoPlayer
+                            videoUrl={aula.video_url}
+                            titulo={aula.capitulo_titulo}
+                            capituloNumero={aula.numero_capitulo}
+                          />
+                        </div>
+                      )}
+
                       <KaTeXRenderer content={aula.bloco1_teoria_katex} />
                       <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                         <button

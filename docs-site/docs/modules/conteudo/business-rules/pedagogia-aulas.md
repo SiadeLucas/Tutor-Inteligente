@@ -1,12 +1,19 @@
 ---
 title: Conteúdo - 3. Pedagogia e Tutoria
 type: module
-status: draft
+status: active
 related:
   - modules/conteudo/business-rules/index.md
-last_updated: "2026-09-02"
-updated_by: claude
+  - knowledge/database/09-aulas.md
+last_updated: "2026-10-07"
+updated_by: antigravity
 ---
+
+<!-- ai-summary
+Especificação pedagógica das aulas: padrão estruturado em 4 blocos com KaTeX,
+condição de conclusão com trava de 60%, tutor socrático em 3 estágios
+e reprodução condicional sob demanda de videoaulas complementares (RN-CNT-015).
+-->
 
 # 3. Estrutura Pedagógica e Método Socrático
 
@@ -25,6 +32,11 @@ Toda aula gerada deve conter sem exceção os 4 blocos sequenciais:
 #### RN-CNT-011: Renderização de Fórmulas com KaTeX
 - 100% dos símbolos matemáticos, frações, matrizes, integrais, somatórios e expoentes devem utilizar sintaxe LaTeX padronizada e renderizar client-side via KaTeX.
 
+#### RN-CNT-015: Reprodução sob Demanda de Videoaulas Complementares
+- **Ativação Estritamente sob Demanda (Click-to-Watch):** A videoaula nunca deve disparar autoplay nem carregar elementos de iframe pesados de forma passiva. O vídeo só é instanciado na árvore do DOM quando o estudante clica explicitamente no botão *"Assistir Videoaula"*.
+- **Plataformas Homologadas:** O player unificado suporta URLs do YouTube (incluindo parâmetros de tempo de início convertidos para `start=seconds`), Vimeo e streams de vídeo direto (MP4, WebM ou CDN S3/CloudFront).
+- **Controle de Foco:** O estudante pode a qualquer momento recolher/ocultar o player para retomar a leitura textual matemática em KaTeX, preservando a contagem de tempo de estudo ativo no cronômetro da sessão.
+
 ### 3.2 Tutor Socrático
 
 #### RN-CNT-012: Princípio da Ajuda Gradual (Método Socrático)
@@ -39,3 +51,4 @@ Toda aula gerada deve conter sem exceção os 4 blocos sequenciais:
 
 #### RN-CNT-014: Suporte à Seleção de Trechos Matemáticos
 - O aluno pode selecionar qualquer fórmula na tela e acionar a ação *"Explicar este passo"*, enviando o trecho exato como contexto prioritário para a IA.
+

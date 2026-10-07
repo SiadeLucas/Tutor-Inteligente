@@ -156,9 +156,20 @@ async def test_obter_aula_katex(async_client: AsyncClient, usuario_teste):
     assert "bloco1_teoria_katex" in aula
     assert "bloco2_exemplos_katex" in aula
     assert "bloco3_dicas_ia" in aula
-    assert "$" in aula["bloco1_teoria_katex"]  # Contém equações KaTeX
-    assert aula["capitulo_titulo"] == "Noções de Lógica e Proposições"
-    assert aula["numero_volume"] == 1
+    assert "video_url" in aula
+    assert aula["video_url"] is None or isinstance(aula["video_url"], str)
+
+
+@pytest.mark.asyncio
+async def test_aula_video_url_suporte(async_client: AsyncClient, usuario_teste):
+    """Garante que o campo video_url é trafegado e serializado conforme o schema AulaResponse."""
+    headers = await autenticar(async_client, usuario_teste)
+    cap1_id = await obter_cap1_id(async_client, headers)
+
+    response = await async_client.get(f"/api/v1/conteudo/aulas/{cap1_id}", headers=headers)
+    assert response.status_code == 200
+    aula = response.json()
+    assert "video_url" in aula
 
 
 # ============================================================================

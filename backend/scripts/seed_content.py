@@ -118,6 +118,7 @@ async def seed():
                             bloco1_teoria_katex=aula_data["teoria"],
                             bloco2_exemplos_katex=aula_data["exemplos"],
                             bloco3_dicas_ia=aula_data["dicas"],
+                            video_url=aula_data.get("video_url"),
                             publicado=True,
                         )
                         db.add(aula)
@@ -127,6 +128,7 @@ async def seed():
                         aula.bloco1_teoria_katex = aula_data["teoria"]
                         aula.bloco2_exemplos_katex = aula_data["exemplos"]
                         aula.bloco3_dicas_ia = aula_data["dicas"]
+                        aula.video_url = aula_data.get("video_url", aula.video_url)
                         aula.publicado = True
                         await db.flush()
 

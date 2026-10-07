@@ -4,7 +4,7 @@ type: "Implementation Guide"
 status: "Completed"
 <!-- Consolidação canônica integral: 100% dos 11 volumes e 63 capítulos da Coleção Iezzi estruturados em app.seeds.volumes com AULAS_DATA KaTeX, FIXACAO_DATA server-side, RAG_DATA para pgvector e TRI_DATA 3PL calibrados. -->
 related: ["etapa-03-autenticacao.md", "etapa-06-agente.md"]
-last_updated: "2026-09-10"
+last_updated: "2026-10-07"
 updated_by: "antigravity"
 ---
 
@@ -200,6 +200,8 @@ Implemente um componente de abas (Tabs) para navegar entre:
 3. **Dicas e Armadilhas**
 4. **Fixação (Exercícios)**
 
+- **Videoaula sob Demanda (`AulaVideoPlayer`):** Componente integrado no topo do Bloco 1 (Teoria) e acessível via atalho no subheader quando a aula possuir `video_url` cadastrado. O vídeo opera sob demanda (sem autoplay ou iframes pesados em segundo plano), suportando YouTube (com timestamps), Vimeo e streams HTML5 diretos (MP4/WebM). O estudante pode a qualquer momento alternar entre assistir ao vídeo e ler as fórmulas em KaTeX com o botão de recolhimento.
+
 > [!NOTE]
 > Você precisará de uma biblioteca React para renderizar as equações matemáticas das strings markdown retornadas pelo back-end. Recomenda-se o uso de `react-katex` ou `rehype-katex` integrado com um renderizador markdown (como `react-markdown`).
 
@@ -220,3 +222,5 @@ Implemente um componente de abas (Tabs) para navegar entre:
 - [x] A página de aula divide a tela (65/35) em telas grandes.
 - [x] Equações em sintaxe KaTeX são perfeitamente renderizadas no conteúdo dos blocos de aula.
 - [x] O botão "Concluir Aula" faz um POST bem-sucedido para `/aulas/{id}/concluir`.
+- [x] Aulas com `video_url` renderizam a videoaula sob demanda via `AulaVideoPlayer` (YouTube, Vimeo, MP4) quando o aluno clica para assistir (RN-CNT-015), com controles de recolhimento e atalho no subheader.
+
