@@ -318,11 +318,11 @@ export default function CuradoriaPage() {
             \frac
           </button>
           <button
-            onClick={() => inserirKaTeX("\\sqrt{x}")}
+            onClick={() => inserirKaTeX("x^{1/2}")}
             className="px-2 py-0.5 rounded text-xs font-mono bg-white dark:bg-surface-card border border-line hover:border-subject-300 text-slate-700 dark:text-slate-300 cursor-pointer shadow-2xs"
-            title="Raiz Quadrada"
+            title="Raiz Quadrada / Expoente Fracionário (x^{1/2})"
           >
-            \sqrt
+            x^{'{1/2}'}
           </button>
           <button
             onClick={() => inserirKaTeX("\\sum_{i=1}^{n}")}

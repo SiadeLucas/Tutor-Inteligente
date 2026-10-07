@@ -4,8 +4,8 @@ type: module
 status: draft
 related:
   - modules/exercicios/business-rules/index.md
-last_updated: "2026-09-09"
-updated_by: buffy
+last_updated: "2026-10-07"
+updated_by: antigravity
 ---
 
 # 1. Parametrização do Motor Adaptativo (CAT) e TRI
@@ -54,4 +54,11 @@ Ao finalizar o CAT, o $\theta$ consolidado é convertido para a escala qualitati
 - **Zero Feedback Durante o Teste**: O estudante não visualiza se acertou ou errou cada item e não tem acesso às oscilações intermediárias do $\theta$ durante a realização da prova CAT.
 - **Indicador Neutro de Progresso**: A interface exibe apenas o indicador ordinal `Questão X (Faixa da Avaliação: 12 a 20 questões)`.
 - **Revelação Diagnóstica Final**: Somente após o encerramento do teste (por convergência psicométrica $SE \le 0.30$ ou atingimento de 20 itens), o sistema desbloqueia o Dossiê Diagnóstico com o Gráfico Radar, nota $\theta$ consolidada e direcionamento para a Skill Tree.
+
+#### RN-EXE-006.2: Randomização de Alternativas e Isenção de Vício Cognitivo
+- **Distribuição Equilibrada no Banco**: As alternativas de múltipla escolha da base didática TRI devem ser balanceadas de forma uniforme (~20% para cada letra: A, B, C, D, E), mitigando qualquer vício na letra A.
+- **Randomização Determinística por Sessão**: Durante a realização da Prova CAT (onboarding ou marco periódico), as opções apresentadas ao estudante são embaralhadas deterministicamente a partir da semente da sessão e do item (`SHA-256(sessao_cat_id : item_id)`), assegurando que:
+  1. Diferentes estudantes recebam ordens distintas de alternativas para o mesmo item;
+  2. Recarregamentos de página (F5) preservem a ordem exibida de forma determinística e resiliente;
+  3. A validação de gabarito e registro no histórico calcule o acerto de acordo com a ordem apresentada na sessão ativa.
 

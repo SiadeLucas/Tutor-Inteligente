@@ -4,8 +4,8 @@ type: module
 status: draft
 related:
   - modules/exercicios/business-rules/index.md
-last_updated: "2026-09-02"
-updated_by: claude
+last_updated: "2026-10-07"
+updated_by: antigravity
 ---
 
 # 3. Geração e Validação de Questões Gêmeas
@@ -31,3 +31,12 @@ updated_by: claude
 
 #### RN-EXE-016: Resolução Passo a Passo Obrigatória
 - Toda questão gerada deve conter a demonstração analítica completa em KaTeX dividida em etapas lógicas claras.
+
+#### RN-EXE-017: Padronização de Radicais em Notação Exponencial Fracionária
+- Para garantir compatibilidade universal de renderização KaTeX através de todos os navegadores e evitar falhas de interpretação de glifos/símbolos de radicais (`\sqrt`), toda expressão com raiz deve ser expressa na forma exponencial fracionária:
+  - $\sqrt{x} \to x^{1/2}$
+  - $\sqrt{E} \to (E)^{1/2}$ para radicandos compostos
+  - $\sqrt[n]{x} \to x^{1/n}$ para raízes de ordem $n$
+  - Coeficientes numéricos ou variáveis imediatamente precedentes recebem multiplicação explícita com `\cdot` (ex: $4\sqrt{2} \to 4 \cdot 2^{1/2}$, $l\sqrt{3} \to l \cdot 3^{1/2}$, evitando fusão ambígua de termos).
+- Esta regra é aplicada na geração de Questões Gêmeas, nos dados dos 11 volumes didáticos, na sanitização de schemas Pydantic e como camada de resiliência no componente `KaTeXRenderer` do Frontend.
+

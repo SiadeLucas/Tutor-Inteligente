@@ -25,7 +25,7 @@ O conjunto dos números complexos $\mathbb{C}$ surge da necessidade de soluciona
 
 ### 1. A Unidade Imaginária e o Corpo $\mathbb{C}$
 Define-se a **unidade imaginária** $i$ como o número que satisfaz:
-$$i^2 = -1 \iff i = \sqrt{-1}$$
+$$i^2 = -1 \iff i = (-1)^{1/2}$$
 - Potências de $i$ (comportamento cíclico de período 4):
   $$i^0 = 1, \quad i^1 = i, \quad i^2 = -1, \quad i^3 = -i, \quad i^4 = 1$$
   Para qualquer $n \in \mathbb{N}$: $i^n = i^r$, onde $r$ é o resto da divisão euclidiana de $n$ por 4 ($n = 4q + r, \, 0 \le r \le 3$).
@@ -83,7 +83,7 @@ Todo complexo $z = a + bi$ é identificado com o ponto afixo $P(a, b)$ no plano 
 - Eixo vertical: Eixo Imaginário ($\text{Im}$)
 
 - **Módulo ($|z|$ ou $\rho$)**: Distância euclidiana da origem ao afixo:
-  $$|z| = \rho = \sqrt{a^2 + b^2}$$
+  $$|z| = \rho = (a^2 + b^2)^{1/2}$$
 - **Argumento Principal ($\theta$ ou $\text{Arg}(z)$)**: Ângulo orientado medido a partir do semi-eixo real positivo ($0 \le \theta < 2\pi$):
   $$\cos\theta = \frac{a}{\rho}, \quad \sin\theta = \frac{b}{\rho}$$
 
@@ -102,17 +102,17 @@ $$z = \rho(\cos\theta + i\sin\theta) = \rho\,\text{cis}\,\theta$$
    $$z^n = \rho^n [\cos(n\theta) + i\sin(n\theta)] \quad (n \in \mathbb{Z})$$
 3. **2ª Fórmula de De Moivre (Radiciação)**:
    As $n$ raízes $n$-ésimas de $z$ são dadas por:
-   $$w_k = \sqrt[n]{\rho} \left[\cos\left(\frac{\theta + 2k\pi}{n}\right) + i\sin\left(\frac{\theta + 2k\pi}{n}\right)\right], \quad k \in \{0, 1, \dots, n-1\}$$
-   Geometricamente, os afixos das $n$ raízes formam os vértices de um **polígono regular de $n$ lados** inscrito na circunferência de raio $\sqrt[n]{\rho}$.
+   $$w_k = \rho^{1/n} \left[\cos\left(\frac{\theta + 2k\pi}{n}\right) + i\sin\left(\frac{\theta + 2k\pi}{n}\right)\right], \quad k \in \{0, 1, \dots, n-1\}$$
+   Geometricamente, os afixos das $n$ raízes formam os vértices de um **polígono regular de $n$ lados** inscrito na circunferência de raio $\rho^{1/n}$.
 """,
         "exemplos": r"""# Exemplos Resolvidos Passo a Passo
 
 ### Exemplo 1: Potência com De Moivre
-**Enunciado:** Calcule $(1 + i\sqrt{3})^6$.
+**Enunciado:** Calcule $(1 + i \cdot 3^{1/2})^6$.
 
 **Resolução:**
-1. Módulo: $\rho = \sqrt{1^2 + (\sqrt{3})^2} = \sqrt{1 + 3} = \sqrt{4} = 2$.
-2. Argumento: $\cos\theta = 1/2$ e $\sin\theta = \sqrt{3}/2 \implies \theta = \pi/3$ ($60^\circ$).
+1. Módulo: $\rho = (1^2 + (3^{1/2})^2)^{1/2} = (1 + 3)^{1/2} = 4^{1/2} = 2$.
+2. Argumento: $\cos\theta = 1/2$ e $\sin\theta = 3^{1/2}/2 \implies \theta = \pi/3$ ($60^\circ$).
 3. Forma trigonométrica: $z = 2(\cos(\pi/3) + i\sin(\pi/3))$.
 4. 1ª Fórmula de De Moivre para $n = 6$:
    $$z^6 = 2^6 [\cos(6 \cdot \pi/3) + i\sin(6 \cdot \pi/3)] = 64 [\cos(2\pi) + i\sin(2\pi)] = 64[1 + 0] = 64$$
@@ -245,7 +245,7 @@ FIXACAO_DATA = {
         {
             "numero": 1,
             "enunciado": r"O módulo do número complexo $z = -3 + 4i$ é:",
-            "alternativas": [r"$5$", r"$7$", r"$\sqrt{7}$", r"$25$"],
+            "alternativas": [r"$5$", r"$7$", r"$7^{1/2}$", r"$25$"],
             "indice_correto": 0,
         },
         {
@@ -354,14 +354,14 @@ TRI_DATA = [
         "tipo_item": "multiple_choice",
         "enunciado_katex": r"O valor da expressão com potências de $i$: $E = i^{20} + i^{21} + i^{22} + i^{23}$ é igual a:",
         "alternativas": [
-            {"letra": "A", "texto": r"$0$", "correta": True},
-            {"letra": "B", "texto": r"$1$", "correta": False},
-            {"letra": "C", "texto": r"$i$", "correta": False},
-            {"letra": "D", "texto": r"$-1$", "correta": False},
+            {"letra": "A", "texto": r"$1$", "correta": False},
+            {"letra": "B", "texto": r"$-1$", "correta": False},
+            {"letra": "C", "texto": r"$0$", "correta": True},
+            {"letra": "D", "texto": r"$i$", "correta": False},
             {"letra": "E", "texto": r"$4i$", "correta": False},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. Quatro potências consecutivas de $i$ somam sempre zero: $1 + i - 1 - i = 0$. Alternativa A.",
+        "resposta_correta": "C",
+        "resolucao_passo_a_passo": r"1. Quatro potências consecutivas de $i$ somam sempre zero: $1 + i - 1 - i = 0$. Alternativa C.",
         "parametro_a": 1.200,
         "parametro_b": -1.200,
         "parametro_c": 0.200,
@@ -376,8 +376,8 @@ TRI_DATA = [
             {"letra": "A", "texto": r"$\frac{1}{5} - \frac{2}{5}i$", "correta": True},
             {"letra": "B", "texto": r"$\frac{1}{3} - \frac{2}{3}i$", "correta": False},
             {"letra": "C", "texto": r"$1 - 2i$", "correta": False},
-            {"letra": "D", "texto": r"$-1 - 2i$", "correta": False},
-            {"letra": "E", "texto": r"$\frac{1}{5} + \frac{2}{5}i$", "correta": False},
+            {"letra": "D", "texto": r"$\frac{1}{5} + \frac{2}{5}i$", "correta": False},
+            {"letra": "E", "texto": r"$-1 - 2i$", "correta": False},
         ],
         "resposta_correta": "A",
         "resolucao_passo_a_passo": r"1. $z^{-1} = \frac{\bar{z}}{|z|^2} = \frac{1 - 2i}{1^2 + 2^2} = \frac{1 - 2i}{5} = \frac{1}{5} - \frac{2}{5}i$. Alternativa A.",
@@ -392,14 +392,14 @@ TRI_DATA = [
         "tipo_item": "multiple_choice",
         "enunciado_katex": r"Para que o produto $(x + 2i)(3 - i)$ seja um número real puro, o valor de $x$ deve ser:",
         "alternativas": [
-            {"letra": "A", "texto": r"$-6$", "correta": True},
-            {"letra": "B", "texto": r"$6$", "correta": False},
-            {"letra": "C", "texto": r"$2/3$", "correta": False},
-            {"letra": "D", "texto": r"$-2/3$", "correta": False},
-            {"letra": "E", "texto": r"$0$", "correta": False},
+            {"letra": "A", "texto": r"$2/3$", "correta": False},
+            {"letra": "B", "texto": r"$-6$", "correta": True},
+            {"letra": "C", "texto": r"$6$", "correta": False},
+            {"letra": "D", "texto": r"$0$", "correta": False},
+            {"letra": "E", "texto": r"$-2/3$", "correta": False},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. Produto: $3x - xi + 6i - 2i^2 = (3x + 2) + (6 - x)i$. 2. Para ser real, parte imaginária nula: $6 - x = 0 \implies x = 6$. Espere: $(x + 2i)(3 - i) = 3x - xi + 6i + 2$. Parte imaginária: $6 - x = 0 \implies x = 6$. Se enunciado pede $-6$ para $(x - 2i)$: refazendo com $x = -6$: parte imaginária $6 - (-6) \neq 0$. Atenção: se $x = 6$, $6 - 6 = 0$.",
+        "resposta_correta": "B",
+        "resolucao_passo_a_passo": r"1. Produto: $3x - xi + 6i - 2i^2 = (3x + 2) + (6 - x)i$. 2. Para ser real, parte imaginária nula: $6 - x = 0 \implies x = 6$. Espere: $(x + 2i)(3 - i) = 3x - xi + 6i + 2$. Parte imaginária: $6 - x = 0 \implies x = 6$. Se enunciado pede $-6$ para $(x - 2i)$: refazendo com $x = -6$: parte imaginária $6 - (-6) \neq 0$. Atenção: se $x = 6$, $6 - 6 = 0$. Alternativa B.",
         "parametro_a": 1.400,
         "parametro_b": 0.300,
         "parametro_c": 0.200,
@@ -425,10 +425,10 @@ TRI_DATA = [
         "enunciado_katex": r"Seja $z = a + bi$. A igualdade $|z - 3| = |z + 3|$ representa geometricamente no plano complexo:",
         "alternativas": [
             {"letra": "A", "texto": r"O eixo imaginário ($x = 0$)", "correta": True},
-            {"letra": "B", "texto": r"O eixo real ($y = 0$)", "correta": False},
-            {"letra": "C", "texto": r"Uma circunferência de raio 3", "correta": False},
-            {"letra": "D", "texto": r"A reta bissetriz $y = x$", "correta": False},
-            {"letra": "E", "texto": r"Uma elipse", "correta": False},
+            {"letra": "B", "texto": r"Uma circunferência de raio 3", "correta": False},
+            {"letra": "C", "texto": r"A reta bissetriz $y = x$", "correta": False},
+            {"letra": "D", "texto": r"Uma elipse", "correta": False},
+            {"letra": "E", "texto": r"O eixo real ($y = 0$)", "correta": False},
         ],
         "resposta_correta": "A",
         "resolucao_passo_a_passo": r"1. $|z - 3| = |z + 3|$ significa que $z$ é equidistante de $3$ e $-3$. 2. A mediatriz do segmento $[-3, 3]$ é o eixo vertical (imaginário), ou seja, $x = 0$. Alternativa A.",
@@ -443,16 +443,16 @@ TRI_DATA = [
         "numero_capitulo": 2,
         "tipo_origem": "iezzi_original",
         "tipo_item": "multiple_choice",
-        "enunciado_katex": r"O módulo e o argumento principal de $z = -2 + 2i\sqrt{3}$ valem respectivamente:",
+        "enunciado_katex": r"O módulo e o argumento principal de $z = -2 + 2i \cdot 3^{1/2}$ valem respectivamente:",
         "alternativas": [
-            {"letra": "A", "texto": r"$\rho = 4$ e $\theta = 2\pi/3$", "correta": True},
+            {"letra": "A", "texto": r"$\rho = 2$ e $\theta = 2\pi/3$", "correta": False},
             {"letra": "B", "texto": r"$\rho = 4$ e $\theta = \pi/3$", "correta": False},
-            {"letra": "C", "texto": r"$\rho = 2$ e $\theta = 2\pi/3$", "correta": False},
+            {"letra": "C", "texto": r"$\rho = 16$ e $\theta = 2\pi/3$", "correta": False},
             {"letra": "D", "texto": r"$\rho = 4$ e $\theta = 5\pi/6$", "correta": False},
-            {"letra": "E", "texto": r"$\rho = 16$ e $\theta = 2\pi/3$", "correta": False},
+            {"letra": "E", "texto": r"$\rho = 4$ e $\theta = 2\pi/3$", "correta": True},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. $\rho = \sqrt{(-2)^2 + (2\sqrt{3})^2} = \sqrt{4 + 12} = \sqrt{16} = 4$. 2. $\cos\theta = -2/4 = -1/2$, $\sin\theta = 2\sqrt{3}/4 = \sqrt{3}/2 \implies 2^\circ$ quadrante: $\theta = 2\pi/3$. Alternativa A.",
+        "resposta_correta": "E",
+        "resolucao_passo_a_passo": r"1. $\rho = ((-2)^2 + (2 \cdot 3^{1/2})^2)^{1/2} = (4 + 12)^{1/2} = 16^{1/2} = 4$. 2. $\cos\theta = -2/4 = -1/2$, $\sin\theta = 2 \cdot 3^{1/2}/4 = 3^{1/2}/2 \implies 2^\circ$ quadrante: $\theta = 2\pi/3$. Alternativa E.",
         "parametro_a": 1.350,
         "parametro_b": 0.100,
         "parametro_c": 0.200,
@@ -462,16 +462,16 @@ TRI_DATA = [
         "numero_capitulo": 2,
         "tipo_origem": "iezzi_original",
         "tipo_item": "multiple_choice",
-        "enunciado_katex": r"O valor de $(1 + i\sqrt{3})^6$ pela 1ª Fórmula de De Moivre é:",
+        "enunciado_katex": r"O valor de $(1 + i \cdot 3^{1/2})^6$ pela 1ª Fórmula de De Moivre é:",
         "alternativas": [
-            {"letra": "A", "texto": r"$64$", "correta": True},
-            {"letra": "B", "texto": r"$-64$", "correta": False},
-            {"letra": "C", "texto": r"$64i$", "correta": False},
-            {"letra": "D", "texto": r"$32$", "correta": False},
-            {"letra": "E", "texto": r"$1$", "correta": False},
+            {"letra": "A", "texto": r"$1$", "correta": False},
+            {"letra": "B", "texto": r"$32$", "correta": False},
+            {"letra": "C", "texto": r"$64$", "correta": True},
+            {"letra": "D", "texto": r"$-64$", "correta": False},
+            {"letra": "E", "texto": r"$64i$", "correta": False},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. $\rho = 2$, $\theta = \pi/3$. 2. $z^6 = 2^6(\cos(6 \cdot \pi/3) + i\sin(6 \cdot \pi/3)) = 64(\cos 2\pi + i\sin 2\pi) = 64(1 + 0) = 64$. Alternativa A.",
+        "resposta_correta": "C",
+        "resolucao_passo_a_passo": r"1. $\rho = 2$, $\theta = \pi/3$. 2. $z^6 = 2^6(\cos(6 \cdot \pi/3) + i\sin(6 \cdot \pi/3)) = 64(\cos 2\pi + i\sin 2\pi) = 64(1 + 0) = 64$. Alternativa C.",
         "parametro_a": 1.450,
         "parametro_b": 0.600,
         "parametro_c": 0.200,
@@ -483,14 +483,14 @@ TRI_DATA = [
         "tipo_item": "multiple_choice",
         "enunciado_katex": r"As raízes cúbicas da unidade ($z^3 = 1$) formam no plano complexo os vértices de:",
         "alternativas": [
-            {"letra": "A", "texto": r"Um triângulo equilátero inscrito na circunferência unitária", "correta": True},
-            {"letra": "B", "texto": r"Um triângulo retângulo isósceles", "correta": False},
-            {"letra": "C", "texto": r"Um segmento de reta sobre o eixo real", "correta": False},
-            {"letra": "D", "texto": r"Um quadrado centrado na origem", "correta": False},
-            {"letra": "E", "texto": r"Três pontos colineares", "correta": False},
+            {"letra": "A", "texto": r"Um segmento de reta sobre o eixo real", "correta": False},
+            {"letra": "B", "texto": r"Um triângulo equilátero inscrito na circunferência unitária", "correta": True},
+            {"letra": "C", "texto": r"Um quadrado centrado na origem", "correta": False},
+            {"letra": "D", "texto": r"Três pontos colineares", "correta": False},
+            {"letra": "E", "texto": r"Um triângulo retângulo isósceles", "correta": False},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. Pela 2ª fórmula de De Moivre, as raízes $n$-ésimas de um complexo dividem a circunferência de raio $\sqrt[n]{\rho}$ em $n$ arcos iguais de $2\pi/n$. Para $n=3$, formam um triângulo equilátero. Alternativa A.",
+        "resposta_correta": "B",
+        "resolucao_passo_a_passo": r"1. Pela 2ª fórmula de De Moivre, as raízes $n$-ésimas de um complexo dividem a circunferência de raio $\rho^{1/n}$ em $n$ arcos iguais de $2\pi/n$. Para $n=3$, formam um triângulo equilátero. Alternativa B.",
         "parametro_a": 1.400,
         "parametro_b": 0.400,
         "parametro_c": 0.200,
@@ -515,14 +515,14 @@ TRI_DATA = [
         "tipo_item": "multiple_choice",
         "enunciado_katex": r"Se $z = \cos(\pi/4) + i\sin(\pi/4)$, então $z^{100}$ é igual a:",
         "alternativas": [
-            {"letra": "A", "texto": r"$-1$", "correta": True},
-            {"letra": "B", "texto": r"$1$", "correta": False},
-            {"letra": "C", "texto": r"$i$", "correta": False},
-            {"letra": "D", "texto": r"$-i$", "correta": False},
+            {"letra": "A", "texto": r"$1$", "correta": False},
+            {"letra": "B", "texto": r"$-1$", "correta": True},
+            {"letra": "C", "texto": r"$-i$", "correta": False},
+            {"letra": "D", "texto": r"$i$", "correta": False},
             {"letra": "E", "texto": r"$0$", "correta": False},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. $100 \cdot (\pi/4) = 25\pi = 24\pi + \pi \equiv \pi$. 2. $\cos\pi + i\sin\pi = -1 + 0 = -1$. Alternativa A.",
+        "resposta_correta": "B",
+        "resolucao_passo_a_passo": r"1. $100 \cdot (\pi/4) = 25\pi = 24\pi + \pi \equiv \pi$. 2. $\cos\pi + i\sin\pi = -1 + 0 = -1$. Alternativa B.",
         "parametro_a": 1.350,
         "parametro_b": 0.300,
         "parametro_c": 0.200,
@@ -536,14 +536,14 @@ TRI_DATA = [
         "tipo_item": "multiple_choice",
         "enunciado_katex": r"O resto da divisão do polinômio $P(x) = 2x^3 - 5x^2 + x - 3$ por $(x - 2)$ é:",
         "alternativas": [
-            {"letra": "A", "texto": r"$-5$", "correta": True},
-            {"letra": "B", "texto": r"$5$", "correta": False},
-            {"letra": "C", "texto": r"$-3$", "correta": False},
-            {"letra": "D", "texto": r"$0$", "correta": False},
-            {"letra": "E", "texto": r"$-7$", "correta": False},
+            {"letra": "A", "texto": r"$-3$", "correta": False},
+            {"letra": "B", "texto": r"$-7$", "correta": False},
+            {"letra": "C", "texto": r"$5$", "correta": False},
+            {"letra": "D", "texto": r"$-5$", "correta": True},
+            {"letra": "E", "texto": r"$0$", "correta": False},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. Pelo Teorema do Resto: $R = P(2) = 2(8) - 5(4) + 2 - 3 = 16 - 20 + 2 - 3 = -5$. Alternativa A.",
+        "resposta_correta": "D",
+        "resolucao_passo_a_passo": r"1. Pelo Teorema do Resto: $R = P(2) = 2(8) - 5(4) + 2 - 3 = 16 - 20 + 2 - 3 = -5$. Alternativa D.",
         "parametro_a": 1.250,
         "parametro_b": -0.700,
         "parametro_c": 0.200,
@@ -555,14 +555,14 @@ TRI_DATA = [
         "tipo_item": "multiple_choice",
         "enunciado_katex": r"Para que o polinômio $P(x) = x^3 - 4x^2 + mx - 6$ seja divisível por $(x - 3)$, o valor de $m$ deve ser:",
         "alternativas": [
-            {"letra": "A", "texto": r"$5$", "correta": True},
-            {"letra": "B", "texto": r"$-5$", "correta": False},
-            {"letra": "C", "texto": r"$3$", "correta": False},
+            {"letra": "A", "texto": r"$-5$", "correta": False},
+            {"letra": "B", "texto": r"$3$", "correta": False},
+            {"letra": "C", "texto": r"$15$", "correta": False},
             {"letra": "D", "texto": r"$-3$", "correta": False},
-            {"letra": "E", "texto": r"$15$", "correta": False},
+            {"letra": "E", "texto": r"$5$", "correta": True},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. Divisível $\iff P(3) = 0$. 2. $3^3 - 4(3^2) + 3m - 6 = 0 \implies 27 - 36 + 3m - 6 = 0 \implies 3m - 15 = 0 \implies m = 5$. Alternativa A.",
+        "resposta_correta": "E",
+        "resolucao_passo_a_passo": r"1. Divisível $\iff P(3) = 0$. 2. $3^3 - 4(3^2) + 3m - 6 = 0 \implies 27 - 36 + 3m - 6 = 0 \implies 3m - 15 = 0 \implies m = 5$. Alternativa E.",
         "parametro_a": 1.300,
         "parametro_b": 0.000,
         "parametro_c": 0.200,
@@ -587,14 +587,14 @@ TRI_DATA = [
         "tipo_item": "multiple_choice",
         "enunciado_katex": r"O quociente da divisão de $P(x) = 2x^3 - 3x^2 + 4x - 1$ por $(x - 1)$ obtido por Briot-Ruffini é:",
         "alternativas": [
-            {"letra": "A", "texto": r"$2x^2 - x + 3$", "correta": True},
-            {"letra": "B", "texto": r"$2x^2 + x + 3$", "correta": False},
-            {"letra": "C", "texto": r"$2x^2 - 5x + 3$", "correta": False},
-            {"letra": "D", "texto": r"$x^2 - x + 2$", "correta": False},
+            {"letra": "A", "texto": r"$2x^2 - 5x + 3$", "correta": False},
+            {"letra": "B", "texto": r"$x^2 - x + 2$", "correta": False},
+            {"letra": "C", "texto": r"$2x^2 + x + 3$", "correta": False},
+            {"letra": "D", "texto": r"$2x^2 - x + 3$", "correta": True},
             {"letra": "E", "texto": r"$2x^2 - x + 1$", "correta": False},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. Briot-Ruffini com raiz 1: coeficientes $[2, -3, 4, -1]$. Linha inferior: $2$, depois $2(1) - 3 = -1$, depois $-1(1) + 4 = 3$. Quociente $2x^2 - x + 3$, resto $3(1) - 1 = 2$. Alternativa A.",
+        "resposta_correta": "D",
+        "resolucao_passo_a_passo": r"1. Briot-Ruffini com raiz 1: coeficientes $[2, -3, 4, -1]$. Linha inferior: $2$, depois $2(1) - 3 = -1$, depois $-1(1) + 4 = 3$. Quociente $2x^2 - x + 3$, resto $3(1) - 1 = 2$. Alternativa D.",
         "parametro_a": 1.350,
         "parametro_b": 0.400,
         "parametro_c": 0.200,
@@ -606,14 +606,14 @@ TRI_DATA = [
         "tipo_item": "multiple_choice",
         "enunciado_katex": r"Se um polinômio $P(x)$ é divisível separadamente por $(x - 1)$ e por $(x + 2)$, então ele é divisível pelo produto:",
         "alternativas": [
-            {"letra": "A", "texto": r"$x^2 + x - 2$", "correta": True},
+            {"letra": "A", "texto": r"$x^2 - 3x + 2$", "correta": False},
             {"letra": "B", "texto": r"$x^2 - x - 2$", "correta": False},
-            {"letra": "C", "texto": r"$x^2 - 3x + 2$", "correta": False},
-            {"letra": "D", "texto": r"$x^2 - 4$", "correta": False},
-            {"letra": "E", "texto": r"$x^2 - 1$", "correta": False},
+            {"letra": "C", "texto": r"$x^2 + x - 2$", "correta": True},
+            {"letra": "D", "texto": r"$x^2 - 1$", "correta": False},
+            {"letra": "E", "texto": r"$x^2 - 4$", "correta": False},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. Como $(x-1)$ e $(x+2)$ são primos entre si, $P(x)$ é divisível por $(x-1)(x+2) = x^2 + x - 2$. Alternativa A.",
+        "resposta_correta": "C",
+        "resolucao_passo_a_passo": r"1. Como $(x-1)$ e $(x+2)$ são primos entre si, $P(x)$ é divisível por $(x-1)(x+2) = x^2 + x - 2$. Alternativa C.",
         "parametro_a": 1.400,
         "parametro_b": 0.700,
         "parametro_c": 0.200,
@@ -628,9 +628,9 @@ TRI_DATA = [
         "enunciado_katex": r"As raízes da equação $x^3 - 6x^2 + 11x - 6 = 0$ são:",
         "alternativas": [
             {"letra": "A", "texto": r"$1, 2 \text{ e } 3$", "correta": True},
-            {"letra": "B", "texto": r"$-1, -2 \text{ e } -3$", "correta": False},
-            {"letra": "C", "texto": r"$1, -2 \text{ e } 3$", "correta": False},
-            {"letra": "D", "texto": r"$0, 2 \text{ e } 4$", "correta": False},
+            {"letra": "B", "texto": r"$1, -2 \text{ e } 3$", "correta": False},
+            {"letra": "C", "texto": r"$0, 2 \text{ e } 4$", "correta": False},
+            {"letra": "D", "texto": r"$-1, -2 \text{ e } -3$", "correta": False},
             {"letra": "E", "texto": r"$2, 3 \text{ e } 6$", "correta": False},
         ],
         "resposta_correta": "A",
@@ -646,14 +646,14 @@ TRI_DATA = [
         "tipo_item": "multiple_choice",
         "enunciado_katex": r"Seja a equação $x^3 - 4x^2 + x + 6 = 0$. O valor da soma dos inversos das raízes $\frac{1}{r_1} + \frac{1}{r_2} + \frac{1}{r_3}$ é:",
         "alternativas": [
-            {"letra": "A", "texto": r"$-1/6$", "correta": True},
+            {"letra": "A", "texto": r"$4/6$", "correta": False},
             {"letra": "B", "texto": r"$1/6$", "correta": False},
-            {"letra": "C", "texto": r"$-2/3$", "correta": False},
-            {"letra": "D", "texto": r"$4/6$", "correta": False},
-            {"letra": "E", "texto": r"$-4/6$", "correta": False},
+            {"letra": "C", "texto": r"$-4/6$", "correta": False},
+            {"letra": "D", "texto": r"$-1/6$", "correta": True},
+            {"letra": "E", "texto": r"$-2/3$", "correta": False},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. $\frac{1}{r_1} + \frac{1}{r_2} + \frac{1}{r_3} = \frac{r_1 r_2 + r_1 r_3 + r_2 r_3}{r_1 r_2 r_3} = \frac{S_2}{S_3}$. 2. $S_2 = a_1/a_3 = 1/1 = 1$. 3. $S_3 = -a_0/a_3 = -6/1 = -6$. 4. Quociente $= 1 / (-6) = -1/6$. Alternativa A.",
+        "resposta_correta": "D",
+        "resolucao_passo_a_passo": r"1. $\frac{1}{r_1} + \frac{1}{r_2} + \frac{1}{r_3} = \frac{r_1 r_2 + r_1 r_3 + r_2 r_3}{r_1 r_2 r_3} = \frac{S_2}{S_3}$. 2. $S_2 = a_1/a_3 = 1/1 = 1$. 3. $S_3 = -a_0/a_3 = -6/1 = -6$. 4. Quociente $= 1 / (-6) = -1/6$. Alternativa D.",
         "parametro_a": 1.500,
         "parametro_b": 0.900,
         "parametro_c": 0.200,
@@ -678,14 +678,14 @@ TRI_DATA = [
         "tipo_item": "multiple_choice",
         "enunciado_katex": r"Sabendo que $1 + 2i$ é raiz da equação real $x^3 - 4x^2 + 9x - 10 = 0$, a raiz real dessa equação é:",
         "alternativas": [
-            {"letra": "A", "texto": r"$x = 2$", "correta": True},
-            {"letra": "B", "texto": r"$x = -2$", "correta": False},
-            {"letra": "C", "texto": r"$x = 5$", "correta": False},
-            {"letra": "D", "texto": r"$x = 1$", "correta": False},
-            {"letra": "E", "texto": r"$x = -5$", "correta": False},
+            {"letra": "A", "texto": r"$x = 5$", "correta": False},
+            {"letra": "B", "texto": r"$x = 1$", "correta": False},
+            {"letra": "C", "texto": r"$x = -5$", "correta": False},
+            {"letra": "D", "texto": r"$x = 2$", "correta": True},
+            {"letra": "E", "texto": r"$x = -2$", "correta": False},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. Coeficientes reais $\implies 1 - 2i$ também é raiz. 2. Soma das três raízes $= -(-4)/1 = 4$. 3. $(1 + 2i) + (1 - 2i) + r_3 = 4 \implies 2 + r_3 = 4 \implies r_3 = 2$. Alternativa A.",
+        "resposta_correta": "D",
+        "resolucao_passo_a_passo": r"1. Coeficientes reais $\implies 1 - 2i$ também é raiz. 2. Soma das três raízes $= -(-4)/1 = 4$. 3. $(1 + 2i) + (1 - 2i) + r_3 = 4 \implies 2 + r_3 = 4 \implies r_3 = 2$. Alternativa D.",
         "parametro_a": 1.450,
         "parametro_b": 0.500,
         "parametro_c": 0.200,
@@ -697,14 +697,14 @@ TRI_DATA = [
         "tipo_item": "multiple_choice",
         "enunciado_katex": r"A equação $x^3 - 3x^2 + 3x - 1 = 0$ admite:",
         "alternativas": [
-            {"letra": "A", "texto": r"Apenas a raiz real $1$ com multiplicidade 3", "correta": True},
-            {"letra": "B", "texto": r"Três raízes reais distintas", "correta": False},
-            {"letra": "C", "texto": r"Uma raiz real e duas imaginárias", "correta": False},
+            {"letra": "A", "texto": r"Três raízes reais distintas", "correta": False},
+            {"letra": "B", "texto": r"Uma raiz real e duas imaginárias", "correta": False},
+            {"letra": "C", "texto": r"Raízes $1, -1$ e $0$", "correta": False},
             {"letra": "D", "texto": r"Nenhuma raiz real", "correta": False},
-            {"letra": "E", "texto": r"Raízes $1, -1$ e $0$", "correta": False},
+            {"letra": "E", "texto": r"Apenas a raiz real $1$ com multiplicidade 3", "correta": True},
         ],
-        "resposta_correta": "A",
-        "resolucao_passo_a_passo": r"1. Reconhecemos o produto notável $(x - 1)^3 = x^3 - 3x^2 + 3x - 1$. 2. Portanto, $(x - 1)^3 = 0 \implies x = 1$ é raiz tripla (multiplicidade 3). Alternativa A.",
+        "resposta_correta": "E",
+        "resolucao_passo_a_passo": r"1. Reconhecemos o produto notável $(x - 1)^3 = x^3 - 3x^2 + 3x - 1$. 2. Portanto, $(x - 1)^3 = 0 \implies x = 1$ é raiz tripla (multiplicidade 3). Alternativa E.",
         "parametro_a": 1.300,
         "parametro_b": -0.500,
         "parametro_c": 0.200,

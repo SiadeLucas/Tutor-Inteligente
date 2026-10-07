@@ -16,6 +16,7 @@ from app.models.user import Usuario
 from app.sympy_engine.validator import SympyMathValidator
 from app.cat_engine.cat_service import CatEngine, ItemTRI
 from app.ai.llm_factory import LLMFactory
+from app.modules.exercises.randomizer import obter_alternativas_randomizadas_cat
 from app.modules.exercises.schemas import (
     SubmissaoExercicioRequest,
     SubmissaoExercicioResponse,
@@ -422,10 +423,22 @@ class ExercisesService:
         await db.commit()
         await db.refresh(sessao_cat)
 
-        alternativas_dto = [
-            AlternativaItem(letra=alt["letra"], texto_katex=alt["texto"])
-            for alt in (item_escolhido.alternativas or [])
-        ]
+        if item_escolhido.tipo_item == "multiple_choice" and item_escolhido.alternativas:
+            alts_rand, _ = obter_alternativas_randomizadas_cat(
+                alternativas=item_escolhido.alternativas,
+                resposta_correta_db=item_escolhido.resposta_correta,
+                sessao_id=str(sessao_cat.id),
+                item_id=str(item_escolhido.id),
+            )
+            alternativas_dto = [
+                AlternativaItem(letra=alt["letra"], texto_katex=alt["texto"])
+                for alt in alts_rand
+            ]
+        else:
+            alternativas_dto = [
+                AlternativaItem(letra=alt["letra"], texto_katex=alt["texto"])
+                for alt in (item_escolhido.alternativas or [])
+            ]
 
         primeiro_item_dto = ItemExercicioResponse(
             id=item_escolhido.id,
@@ -512,16 +525,30 @@ class ExercisesService:
                 detail="Item selecionado indisponível no banco.",
             )
 
+        if item.tipo_item == "multiple_choice" and item.alternativas:
+            alts_rand, _ = obter_alternativas_randomizadas_cat(
+                alternativas=item.alternativas,
+                resposta_correta_db=item.resposta_correta,
+                sessao_id=str(prova.id),
+                item_id=str(item.id),
+            )
+            alternativas_dto = [
+                AlternativaItem(letra=alt["letra"], texto_katex=alt["texto"])
+                for alt in alts_rand
+            ]
+        else:
+            alternativas_dto = [
+                AlternativaItem(letra=alt["letra"], texto_katex=alt["texto"])
+                for alt in (item.alternativas or [])
+            ]
+
         item_dto = ItemExercicioResponse(
             id=item.id,
             capitulo_id=item.capitulo_id,
             tipo_origem=item.tipo_origem,
             tipo_item=item.tipo_item,
             enunciado_katex=item.enunciado_katex,
-            alternativas=[
-                AlternativaItem(letra=alt["letra"], texto_katex=alt["texto"])
-                for alt in (item.alternativas or [])
-            ],
+            alternativas=alternativas_dto,
             parametro_a=float(item.parametro_a),
             parametro_b=float(item.parametro_b),
             parametro_c=float(item.parametro_c),
@@ -618,7 +645,16 @@ class ExercisesService:
         if item.tipo_item == "numeric_input":
             acertou = SympyMathValidator.validar_equivalencia(resposta_limpa, item.resposta_correta)
         else:
-            acertou = (resposta_limpa.upper() == item.resposta_correta.strip().upper())
+            if item.alternativas:
+                _, gabarito_sessao = obter_alternativas_randomizadas_cat(
+                    alternativas=item.alternativas,
+                    resposta_correta_db=item.resposta_correta,
+                    sessao_id=str(prova.id),
+                    item_id=str(item.id),
+                )
+                acertou = (resposta_limpa.upper() == gabarito_sessao.strip().upper())
+            else:
+                acertou = (resposta_limpa.upper() == item.resposta_correta.strip().upper())
 
         # Atualiza histórico detalhado e IDs respondidos
         itens_ids = list(prova.itens_respondidos_ids or [])
@@ -739,10 +775,22 @@ class ExercisesService:
             await db.commit()
             proximo_db = next(it for it in todos_itens if str(it.id) == proximo_tri.id)
 
-            alternativas_dto = [
-                AlternativaItem(letra=alt["letra"], texto_katex=alt["texto"])
-                for alt in (proximo_db.alternativas or [])
-            ]
+            if proximo_db.tipo_item == "multiple_choice" and proximo_db.alternativas:
+                alts_rand, _ = obter_alternativas_randomizadas_cat(
+                    alternativas=proximo_db.alternativas,
+                    resposta_correta_db=proximo_db.resposta_correta,
+                    sessao_id=str(prova.id),
+                    item_id=str(proximo_db.id),
+                )
+                alternativas_dto = [
+                    AlternativaItem(letra=alt["letra"], texto_katex=alt["texto"])
+                    for alt in alts_rand
+                ]
+            else:
+                alternativas_dto = [
+                    AlternativaItem(letra=alt["letra"], texto_katex=alt["texto"])
+                    for alt in (proximo_db.alternativas or [])
+                ]
 
             proximo_dto = ItemExercicioResponse(
                 id=proximo_db.id,

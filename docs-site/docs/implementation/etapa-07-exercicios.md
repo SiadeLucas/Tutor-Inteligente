@@ -4,15 +4,15 @@ type: implementation_plan
 status: completed
 related:
   - etapa-05-estrutura-conteudo
-last_updated: "2026-09-09"
-updated_by: buffy
+last_updated: "2026-10-07"
+updated_by: antigravity
 ---
 
 <!-- ai-summary
 Plano de implementação detalhado para a Etapa 7: Exercícios e Motor CAT.
 Cobre a estruturação de tabelas de exercícios, tentativas, caixa de reforço e provas CAT.
-Inclui a implementação do Motor Psicométrico CAT (TRI), validação matemática com SymPy,
-lógica de segunda chance e questões gêmeas, bem como interfaces KaTeX no Frontend.
+Inclui o Motor Psicométrico CAT (TRI), validação matemática com SymPy, lógica de segunda chance,
+questões gêmeas, randomizador de alternativas (RN-EXE-006.2) e interfaces KaTeX no Frontend.
 -->
 
 # Etapa 7: Exercícios e Motor CAT
@@ -248,5 +248,7 @@ O ambiente de prova CAT é diferente do ambiente de fixação.
 - [x] No caso de falha completa (0.0), o item é colocado na `caixa_reforco` e é marcado como `superado` quando o aluno acerta a Questão Gêmea equivalente (RN-EXE-008.1).
 - [x] Todos os 6 endpoints listados foram implementados e testados. Durante a prova CAT, a submissão é cega para o cliente e a régua acerto/erro é autoritativa no servidor (RN-EXE-010); correção server-side integrada com a bateria server-side da Etapa 5.
 - [x] O frontend exibe `ExerciseCard` com renderização robusta usando KaTeX.
-- [x] A página da Prova CAT renderiza uma interface limpa, sem feedbacks, com envio de tempo e finaliza exibindo um gráfico Radar.
+- [x] Randomizador de alternativas implementado e calibrado (RN-EXE-006.2): banco de itens balanceado uniformemente (~20% para cada letra: A, B, C, D, E) e randomização determinística por sessão em runtime na Prova CAT com validação autoritativa no servidor.
+- [x] Padronização de expressões com raízes em notação exponencial fracionária (RN-EXE-017): todas as ocorrências de `\sqrt` nos 11 volumes didáticos, schemas Pydantic e gerador de questões gêmeas foram convertidas para potências equivalentes (ex: $x^{1/2}$, $(E)^{1/2}$, $4 \cdot 2^{1/2}$), com sanitização resiliente em `KaTeXRenderer.tsx`.
+
 

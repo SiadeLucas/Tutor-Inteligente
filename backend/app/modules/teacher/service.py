@@ -584,7 +584,7 @@ class TeacherService:
                 numero_capitulo=cap.numero_capitulo,
                 volume_titulo=cap.volume.titulo,
                 numero_volume=cap.volume.numero_volume,
-                bloco1_teoria_katex="## Teoria Fundamental\n\nDefina os conceitos centrais em KaTeX:\n$$ x = \\frac{-b \\pm \\sqrt{\\Delta}}{2a} $$",
+                bloco1_teoria_katex="## Teoria Fundamental\n\nDefina os conceitos centrais em KaTeX:\n$$ x = \\frac{-b \\pm \\Delta^{1/2}}{2a} $$",
                 bloco2_exemplos_katex="## Exemplos Práticos\n\nExemplo resolvido passo a passo.",
                 bloco3_dicas_ia="> [!TIP]\n> Atenção aos erros conceituais comuns.",
                 video_url=None,

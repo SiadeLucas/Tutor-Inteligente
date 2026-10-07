@@ -194,7 +194,7 @@ class SympyMathValidator:
             f"2. Calculamos o discriminante: $\\Delta = b^2 - 4ac = ({b_novo})^2 - 4(1)({c_novo}) = {delta}$.\n"
             f"3. Como $\\Delta > 0$, a equação possui duas raízes reais distintas.\n"
             f"4. Aplicamos a fórmula resolutiva de Bhaskara:\n"
-            f"   $$x = \\frac{{-b \\pm \\sqrt{{\\Delta}}}}{{2a}} = \\frac{{-({b_novo}) \\pm \\sqrt{{{delta}}}}}{{2}}$$\n"
+            f"   $$x = \\frac{{-b \\pm \\Delta^{{1/2}}}}{{2a}} = \\frac{{-({b_novo}) \\pm {delta}^{{1/2}}}}{{2}}$$\n"
             f"5. As raízes obtidas são $x_1 = {nova_r1}$ e $x_2 = {nova_r2}$.\n\n"
             f"Portanto, o conjunto solução é $S = \\{{{nova_r1}, {nova_r2}\\}}$ (Alternativa **{resposta_correta}**)."
         )

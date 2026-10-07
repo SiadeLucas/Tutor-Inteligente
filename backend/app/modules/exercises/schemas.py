@@ -6,7 +6,8 @@ from __future__ import annotations
 from uuid import UUID
 from datetime import datetime
 from typing import List, Optional, Dict, Any, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from app.modules.exercises.formatters import converter_raiz_em_exponencial
 
 
 # ============================================================================
@@ -17,6 +18,13 @@ class AlternativaItem(BaseModel):
     letra: Literal["A", "B", "C", "D", "E"] = Field(..., description="Identificador da alternativa")
     texto_katex: str = Field(..., description="Texto da alternativa com fórmulas KaTeX delimitadas por $...$")
     correta: Optional[bool] = Field(None, description="Flag indicando se é o gabarito (oculto no envio normal ao aluno)")
+
+    @field_validator("texto_katex", mode="before")
+    @classmethod
+    def sanitizar_texto_katex(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return converter_raiz_em_exponencial(v)
+        return v
 
 
 class ItemExercicioResponse(BaseModel):
@@ -34,6 +42,13 @@ class ItemExercicioResponse(BaseModel):
     criado_em: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("enunciado_katex", mode="before")
+    @classmethod
+    def sanitizar_enunciado(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return converter_raiz_em_exponencial(v)
+        return v
 
 
 
@@ -79,6 +94,14 @@ class SubmissaoExercicioResponse(BaseModel):
         None,
         description="Letra ou gabarito revelado em caso de término (acerto ou erro duplo)",
     )
+
+    @field_validator("pista_socratica_ia", "resolucao_completa_katex", mode="before")
+    @classmethod
+    def sanitizar_textos(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return converter_raiz_em_exponencial(v)
+        return v
+
 
 
 # ============================================================================

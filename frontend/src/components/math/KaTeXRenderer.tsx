@@ -17,8 +17,11 @@ export function KaTeXRenderer({ content, className = "" }: KaTeXRendererProps) {
   const renderedHtml = useMemo(() => {
     if (!content) return "";
 
+    // Pré-processamento: converte quaisquer radicais residuais em expoentes fracionários (RN-EXE-017)
+    const sanitizedContent = converterRaizEmExponencial(content);
+
     // 1. Processar blocos de display math ($$...$$)
-    let processed = content.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
+    let processed = sanitizedContent.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
       try {
         const rendered = katex.renderToString(formula.trim(), {
           displayMode: true,
@@ -156,3 +159,98 @@ function renderAlertBox(type: string, innerHtml: string): string {
     </div>
   `;
 }
+
+function extrairBlocoChaves(texto: string, posInicio: number): [string, number] {
+  let nivel = 1;
+  let i = posInicio + 1;
+  const tamanho = texto.length;
+  while (i < tamanho && nivel > 0) {
+    const c = texto[i];
+    if (c === "{") nivel++;
+    else if (c === "}") nivel--;
+    i++;
+  }
+  if (nivel !== 0) return [texto.slice(posInicio + 1), tamanho];
+  return [texto.slice(posInicio + 1, i - 1), i];
+}
+
+function extrairBlocoColchetes(texto: string, posInicio: number): [string, number] {
+  let nivel = 1;
+  let i = posInicio + 1;
+  const tamanho = texto.length;
+  while (i < tamanho && nivel > 0) {
+    const c = texto[i];
+    if (c === "[") nivel++;
+    else if (c === "]") nivel--;
+    i++;
+  }
+  if (nivel !== 0) return ["", posInicio + 1];
+  return [texto.slice(posInicio + 1, i - 1), i];
+}
+
+/**
+ * Converte recursivamente raízes \\sqrt e \\sqrt[n] para potência fracionária (RN-EXE-017).
+ */
+export function converterRaizEmExponencial(texto: string): string {
+  if (!texto || !texto.includes("\\sqrt")) return texto;
+
+  const idxSqrt = texto.lastIndexOf("\\sqrt");
+  if (idxSqrt === -1) return texto;
+
+  let posChave = idxSqrt + 5;
+  let indice = "2";
+
+  while (posChave < texto.length && /\s/.test(texto[posChave])) {
+    posChave++;
+  }
+
+  if (posChave < texto.length && texto[posChave] === "[") {
+    const [ind, posDepois] = extrairBlocoColchetes(texto, posChave);
+    indice = ind.trim() || "2";
+    posChave = posDepois;
+    while (posChave < texto.length && /\s/.test(texto[posChave])) {
+      posChave++;
+    }
+  }
+
+  if (posChave >= texto.length || texto[posChave] !== "{") {
+    const prefixo = converterRaizEmExponencial(texto.slice(0, idxSqrt));
+    return prefixo + texto.slice(idxSqrt);
+  }
+
+  const [radicandoBruto, posFim] = extrairBlocoChaves(texto, posChave);
+  const radicando = converterRaizEmExponencial(radicandoBruto);
+  const radStrip = radicando.trim();
+
+  const temParentesesExternos =
+    radStrip.startsWith("(") &&
+    radStrip.endsWith(")") &&
+    (radStrip.match(/\(/g) || []).length === (radStrip.match(/\)/g) || []).length;
+
+  const ehSimples =
+    /^[0-9]+$/.test(radStrip) ||
+    /^[a-zA-Z]$/.test(radStrip) ||
+    /^\\[a-zA-Z]+$/.test(radStrip);
+
+  const baseExp = ehSimples || temParentesesExternos ? radStrip : `(${radStrip})`;
+  const expStr = indice === "2" ? "^{1/2}" : `^{1/${indice}}`;
+  const substituicao = `${baseExp}${expStr}`;
+
+  const prefixoTudo = texto.slice(0, idxSqrt);
+  const prefStrip = prefixoTudo.trimEnd();
+
+  let prefixoAjustado = prefixoTudo;
+  if (prefStrip && /\\[a-zA-Z]+$/.test(prefStrip)) {
+    prefixoAjustado = prefStrip + " ";
+  } else if (
+    prefStrip &&
+    !/[+\-*/=<>~([{|&^,:;?!$]/.test(prefStrip.slice(-1)) &&
+    (/[0-9a-zA-Z]/.test(prefStrip.slice(-1)) || prefStrip.endsWith(")"))
+  ) {
+    prefixoAjustado = prefStrip + " \\cdot ";
+  }
+
+  const textoAtualizado = prefixoAjustado + substituicao + texto.slice(posFim);
+  return converterRaizEmExponencial(textoAtualizado);
+}
+
